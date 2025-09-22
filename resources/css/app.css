@@ -23,9 +23,23 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
-    --color-accent-foreground: var(--color-white);
+    /* Paleta de colores del proyecto (rojo distintivo) */
+    --project-50: #fff0f0;
+    --project-100: #ffdddd;
+    --project-200: #ffc1c2;
+    --project-300: #ff9697;
+    --project-400: #ff5a5c;
+    --project-500: #ff2729;
+    --project-600: #fb0709;
+    --project-700: #ce0103;
+    --project-800: #af0507;
+    --project-900: #900c0d;
+    --project-950: #4f0001;
+
+    /* Usar el color de marca como accent por defecto */
+    --color-accent: var(--project-500);
+    --color-accent-content: var(--color-white);
+    --color-accent-foreground: var(--project-900);
 }
 
 @layer theme {
@@ -45,6 +59,116 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+}
+
+/* Componentes reutilizables específicos del proyecto */
+@layer components {
+    /* Botón primario (marca) */
+    .btn-primary {
+        background-color: var(--project-500);
+        color: var(--color-accent-content);
+        border-radius: .375rem;
+        padding: .5rem .75rem;
+        font-weight: 600;
+    }
+    .btn-primary:hover {
+        background-color: var(--project-600);
+    }
+
+    /* Botón secundario (outline) */
+    .btn-outline {
+        background-color: transparent;
+        color: var(--project-700);
+        border: 1px solid var(--project-200);
+        border-radius: .375rem;
+        padding: .5rem .75rem;
+        font-weight: 600;
+    }
+
+    /* Badges / etiquetas de rol */
+    .badge-project {
+        display: inline-block;
+        padding: .15rem .5rem;
+        border-radius: 9999px;
+        font-size: .675rem;
+        font-weight: 600;
+    }
+
+    .badge-project.admin {
+        background-color: var(--project-100);
+        color: var(--project-700);
+    }
+
+    .badge-project.default {
+        background-color: var(--project-300);
+        color: var(--color-accent-content);
+    }
+
+    /* Mensajes de estado (success/error) con matiz de marca */
+    .callout-project {
+        padding: .75rem 1rem;
+        border-left-width: 4px;
+        border-left-color: var(--project-500);
+        background-color: rgba(255,39,41,0.06);
+        color: var(--project-700);
+        border-radius: .25rem;
+    }
+
+    /* Utilities rápidas para textos y fondos de marca */
+    .text-project { color: var(--project-700); }
+    /* Variantes de texto para usar en templates (alias útiles) */
+    .text-project-500 { color: var(--project-500); }
+    .text-project-700 { color: var(--project-700); }
+    .bg-project-50 { background-color: var(--project-50); }
+    .bg-project-100 { background-color: var(--project-100); }
+    .bg-project-500 { background-color: var(--project-500); }
+}
+
+/* Inputs y selects con altura y borde de marca */
+.input-project {
+    padding: .625rem .75rem; /* mayor altura */
+    border: 1px solid var(--project-200);
+    background-color: #ffffff;
+    border-radius: .375rem;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.25rem;
+}
+.input-project:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255,39,41,0.12);
+    border-color: var(--project-500);
+}
+
+.select-project {
+    padding: .5rem .75rem;
+}
+
+/* Botón de peligro (eliminar) */
+.btn-danger {
+    background-color: var(--project-500);
+    color: var(--color-accent-content);
+    border-radius: .375rem;
+    padding: .5rem .75rem;
+    font-weight: 600;
+}
+.btn-danger:hover {
+    background-color: var(--project-600);
+}
+
+/* Modal styles: backdrop y panel mejorados */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0,0,0,0.26); /* menos opaco */
+    z-index: 40;
+}
+.modal-panel {
+    background-color: #ffffff;
+    border-radius: .5rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    z-index: 50;
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
