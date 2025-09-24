@@ -188,3 +188,36 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Cards y grid para formularios responsivos */
+.card {
+    background-color: #ffffff;
+    border-radius: .5rem;
+    box-shadow: 0 8px 24px rgba(15,23,42,0.06);
+    padding: 1rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .form-grid.sm-cols-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.field-label {
+    display: block;
+    font-size: .875rem;
+    color: var(--color-zinc-700);
+    margin-bottom: .25rem;
+    font-weight: 600;
+}
+
+.help-text {
+    font-size: .8125rem;
+    color: #6b7280;
+}

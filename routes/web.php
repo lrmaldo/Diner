@@ -29,6 +29,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users/create', Create::class)->middleware('permission:crear usuarios')->name('users.create');
         Route::get('/users/{user}/edit', Edit::class)->middleware('permission:editar usuarios')->name('users.edit');
     });
+
+    // Rutas para gestión de clientes
+    Route::middleware(['permission:ver clientes'])->group(function () {
+        Route::get('/clients', \App\Livewire\Clients\Index::class)->name('clients.index');
+        Route::get('/clients/create', \App\Livewire\Clients\Create::class)->middleware('permission:crear clientes')->name('clients.create');
+        Route::get('/clients/{cliente}/edit', \App\Livewire\Clients\Edit::class)->middleware('permission:editar clientes')->name('clients.edit');
+        Route::get('/clients/{cliente}', \App\Livewire\Clients\Show::class)->name('clients.show');
+    });
 });
 
 require __DIR__.'/auth.php';
