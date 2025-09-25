@@ -72,7 +72,7 @@
                             <a href="{{ route('clients.show', $cliente) }}" class="text-project-500 hover:underline mr-3">Ver</a>
                             <a href="{{ route('clients.edit', $cliente) }}" class="text-project-700 hover:underline mr-3">Editar</a>
                             @if(auth()->user() && auth()->user()->can('eliminar clientes'))
-                                <button wire:click.prevent="delete({{ $cliente->id }})" class="text-red-600 hover:underline">Eliminar</button>
+                                <button wire:click.prevent="confirmDelete({{ $cliente->id }})" class="text-red-600 hover:underline">Eliminar</button>
                             @endif
                         </td>
                     </tr>
@@ -101,4 +101,19 @@
     <div class="mt-4">
         {{ $clientes->links() }}
     </div>
+    {{-- Confirm delete modal --}}
+    @if($confirmingDeleteId)
+        <div class="fixed inset-0 z-40 flex items-center justify-center">
+            <div class="fixed inset-0 bg-black opacity-30"></div>
+            <div class="bg-white rounded-lg shadow-lg z-50 max-w-md w-full p-6">
+                <h3 class="text-lg font-semibold text-gray-800">Confirmar eliminación</h3>
+                <p class="text-sm text-gray-600 mt-2">¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer.</p>
+                <div class="mt-4 flex justify-end gap-2">
+                    <button wire:click.prevent="cancelConfirmDelete" class="btn-outline">Cancelar</button>
+                    <button wire:click.prevent="deleteConfirmed" class="btn-danger">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>
