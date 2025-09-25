@@ -14,6 +14,7 @@ class Index extends Component
     public $perPage = 10;
     public $filterEstado = '';
     public $filterMunicipio = '';
+    public $confirmingDeleteId = null;
 
     protected $updatesQueryString = ['search'];
 
@@ -45,23 +46,50 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function delete(int $id): void
+    /**
+     * Request confirmation before deleting a cliente.
+     */
+    public function confirmDelete(int $id): void
     {
+        $this->confirmingDeleteId = $id;
+    }
+
+    public function cancelConfirmDelete(): void
+    {
+        $this->confirmingDeleteId = null;
+    }
+
+    /**
+     * Perform the deletion after user confirms in the modal.
+     */
+    public function deleteConfirmed(): void
+    {
+        $id = $this->confirmingDeleteId;
+        if (! $id) {
+            return;
+        }
+
         // Verificar permiso a nivel de backend
         if (! auth()->user() || ! auth()->user()->can('eliminar clientes')) {
-            session()->flash('error', 'No tienes permiso para eliminar clientes.');
+            $this->dispatchBrowserEvent('client-deleted', ['success' => false, 'message' => 'No tienes permiso para eliminar clientes.']);
+            $this->confirmingDeleteId = null;
             return;
         }
 
         $cliente = Cliente::find($id);
         if (! $cliente) {
-            session()->flash('error', 'Cliente no encontrado');
+            $this->dispatchBrowserEvent('client-deleted', ['success' => false, 'message' => 'Cliente no encontrado.']);
+            $this->confirmingDeleteId = null;
             return;
         }
 
         $cliente->delete();
-        session()->flash('success', 'Cliente eliminado correctamente');
+
+        $this->confirmingDeleteId = null;
         $this->resetPage();
+
+        // Emitir evento al navegador para mostrar un toast de confirmación
+        $this->dispatchBrowserEvent('client-deleted', ['success' => true, 'message' => 'Cliente eliminado correctamente']);
     }
 
     public function render(): \Illuminate\Contracts\View\View

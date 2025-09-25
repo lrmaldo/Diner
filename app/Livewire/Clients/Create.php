@@ -121,6 +121,16 @@ class Create extends Component
         return redirect()->route('clients.index');
     }
 
+    /**
+     * Livewire hook called when $curp is updated from the frontend.
+     * Normalize to uppercase and strip non-alphanumeric chars, limit to 18.
+     */
+    public function updatedCurp($value): void
+    {
+        $sanitized = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $value));
+        $this->curp = substr($sanitized, 0, 18);
+    }
+
     public function addPhone(): void
     {
         $this->phones[] = ['tipo' => 'celular', 'numero' => ''];

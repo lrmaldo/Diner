@@ -197,6 +197,15 @@ class Edit extends Component
         return redirect()->route('clients.index');
     }
 
+    /**
+     * Normalize CURP when updated from frontend: uppercase, strip non-alphanum, max 18
+     */
+    public function updatedCurp($value): void
+    {
+        $sanitized = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $value));
+        $this->curp = substr($sanitized, 0, 18);
+    }
+
     public function render(): \Illuminate\Contracts\View\View
     {
         return view('livewire.clients.edit', [

@@ -30,7 +30,8 @@
 
             <div>
                 <label class="field-label">CURP</label>
-                <input wire:model.defer="curp" type="text" class="input-project" />
+                <input wire:model.defer="curp" type="text" class="input-project" maxlength="18" pattern="[A-Za-z0-9]{0,18}"
+                       oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,18)" />
                 @error('curp') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 
