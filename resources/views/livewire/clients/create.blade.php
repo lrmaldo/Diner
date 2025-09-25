@@ -66,7 +66,14 @@
 
             <div>
                 <label class="field-label">Estado civil</label>
-                <input wire:model.defer="estado_civil" type="text" class="input-project" />
+                <select wire:model.defer="estado_civil" class="input-project">
+                    <option value="">-- Seleccionar --</option>
+                    <option value="soltero">Soltero/a</option>
+                    <option value="casado">Casado/a</option>
+                    <option value="divorciado">Divorciado/a</option>
+                    <option value="viudo">Viudo/a</option>
+                    <option value="union_libre">Unión libre</option>
+                </select>
                 @error('estado_civil') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 

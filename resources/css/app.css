@@ -221,3 +221,20 @@ select:focus[data-flux-control] {
     font-size: .8125rem;
     color: #6b7280;
 }
+
+/* Estadísticas / cards pequeñas para dashboard/listados */
+.stat-card {
+    padding: 1rem;
+    border-radius: .5rem;
+    background-color: #ffffff;
+    box-shadow: 0 6px 18px rgba(15,23,42,0.04);
+}
+.stat-card .value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--project-700);
+}
+.stat-card .label {
+    font-size: .8125rem;
+    color: var(--color-zinc-600);
+}
