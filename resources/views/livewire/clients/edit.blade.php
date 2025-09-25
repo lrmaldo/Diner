@@ -17,9 +17,7 @@
         @endif
     </div>
 
-    @if (session('success'))
-        <div class="callout-project mb-4">{{ session('success') }}</div>
-    @endif
+    <x-status-alert :type="session('success') ? 'success' : 'info'" :message="session('success')" :timeout="4000" />
 
     <div class="bg-white shadow rounded-lg p-6">
         <form wire:submit.prevent="save" class="grid grid-cols-1 sm:grid-cols-2 gap-4">

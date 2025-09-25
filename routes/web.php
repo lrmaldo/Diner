@@ -32,7 +32,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Rutas para gestión de clientes
     Route::middleware(['permission:ver clientes'])->group(function () {
-        Route::get('/clients', \App\Livewire\Clients\Index::class)->name('clients.index');
+    Route::get('/clients', \App\Livewire\Clients\Index::class)->name('clients.index');
         Route::get('/clients/create', \App\Livewire\Clients\Create::class)->middleware('permission:crear clientes')->name('clients.create');
         Route::get('/clients/{cliente}/edit', \App\Livewire\Clients\Edit::class)->middleware('permission:editar clientes')->name('clients.edit');
         Route::get('/clients/{cliente}', \App\Livewire\Clients\Show::class)->name('clients.show');

@@ -4,8 +4,6 @@
         <a href="{{ route('clients.create') }}" class="btn-primary">Nuevo cliente</a>
     </div>
 
-    <x-status-alert :type="$statusType" :message="$statusMessage" :timeout="$statusTimeout" />
-
     <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="md:col-span-2">
             <div class="flex items-center gap-2 w-full">
@@ -104,6 +102,7 @@
         {{ $clientes->links() }}
     </div>
 
+    {{-- Confirm delete modal --}}
     @if($confirmingDeleteId)
         <div class="fixed inset-0 z-40 flex items-center justify-center">
             <div class="absolute inset-0 bg-black opacity-30" wire:click="cancelConfirmDelete"></div>
