@@ -38,7 +38,7 @@ class Edit extends Component
     {
         return [
             'apellido_paterno' => ['required', 'string', 'max:255'],
-            'apellido_materno' => ['nullable', 'string', 'max:255'],
+            'apellido_materno' => ['required', 'string', 'max:255'],
             'nombres' => ['required', 'string', 'max:255'],
             'curp' => ['required', 'string', 'max:18', "unique:clientes,curp,{$this->cliente->id}"],
             'email' => ['nullable', 'email', 'max:255', "unique:clientes,email,{$this->cliente->id}"],
@@ -204,6 +204,13 @@ class Edit extends Component
     {
         $sanitized = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $value));
         $this->curp = substr($sanitized, 0, 18);
+    }
+
+    public function updatedEstadoCivil($value): void
+    {
+        if ($value === 'soltero') {
+            $this->nombre_conyuge = null;
+        }
     }
 
     public function render(): \Illuminate\Contracts\View\View

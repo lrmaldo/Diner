@@ -9,25 +9,25 @@
     <div class="bg-white shadow rounded-lg p-6">
         <form wire:submit.prevent="save" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-                <label class="field-label">Apellido paterno</label>
+                <label class="field-label">Apellido paterno <span class="text-red-600">*</span></label>
                 <input wire:model.defer="apellido_paterno" type="text" class="input-project" />
                 @error('apellido_paterno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 
             <div>
-                <label class="field-label">Apellido materno</label>
+                <label class="field-label">Apellido materno <span class="text-red-600">*</span></label>
                 <input wire:model.defer="apellido_materno" type="text" class="input-project" />
                 @error('apellido_materno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 
             <div class="sm:col-span-2">
-                <label class="field-label">Nombres</label>
+                <label class="field-label">Nombres <span class="text-red-600">*</span></label>
                 <input wire:model.defer="nombres" type="text" class="input-project" />
                 @error('nombres') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 
             <div>
-                <label class="field-label">CURP</label>
+                <label class="field-label">CURP <span class="text-red-600">*</span></label>
                 <input wire:model.defer="curp" type="text" class="input-project" maxlength="18" pattern="[A-Za-z0-9]{0,18}"
                        oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,18)" />
                 @error('curp') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
@@ -45,14 +45,31 @@
                 @error('pais_nacimiento') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 
-            <div>
-                <label class="field-label">Nombre del cónyuge</label>
-                <input wire:model.defer="nombre_conyuge" type="text" class="input-project" />
-                @error('nombre_conyuge') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+            <div x-data="{ estadoCivil: @entangle('estado_civil') }" class="sm:col-span-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="field-label">Estado civil</label>
+                        <select x-model="estadoCivil" class="input-project" aria-label="Estado civil">
+                            <option value="">-- Seleccionar --</option>
+                            <option value="soltero">Soltero/a</option>
+                            <option value="casado">Casado/a</option>
+                            <option value="divorciado">Divorciado/a</option>
+                            <option value="viudo">Viudo/a</option>
+                            <option value="union_libre">Unión libre</option>
+                        </select>
+                        @error('estado_civil') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="field-label">Nombre del cónyuge</label>
+                        <input wire:model.defer="nombre_conyuge" :disabled="estadoCivil === 'soltero'" type="text" class="input-project" />
+                        @error('nombre_conyuge') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                    </div>
+                </div>
             </div>
 
             <div class="sm:col-span-2">
-                <label class="field-label">Calle y número</label>
+                <label class="field-label">Calle y número <span class="text-red-600">*</span></label>
                 <input wire:model.defer="calle_numero" type="text" class="input-project" />
                 @error('calle_numero') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
@@ -63,18 +80,7 @@
                 @error('referencia_domiciliaria') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 
-            <div>
-                <label class="field-label">Estado civil</label>
-                <select wire:model.defer="estado_civil" class="input-project">
-                    <option value="">-- Seleccionar --</option>
-                    <option value="soltero">Soltero/a</option>
-                    <option value="casado">Casado/a</option>
-                    <option value="divorciado">Divorciado/a</option>
-                    <option value="viudo">Viudo/a</option>
-                    <option value="union_libre">Unión libre</option>
-                </select>
-                @error('estado_civil') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
-            </div>
+            {{-- Estado civil manejado más arriba con Alpine/entangle (evitar duplicado) --}}
 
             <div>
                 <label class="field-label">Dependientes económicos</label>

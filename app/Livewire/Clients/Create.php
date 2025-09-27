@@ -36,7 +36,7 @@ class Create extends Component
     {
         return [
             'apellido_paterno' => ['required', 'string', 'max:255'],
-            'apellido_materno' => ['nullable', 'string', 'max:255'],
+            'apellido_materno' => ['required', 'string', 'max:255'],
             'nombres' => ['required', 'string', 'max:255'],
             'curp' => ['required', 'string', 'max:18', 'unique:clientes,curp'],
             'email' => ['nullable', 'email', 'max:255', 'unique:clientes,email'],
@@ -44,7 +44,7 @@ class Create extends Component
             'nombre_conyuge' => ['nullable', 'string', 'max:255'],
             'calle_numero' => ['required', 'string', 'max:500'],
             'referencia_domiciliaria' => ['nullable', 'string', 'max:1000'],
-            'estado_civil' => ['nullable', 'string', 'max:100'],
+            'estado_civil' => ['required', 'string', 'max:100'],
             'dependientes_economicos' => ['nullable', 'integer', 'min:0'],
             'nombre_aval' => ['nullable', 'string', 'max:255'],
             'actividad_productiva' => ['nullable', 'string', 'max:255'],
@@ -129,6 +129,14 @@ class Create extends Component
     {
         $sanitized = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $value));
         $this->curp = substr($sanitized, 0, 18);
+    }
+
+    public function updatedEstadoCivil(string $value): void
+    {
+        // Si la persona es soltera, limpiar el nombre del cónyuge
+        if ($value === 'soltero') {
+            $this->nombre_conyuge = null;
+        }
     }
 
     public function addPhone(): void
