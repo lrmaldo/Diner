@@ -36,7 +36,7 @@ class Create extends Component
     {
         return [
             'apellido_paterno' => ['required', 'string', 'max:255'],
-            'apellido_materno' => ['required', 'string', 'max:255'],
+            'apellido_materno' => ['nullable', 'string', 'max:255'],
             'nombres' => ['required', 'string', 'max:255'],
             'curp' => ['required', 'string', 'max:18', 'unique:clientes,curp'],
             'email' => ['nullable', 'email', 'max:255', 'unique:clientes,email'],

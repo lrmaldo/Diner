@@ -15,7 +15,7 @@
             </div>
 
             <div>
-                <label class="field-label">Apellido materno <span class="text-red-600">*</span></label>
+                <label class="field-label">Apellido materno</label>
                 <input wire:model.defer="apellido_materno" type="text" class="input-project" />
                 @error('apellido_materno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
