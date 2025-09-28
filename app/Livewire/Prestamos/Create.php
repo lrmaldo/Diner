@@ -306,6 +306,12 @@ class Create extends Component
         $grupo = Grupo::find($id);
         $this->grupo_nombre_selected = $grupo ? $grupo->nombre : null;
         $this->showGrupoModal = false;
+        // cargar miembros del grupo para poder agregarlos
+        if ($grupo) {
+            $this->clientesAgregados = $grupo->clientes()->get()->map(function ($c) {
+                return ['cliente_id' => $c->id, 'monto_solicitado' => null, 'nombre' => trim("{$c->nombres} {$c->apellido_paterno}")];
+            })->toArray();
+        }
     }
 
     public function addNewClient()
@@ -346,6 +352,8 @@ class Create extends Component
         $this->showNewGrupoForm = false;
         $this->new_grupo_nombre = $this->new_grupo_descripcion = null;
         session()->flash('success', 'Grupo creado y seleccionado');
+        // abrir modal de clientes para agregar miembros inmediatamente
+        $this->showClienteModal = true;
     }
 
     public function updatedClienteSearch()

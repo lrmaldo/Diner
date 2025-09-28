@@ -128,53 +128,63 @@
                 @if($producto === 'grupal')
                     <div class="mt-4">
                         <p class="text-sm text-gray-600">Agregar clientes al préstamo grupal.</p>
-                        <div class="mt-3 flex gap-2">
-                            <button type="button" wire:click.prevent="$set('showClienteModal', true)" class="btn-outline">Buscar cliente</button>
-                            <button type="button" wire:click.prevent="$toggle('showNewClienteForm')" class="btn-outline">Nuevo cliente</button>
-                        </div>
 
-                        @if($showNewClienteForm)
-                            <div class="mt-2 p-3 border rounded bg-gray-50 w-full sm:w-1/2">
-                                <label class="field-label">Apellido paterno</label>
-                                <input wire:model.defer="new_apellido_paterno" class="input-project" />
-                                <label class="field-label mt-2">Apellido materno</label>
-                                <input wire:model.defer="new_apellido_materno" class="input-project" />
-                                <label class="field-label mt-2">Nombres</label>
-                                <input wire:model.defer="new_nombres" class="input-project" />
-                                <label class="field-label mt-2">CURP</label>
-                                <input wire:model.defer="new_curp" class="input-project" />
-                                <div class="mt-2 flex justify-end gap-2">
-                                    <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear</button>
+                        @if(! $grupo_id)
+                            <div class="mt-3 flex gap-2">
+                                <button type="button" wire:click.prevent="$set('showGrupoModal', true)" class="btn-outline">Buscar grupo</button>
+                                <button type="button" wire:click.prevent="$toggle('showNewGrupoForm')" class="btn-outline">Nuevo grupo</button>
+                            </div>
+
+                            @if($showNewGrupoForm)
+                                <div class="mt-2 p-3 border rounded bg-gray-50 w-full sm:w-1/2">
+                                    <label class="field-label">Nombre del grupo</label>
+                                    <input wire:model.defer="new_grupo_nombre" class="input-project" />
+                                    <label class="field-label mt-2">Descripción</label>
+                                    <textarea wire:model.defer="new_grupo_descripcion" class="input-project"></textarea>
+                                    <div class="mt-2 flex justify-end gap-2">
+                                        <button type="button" wire:click.prevent="addNewGrupo" class="btn-primary">Crear y continuar</button>
+                                    </div>
                                 </div>
+                            @endif
+
+                        @else
+                            <div class="mt-3 flex items-center gap-2">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">{{ $grupo_nombre_selected }}</span>
+                                <button type="button" wire:click.prevent="$set('showClienteModal', true)" class="btn-outline">Agregar miembros</button>
+                                <button type="button" wire:click.prevent="$set('grupo_id', null)" class="btn-outline">Deseleccionar grupo</button>
+                            </div>
+
+                            <div class="mt-4">
+                                <table class="w-full table-auto border">
+                                    <thead>
+                                        <tr class="bg-gray-50">
+                                            <th class="p-2 text-left">Miembro</th>
+                                            <th class="p-2 text-left">Monto solicitado</th>
+                                            <th class="p-2">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($clientesAgregados as $index => $row)
+                                            <tr class="border-t">
+                                                <td class="p-2">{{ $row['nombre'] ?? 'Cliente #' . $row['cliente_id'] }}</td>
+                                                <td class="p-2">
+                                                    <input type="number" step="0.01" wire:model.defer="clientesAgregados.{{ $index }}.monto_solicitado" class="input-project w-32" />
+                                                </td>
+                                                <td class="p-2 text-center">
+                                                    <button type="button" wire:click.prevent="agregarClienteAlGrupo({{ $row['cliente_id'] }}, {{ "clientesAgregados.$index.monto_solicitado" }})" class="btn-outline">Guardar</button>
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr><td class="p-2" colspan="3">No hay miembros aún. Usa "Agregar miembros" para buscarlos.</td></tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="mt-4 flex gap-2">
+                                <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
                             </div>
                         @endif
-
-                        <div class="mt-4">
-                            <table class="w-full table-auto border">
-                                <thead>
-                                    <tr class="bg-gray-50">
-                                        <th class="p-2 text-left">Cliente</th>
-                                        <th class="p-2 text-left">Monto solicitado</th>
-                                        <th class="p-2">Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($clientesAgregados as $index => $row)
-                                        <tr class="border-t">
-                                            <td class="p-2">{{ $row['nombre'] ?? 'Cliente #' . $row['cliente_id'] }}</td>
-                                            <td class="p-2">{{ number_format($row['monto_solicitado'] ?? 0,2) }}</td>
-                                            <td class="p-2 text-center">
-                                                <button type="button" wire:click.prevent="agregarClienteAlGrupo({{ $row['cliente_id'] }}, {{ $row['monto_solicitado'] ?? 0 }})" class="btn-outline">Guardar</button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div class="mt-4 flex gap-2">
-                            <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
-                        </div>
                     </div>
                 @endif
             </div>
