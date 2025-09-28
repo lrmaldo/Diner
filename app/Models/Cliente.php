@@ -47,4 +47,16 @@ class Cliente extends Model
     {
         return $this->hasMany(Telefono::class, 'cliente_id');
     }
+
+    public function prestamos()
+    {
+        return $this->morphMany(Prestamo::class, 'prestamoable');
+    }
+
+    public function prestamosAsignados()
+    {
+        return $this->belongsToMany(Prestamo::class, 'cliente_prestamo', 'cliente_id', 'prestamo_id')
+            ->withPivot('monto_solicitado')
+            ->withTimestamps();
+    }
 }
