@@ -10,6 +10,7 @@ use App\Models\Grupo;
 class Edit extends Component
 {
     public $prestamo_id;
+    public $step = 2;
     public $producto;
     public $plazo;
     public $periodicidad;
@@ -223,6 +224,21 @@ class Edit extends Component
         $prestamo->save();
 
         session()->flash('success', 'Préstamo actualizado correctamente.');
+    }
+
+    /**
+     * Para compatibilidad con la vista compartida: avanzar a vinculación
+     */
+    public function crearPrestamo(): void
+    {
+        // asegurarnos que haya un prestamo cargado
+        if (! $this->prestamo_id) {
+            $this->addError('prestamo', 'No hay préstamo cargado');
+            return;
+        }
+
+        $this->step = 2;
+        session()->flash('success', 'Continuando a vinculación');
     }
 
     public function linkClienteIndividual(float $monto)

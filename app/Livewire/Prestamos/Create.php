@@ -259,6 +259,95 @@ class Create extends Component
         session()->flash('success', 'Préstamo creado con folio: ' . $prestamo->folio);
     }
 
+    public function linkClienteIndividual(float $monto)
+    {
+        if (! isset($this->prestamo_id)) {
+            $this->addError('prestamo', 'Primero crea el préstamo');
+            return;
+        }
+        $this->validate(['cliente_id' => ['required','exists:clientes,id']]);
+
+        $prestamo = Prestamo::findOrFail($this->prestamo_id);
+        $prestamo->cliente_id = $this->cliente_id;
+        $prestamo->monto_total = $monto;
+        $prestamo->save();
+
+        session()->flash('success', 'Cliente vinculado al préstamo');
+        return redirect()->route('prestamos.index');
+    }
+
+    public function agregarClienteAlGrupo(int $clienteId, float $monto)
+    {
+        if (! isset($this->prestamo_id)) {
+            $this->addError('prestamo', 'Primero crea el préstamo');
+            return;
+        }
+
+        $prestamo = Prestamo::findOrFail($this->prestamo_id);
+        $cliente = Cliente::findOrFail($clienteId);
+        $prestamo->clientes()->syncWithoutDetaching([$cliente->id => ['monto_solicitado' => $monto]]);
+
+        $this->clientesAgregados[] = ['cliente_id' => $cliente->id, 'monto_solicitado' => $monto, 'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}")];
+    }
+
+    public function selectCliente(int $id): void
+    {
+        $this->cliente_id = $id;
+        $this->clienteSearch = '';
+        $cliente = Cliente::find($id);
+        $this->cliente_nombre_selected = $cliente ? trim("{$cliente->nombres} {$cliente->apellido_paterno} {$cliente->apellido_materno}") : null;
+        $this->showClienteModal = false;
+    }
+
+    public function selectGrupo(int $id): void
+    {
+        $this->grupo_id = $id;
+        $this->grupoSearch = '';
+        $grupo = Grupo::find($id);
+        $this->grupo_nombre_selected = $grupo ? $grupo->nombre : null;
+        $this->showGrupoModal = false;
+    }
+
+    public function addNewClient()
+    {
+        $data = $this->validate([
+            'new_apellido_paterno' => ['required', 'string', 'max:255'],
+            'new_apellido_materno' => ['nullable', 'string', 'max:255'],
+            'new_nombres' => ['required', 'string', 'max:255'],
+            'new_curp' => ['nullable', 'string', 'max:18'],
+        ]);
+
+        $cliente = Cliente::create([
+            'apellido_paterno' => $this->new_apellido_paterno,
+            'apellido_materno' => $this->new_apellido_materno,
+            'nombres' => $this->new_nombres,
+            'curp' => $this->new_curp,
+        ]);
+
+        $this->cliente_id = $cliente->id;
+        $this->showNewClienteForm = false;
+        $this->new_apellido_paterno = $this->new_apellido_materno = $this->new_nombres = $this->new_curp = null;
+        session()->flash('success', 'Cliente creado y seleccionado');
+    }
+
+    public function addNewGrupo()
+    {
+        $data = $this->validate([
+            'new_grupo_nombre' => ['required', 'string', 'max:255'],
+            'new_grupo_descripcion' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $grupo = Grupo::create([
+            'nombre' => $this->new_grupo_nombre,
+            'descripcion' => $this->new_grupo_descripcion,
+        ]);
+
+        $this->grupo_id = $grupo->id;
+        $this->showNewGrupoForm = false;
+        $this->new_grupo_nombre = $this->new_grupo_descripcion = null;
+        session()->flash('success', 'Grupo creado y seleccionado');
+    }
+
     public function updatedClienteSearch()
     {
         // trigger render to refresh $this->clientes

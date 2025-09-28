@@ -119,6 +119,7 @@
 
                         <div class="mt-4 flex gap-2">
                             <button type="button" wire:click.prevent="linkClienteIndividual({{ $monto ?? 0 }})" class="btn-primary">Vincular y finalizar</button>
+                            <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar Paso 1</button>
                             <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
                         </div>
                     </div>
