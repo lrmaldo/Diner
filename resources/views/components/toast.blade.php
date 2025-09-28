@@ -31,11 +31,19 @@
                 // Livewire global event bus (used by some server dispatch implementations)
                 if (window.Livewire && typeof window.Livewire.on === 'function') {
                     window.Livewire.on('client-deleted', toastHandler);
+                    // listen for miembroGuardado dispatched from server
+                    window.Livewire.on('miembroGuardado', toastHandler);
                 }
 
                 // Fallback: native DOM CustomEvent dispatched on window
                 if (typeof window.addEventListener === 'function') {
                     window.addEventListener('client-deleted', function (e) {
+                        var data = (e && e.detail) ? e.detail : (e || {});
+                        toastHandler(data);
+                    });
+
+                    // also listen for miembroGuardado CustomEvent (fallback)
+                    window.addEventListener('miembroGuardado', function (e) {
                         var data = (e && e.detail) ? e.detail : (e || {});
                         toastHandler(data);
                     });

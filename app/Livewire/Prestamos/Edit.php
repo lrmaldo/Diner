@@ -7,6 +7,7 @@ use App\Models\Prestamo;
 use App\Models\Cliente;
 use App\Models\Grupo;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class Edit extends Component
 {
@@ -55,6 +56,9 @@ class Edit extends Component
 
     // expose admin flag to view
     public $isAdmin = false;
+    // status alert for simple feedback
+    public $status_message = null;
+    public $status_type = 'success';
 
     public function mount(Prestamo $prestamo): void
     {
@@ -273,10 +277,13 @@ class Edit extends Component
         // attach or update pivot without creating duplicates in the local array
         $prestamo->clientes()->syncWithoutDetaching([$cliente->id => ['monto_solicitado' => $monto]]);
 
+        // ensure clientesAgregados is normalized before searching/updating
+        $this->normalizeClientesAgregados();
+
         // find existing index in clientesAgregados
         $index = null;
         foreach ($this->clientesAgregados as $i => $row) {
-            if (isset($row['cliente_id']) && $row['cliente_id'] == $cliente->id) {
+            if (is_array($row) && isset($row['cliente_id']) && $row['cliente_id'] == $cliente->id) {
                 $index = $i;
                 break;
             }
@@ -291,7 +298,16 @@ class Edit extends Component
             $this->clientesAgregados[$index] = $entry;
         }
 
-        $this->emit('miembroGuardado', ['cliente_id' => $cliente->id, 'monto' => $monto]);
+        $this->dispatch('miembroGuardado', [
+            'success' => true,
+            'message' => 'Miembro guardado correctamente.',
+            'cliente_id' => $cliente->id,
+            'monto' => $monto,
+        ]);
+
+        // also set component-level status for blade component
+        $this->status_message = 'Miembro guardado correctamente.';
+        $this->status_type = 'success';
     }
 
     public function selectCliente(int $id): void
@@ -302,7 +318,8 @@ class Edit extends Component
         $this->cliente_nombre_selected = $cliente ? trim("{$cliente->nombres} {$cliente->apellido_paterno} {$cliente->apellido_materno}") : null;
         $this->showClienteModal = false;
         if ($this->grupo_id) {
-            $exists = collect($this->clientesAgregados)->first(fn($r) => isset($r['cliente_id']) && $r['cliente_id'] == $cliente->id);
+            $this->normalizeClientesAgregados();
+            $exists = collect($this->clientesAgregados)->first(fn($r) => is_array($r) && isset($r['cliente_id']) && $r['cliente_id'] == $cliente->id);
             if (! $exists) {
                 $this->clientesAgregados[] = ['cliente_id' => $cliente->id, 'monto_solicitado' => null, 'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}")];
             }
@@ -311,6 +328,8 @@ class Edit extends Component
 
     public function guardarMiembro(int $index): void
     {
+        $this->normalizeClientesAgregados();
+
         if (! isset($this->clientesAgregados[$index])) {
             $this->addError('miembro', 'Índice de miembro inválido');
             return;
@@ -339,6 +358,8 @@ class Edit extends Component
      */
     public function finalizarVinculacionGrupo(): void
     {
+        $this->normalizeClientesAgregados();
+
         if (! isset($this->prestamo_id)) {
             $this->addError('prestamo', 'Primero crea el préstamo');
             return;
@@ -348,8 +369,9 @@ class Edit extends Component
             $this->addError('miembros', 'Debe agregar al menos un miembro al grupo antes de finalizar.');
             return;
         }
-
+        $sync = [];
         $total = 0.0;
+
         foreach ($this->clientesAgregados as $i => $row) {
             $clienteId = $row['cliente_id'] ?? null;
             $monto = $row['monto_solicitado'] ?? null;
@@ -364,13 +386,24 @@ class Edit extends Component
                 return;
             }
 
-            $this->agregarClienteAlGrupo($clienteId, (float) $monto);
+            $sync[$clienteId] = ['monto_solicitado' => (float) $monto];
             $total += (float) $monto;
         }
 
-        $prestamo = Prestamo::findOrFail($this->prestamo_id);
-        $prestamo->monto_total = $total;
-        $prestamo->save();
+        DB::transaction(function () use ($sync, $total) {
+            $prestamo = Prestamo::findOrFail($this->prestamo_id);
+            $prestamo->clientes()->sync($sync);
+            $prestamo->monto_total = $total;
+            if (isset($this->grupo_id)) {
+                $prestamo->grupo_id = $this->grupo_id;
+            } elseif (! empty($this->grupo_nombre_selected)) {
+                $g = Grupo::where('nombre', $this->grupo_nombre_selected)->first();
+                if ($g) {
+                    $prestamo->grupo_id = $g->id;
+                }
+            }
+            $prestamo->save();
+        });
 
         session()->flash('success', 'Vinculación completada. Préstamo finalizado con monto total: ' . number_format($total, 2));
         redirect()->route('prestamos.index');
@@ -452,5 +485,40 @@ class Edit extends Component
         $uid = auth()->check() ? auth()->id() : 'anon';
         $time = now()->format('YmdHis');
         return sprintf('GRU-%s-%s-%s', $uid, $time, Str::upper(Str::random(4)));
+    }
+
+    protected function normalizeClientesAgregados(): void
+    {
+        if (! is_array($this->clientesAgregados)) {
+            $this->clientesAgregados = [];
+            return;
+        }
+
+        $first = reset($this->clientesAgregados);
+        if (is_array($first) && count($first) === 1 && is_array($first[0]) && isset($first[0][0]) && is_array($first[0][0]) ) {
+            $flat = [];
+            foreach ($this->clientesAgregados as $item) {
+                if (is_array($item)) {
+                    foreach ($item as $sub) {
+                        if (is_array($sub)) {
+                            foreach ($sub as $row) {
+                                if (is_array($row) && isset($row['cliente_id'])) {
+                                    $flat[] = $row;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (! empty($flat)) {
+                $this->clientesAgregados = $flat;
+                return;
+            }
+        }
+
+        $filtered = array_values(array_filter($this->clientesAgregados, function ($r) {
+            return is_array($r) && isset($r['cliente_id']);
+        }));
+        $this->clientesAgregados = $filtered;
     }
 }

@@ -3,7 +3,10 @@
         <h1 class="text-2xl font-semibold">Solicitar préstamo</h1>
         <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver</a>
     </div>
-
+ {{-- usar componente de status-alert para feedback en la vista --}}
+                <div class="mt-2">
+                    <x-status-alert :type="$status_type" :message="$status_message" />
+                </div>
     <div class="bg-white shadow rounded-lg p-6">
 
         {{-- Paso 1: formulario de creación del préstamo --}}
@@ -18,26 +21,6 @@
                     <label class="field-label">Producto</label>
                     <select wire:model="producto" class="input-project">
                         <option value="individual">Individual</option>
-
-                @push('scripts')
-                    <script>
-                        document.addEventListener('DOMContentLoaded', function () {
-                            Livewire.on('miembroGuardado', function (payload) {
-                                // Crear notificación sencilla
-                                let id = 'toast-miembro-guardado';
-                                let existing = document.getElementById(id);
-                                if (existing) { existing.remove(); }
-
-                                let el = document.createElement('div');
-                                el.id = id;
-                                el.className = 'fixed bottom-6 right-6 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-60';
-                                el.innerText = 'Miembro guardado correctamente.';
-                                document.body.appendChild(el);
-                                setTimeout(function () { el.remove(); }, 3000);
-                            });
-                        });
-                    </script>
-                @endpush
                         <option value="grupal">Grupal</option>
                     </select>
                 </div>
@@ -151,7 +134,7 @@
                     <div class="mt-4">
                         <p class="text-sm text-gray-600">Agregar clientes al préstamo grupal.</p>
 
-                        @if(! $grupo_id)
+                        @if(! $grupo_id && empty($clientesAgregados))
                             <div class="mt-3 flex gap-2">
                                     <button type="button" wire:click.prevent="$set('showGrupoModal', true)" class="btn-outline">Buscar grupo</button>
                                     <button type="button" wire:click.prevent="openNewGrupoForm" class="btn-outline">Nuevo grupo</button>
@@ -179,7 +162,7 @@
 
                         @else
                             <div class="mt-3 flex items-center gap-2">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">{{ $grupo_nombre_selected }}</span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">{{ $grupo_nombre_selected ?? ('Miembros vinculados (' . count($clientesAgregados) . ')') }}</span>
                                 <button type="button" wire:click.prevent="$set('showClienteModal', true)" class="btn-outline">Agregar miembros</button>
                                 <button type="button" wire:click.prevent="$set('grupo_id', null)" class="btn-outline">Deseleccionar grupo</button>
                             </div>
@@ -215,8 +198,21 @@
                                 <div class="mt-3 text-sm text-red-600">{{ $errors->first('miembros') }}</div>
                             @endif
 
-                            <div class="mt-4 flex gap-2">
-                                <button type="button" wire:click.prevent="finalizarVinculacionGrupo" class="btn-primary">Finalizar vinculación</button>
+                            <div class="mt-4 flex gap-2 items-center">
+                                <button
+                                    type="button"
+                                    wire:click.prevent="finalizarVinculacionGrupo"
+                                    wire:loading.attr="disabled"
+                                    wire:target="finalizarVinculacionGrupo"
+                                    class="btn-primary flex items-center gap-2"
+                                >
+                                    <svg wire:loading.inline wire:target="finalizarVinculacionGrupo" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                    </svg>
+                                    <span wire:loading.remove wire:target="finalizarVinculacionGrupo">Finalizar vinculación</span>
+                                    <span wire:loading.inline wire:target="finalizarVinculacionGrupo">Procesando...</span>
+                                </button>
                                 <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar Paso 1</button>
                                 <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
                             </div>
