@@ -18,6 +18,26 @@
                     <label class="field-label">Producto</label>
                     <select wire:model="producto" class="input-project">
                         <option value="individual">Individual</option>
+
+                @push('scripts')
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function () {
+                            Livewire.on('miembroGuardado', function (payload) {
+                                // Crear notificación sencilla
+                                let id = 'toast-miembro-guardado';
+                                let existing = document.getElementById(id);
+                                if (existing) { existing.remove(); }
+
+                                let el = document.createElement('div');
+                                el.id = id;
+                                el.className = 'fixed bottom-6 right-6 bg-green-600 text-white px-4 py-2 rounded shadow-lg z-60';
+                                el.innerText = 'Miembro guardado correctamente.';
+                                document.body.appendChild(el);
+                                setTimeout(function () { el.remove(); }, 3000);
+                            });
+                        });
+                    </script>
+                @endpush
                         <option value="grupal">Grupal</option>
                     </select>
                 </div>
@@ -87,6 +107,8 @@
         {{-- Paso 2: vincular clientes (después de crear préstamo) --}}
         @if($step == 2)
             <div>
+                {{-- Depuración: estado actual del componente (temporal) --}}
+                <div class="mb-3 text-sm text-gray-500">Estado: <strong>producto</strong>={{ $producto ?? 'n/a' }}, <strong>step</strong>={{ $step }}</div>
                 <h2 class="text-lg font-semibold">Paso 2 — Vincular clientes</h2>
                 <p class="text-sm text-gray-600">Préstamo creado con folio: <strong>{{ optional($prestamo)->folio }}</strong></p>
 
@@ -131,16 +153,24 @@
 
                         @if(! $grupo_id)
                             <div class="mt-3 flex gap-2">
-                                <button type="button" wire:click.prevent="$set('showGrupoModal', true)" class="btn-outline">Buscar grupo</button>
-                                <button type="button" wire:click.prevent="$toggle('showNewGrupoForm')" class="btn-outline">Nuevo grupo</button>
+                                    <button type="button" wire:click.prevent="$set('showGrupoModal', true)" class="btn-outline">Buscar grupo</button>
+                                    <button type="button" wire:click.prevent="openNewGrupoForm" class="btn-outline">Nuevo grupo</button>
                             </div>
 
                             @if($showNewGrupoForm)
                                 <div class="mt-2 p-3 border rounded bg-gray-50 w-full sm:w-1/2">
                                     <label class="field-label">Nombre del grupo</label>
-                                    <input wire:model.defer="new_grupo_nombre" class="input-project" />
+                                    <input wire:model.defer="new_grupo_nombre" placeholder="{{ $suggested_grupo_name ?? 'Ej: Grupo A' }}" class="input-project" />
                                     <label class="field-label mt-2">Descripción</label>
                                     <textarea wire:model.defer="new_grupo_descripcion" class="input-project"></textarea>
+                                    @if(! empty($group_name_suggestions))
+                                        <div class="mt-2 text-sm text-gray-600">Sugerencias:</div>
+                                        <div class="mt-1 flex gap-2">
+                                            @foreach($group_name_suggestions as $s)
+                                                <button type="button" wire:click.prevent="selectSuggestedGroupName('{{ $s }}')" class="px-2 py-1 bg-gray-100 rounded text-sm">{{ $s }}</button>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                     <div class="mt-2 flex justify-end gap-2">
                                         <button type="button" wire:click.prevent="addNewGrupo" class="btn-primary">Crear y continuar</button>
                                     </div>
@@ -171,7 +201,7 @@
                                                     <input type="number" step="0.01" wire:model.defer="clientesAgregados.{{ $index }}.monto_solicitado" class="input-project w-32" />
                                                 </td>
                                                 <td class="p-2 text-center">
-                                                    <button type="button" wire:click.prevent="agregarClienteAlGrupo({{ $row['cliente_id'] }}, {{ "clientesAgregados.$index.monto_solicitado" }})" class="btn-outline">Guardar</button>
+                                                    <button type="button" wire:click.prevent="guardarMiembro({{ $index }})" class="btn-outline">Guardar</button>
                                                 </td>
                                             </tr>
                                         @empty
@@ -181,7 +211,13 @@
                                 </table>
                             </div>
 
+                            @if($errors->has('miembros'))
+                                <div class="mt-3 text-sm text-red-600">{{ $errors->first('miembros') }}</div>
+                            @endif
+
                             <div class="mt-4 flex gap-2">
+                                <button type="button" wire:click.prevent="finalizarVinculacionGrupo" class="btn-primary">Finalizar vinculación</button>
+                                <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar Paso 1</button>
                                 <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
                             </div>
                         @endif

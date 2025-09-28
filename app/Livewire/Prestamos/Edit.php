@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Prestamo;
 use App\Models\Cliente;
 use App\Models\Grupo;
+use Illuminate\Support\Str;
 
 class Edit extends Component
 {
@@ -49,6 +50,8 @@ class Edit extends Component
     public $showNewGrupoForm = false;
     public $new_grupo_nombre;
     public $new_grupo_descripcion;
+    public $suggested_grupo_name;
+    public $group_name_suggestions = [];
 
     // expose admin flag to view
     public $isAdmin = false;
@@ -267,9 +270,28 @@ class Edit extends Component
 
         $prestamo = Prestamo::findOrFail($this->prestamo_id);
         $cliente = Cliente::findOrFail($clienteId);
+        // attach or update pivot without creating duplicates in the local array
         $prestamo->clientes()->syncWithoutDetaching([$cliente->id => ['monto_solicitado' => $monto]]);
 
-        $this->clientesAgregados[] = ['cliente_id' => $cliente->id, 'monto_solicitado' => $monto, 'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}")];
+        // find existing index in clientesAgregados
+        $index = null;
+        foreach ($this->clientesAgregados as $i => $row) {
+            if (isset($row['cliente_id']) && $row['cliente_id'] == $cliente->id) {
+                $index = $i;
+                break;
+            }
+        }
+
+        $entry = ['cliente_id' => $cliente->id, 'monto_solicitado' => $monto, 'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}")];
+
+        if (is_null($index)) {
+            $this->clientesAgregados[] = $entry;
+        } else {
+            // replace existing entry (preserve order)
+            $this->clientesAgregados[$index] = $entry;
+        }
+
+        $this->emit('miembroGuardado', ['cliente_id' => $cliente->id, 'monto' => $monto]);
     }
 
     public function selectCliente(int $id): void
@@ -279,6 +301,79 @@ class Edit extends Component
         $cliente = Cliente::find($id);
         $this->cliente_nombre_selected = $cliente ? trim("{$cliente->nombres} {$cliente->apellido_paterno} {$cliente->apellido_materno}") : null;
         $this->showClienteModal = false;
+        if ($this->grupo_id) {
+            $exists = collect($this->clientesAgregados)->first(fn($r) => isset($r['cliente_id']) && $r['cliente_id'] == $cliente->id);
+            if (! $exists) {
+                $this->clientesAgregados[] = ['cliente_id' => $cliente->id, 'monto_solicitado' => null, 'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}")];
+            }
+        }
+    }
+
+    public function guardarMiembro(int $index): void
+    {
+        if (! isset($this->clientesAgregados[$index])) {
+            $this->addError('miembro', 'Índice de miembro inválido');
+            return;
+        }
+
+        $row = $this->clientesAgregados[$index];
+        $clienteId = $row['cliente_id'] ?? null;
+        $monto = $row['monto_solicitado'] ?? 0;
+
+        // validation: monto must be numeric and greater than zero
+        if (! is_numeric($monto) || (float) $monto <= 0) {
+            $this->addError('miembro', 'El monto solicitado debe ser un número mayor a 0.');
+            return;
+        }
+
+        if (! $clienteId) {
+            $this->addError('miembro', 'Cliente inválido');
+            return;
+        }
+
+        $this->agregarClienteAlGrupo($clienteId, (float) $monto);
+    }
+
+    /**
+     * Finaliza la vinculación de miembros para préstamos grupales (edición).
+     */
+    public function finalizarVinculacionGrupo(): void
+    {
+        if (! isset($this->prestamo_id)) {
+            $this->addError('prestamo', 'Primero crea el préstamo');
+            return;
+        }
+
+        if (empty($this->clientesAgregados)) {
+            $this->addError('miembros', 'Debe agregar al menos un miembro al grupo antes de finalizar.');
+            return;
+        }
+
+        $total = 0.0;
+        foreach ($this->clientesAgregados as $i => $row) {
+            $clienteId = $row['cliente_id'] ?? null;
+            $monto = $row['monto_solicitado'] ?? null;
+
+            if (! $clienteId) {
+                $this->addError('miembros', "Miembro inválido en la fila {$i}");
+                return;
+            }
+
+            if (! is_numeric($monto) || (float) $monto <= 0) {
+                $this->addError('miembros', "El monto de la fila {$i} debe ser un número mayor a 0.");
+                return;
+            }
+
+            $this->agregarClienteAlGrupo($clienteId, (float) $monto);
+            $total += (float) $monto;
+        }
+
+        $prestamo = Prestamo::findOrFail($this->prestamo_id);
+        $prestamo->monto_total = $total;
+        $prestamo->save();
+
+        session()->flash('success', 'Vinculación completada. Préstamo finalizado con monto total: ' . number_format($total, 2));
+        redirect()->route('prestamos.index');
     }
 
     public function selectGrupo(int $id): void
@@ -334,5 +429,28 @@ class Edit extends Component
         $this->new_grupo_nombre = $this->new_grupo_descripcion = null;
         session()->flash('success', 'Grupo creado y seleccionado');
         $this->showClienteModal = true;
+    }
+
+    public function openNewGrupoForm(): void
+    {
+        $this->suggested_grupo_name = $this->generateSuggestedGroupName();
+        $this->group_name_suggestions = [
+            $this->generateSuggestedGroupName(),
+            $this->generateSuggestedGroupName(),
+            $this->generateSuggestedGroupName(),
+        ];
+        $this->showNewGrupoForm = true;
+    }
+
+    public function selectSuggestedGroupName(string $name): void
+    {
+        $this->new_grupo_nombre = $name;
+    }
+
+    protected function generateSuggestedGroupName(): string
+    {
+        $uid = auth()->check() ? auth()->id() : 'anon';
+        $time = now()->format('YmdHis');
+        return sprintf('GRU-%s-%s-%s', $uid, $time, Str::upper(Str::random(4)));
     }
 }
