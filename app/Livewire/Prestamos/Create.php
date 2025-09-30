@@ -887,6 +887,30 @@ class Create extends Component
      * Normaliza $this->clientesAgregados eliminando niveles inesperados
      * que a veces aparecen por la serialización de Livewire.
      */
+
+    /**
+     * Elimina un miembro de la lista temporal por índice y limpia representante si aplica.
+     */
+    public function eliminarMiembro(int $index): void
+    {
+        $this->normalizeClientesAgregados();
+
+        if (! isset($this->clientesAgregados[$index])) {
+            return;
+        }
+
+        $row = $this->clientesAgregados[$index];
+
+        // remover elemento y reindexar
+        unset($this->clientesAgregados[$index]);
+        $this->clientesAgregados = array_values($this->clientesAgregados);
+
+        // si era representante, limpiar selección
+        if (isset($row['cliente_id']) && (int) $this->representante_id === (int) $row['cliente_id']) {
+            $this->representante_id = null;
+        }
+    }
+
     protected function normalizeClientesAgregados(): void
     {
         if (! is_array($this->clientesAgregados)) {

@@ -433,6 +433,27 @@ class Edit extends Component
     }
 
     /**
+     * Elimina un miembro de la lista temporal por índice y limpia representante si aplica.
+     */
+    public function eliminarMiembro(int $index): void
+    {
+        $this->normalizeClientesAgregados();
+
+        if (! isset($this->clientesAgregados[$index])) {
+            return;
+        }
+
+        $row = $this->clientesAgregados[$index];
+
+        unset($this->clientesAgregados[$index]);
+        $this->clientesAgregados = array_values($this->clientesAgregados);
+
+        if (isset($row['cliente_id']) && (int) $this->representante_id === (int) $row['cliente_id']) {
+            $this->representante_id = null;
+        }
+    }
+
+    /**
      * Finaliza la vinculación de miembros para préstamos grupales (edición).
      */
     public function finalizarVinculacionGrupo(): void
