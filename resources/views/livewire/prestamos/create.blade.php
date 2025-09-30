@@ -87,13 +87,43 @@
             </form>
         @endif
 
-        {{-- Paso 2: vincular clientes (después de crear préstamo) --}}
+        {{-- Paso 2: resumen + vincular clientes (después de crear préstamo) --}}
         @if($step == 2)
             <div>
                 {{-- Depuración: estado actual del componente (temporal) --}}
                 <div class="mb-3 text-sm text-gray-500">Estado: <strong>producto</strong>={{ $producto ?? 'n/a' }}, <strong>step</strong>={{ $step }}</div>
                 <h2 class="text-lg font-semibold">Paso 2 — Vincular clientes</h2>
                 <p class="text-sm text-gray-600">Préstamo creado con folio: <strong>{{ optional($prestamo)->folio }}</strong></p>
+
+                {{-- Bloque resumen no editable del préstamo --}}
+                <div class="mt-3 border rounded p-4 bg-gray-50">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                        <div><span class="text-gray-500">Producto:</span> <span class="font-medium">{{ $producto }}</span></div>
+                        <div><span class="text-gray-500">Plazo:</span> <span class="font-medium">{{ $plazo }}</span></div>
+                        <div><span class="text-gray-500">Periodicidad:</span> <span class="font-medium">{{ $periodicidad }}</span></div>
+                        <div><span class="text-gray-500">Fecha de entrega:</span> <span class="font-medium">{{ $fecha_entrega }}</span></div>
+                        <div><span class="text-gray-500">Fecha primer pago:</span> <span class="font-medium">{{ $fecha_primer_pago ?: '—' }}</span></div>
+                        <div><span class="text-gray-500">Tasa de interés:</span> <span class="font-medium">{{ number_format((float) $tasa_interes, 2) }}%</span></div>
+                        <div><span class="text-gray-500">Día de pago:</span> <span class="font-medium">{{ ucfirst($dia_pago) }}</span></div>
+                        <div class="sm:col-span-2">
+                            @php
+                                $estado = optional($prestamo)->estado ?? 'en_curso';
+                                $map = [
+                                    'en_curso' => 'bg-yellow-100 text-yellow-800',
+                                    'en_revision' => 'bg-blue-100 text-blue-800',
+                                    'autorizado' => 'bg-green-100 text-green-800',
+                                    'rechazado' => 'bg-red-100 text-red-800',
+                                ];
+                                $cls = $map[$estado] ?? 'bg-gray-100 text-gray-800';
+                            @endphp
+                            <span class="inline-block px-2 py-1 rounded text-sm {{ $cls }}">Estado: {{ str_replace('_', ' ', $estado) }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 flex justify-end">
+                        <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar préstamo</button>
+                    </div>
+                </div>
 
                 @if($producto === 'individual')
                     <div class="mt-4">
@@ -107,15 +137,100 @@
                         </div>
 
                         @if($showNewClienteForm)
-                            <div class="mt-2 p-3 border rounded bg-gray-50 w-full sm:w-1/2">
-                                <label class="field-label">Apellido paterno</label>
-                                <input wire:model.defer="new_apellido_paterno" class="input-project" />
-                                <label class="field-label mt-2">Apellido materno</label>
-                                <input wire:model.defer="new_apellido_materno" class="input-project" />
-                                <label class="field-label mt-2">Nombres</label>
-                                <input wire:model.defer="new_nombres" class="input-project" />
-                                <label class="field-label mt-2">CURP</label>
-                                <input wire:model.defer="new_curp" class="input-project" />
+                            <div class="mt-2 p-3 border rounded bg-gray-50 w-full sm:w-2/3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="field-label">Apellido paterno *</label>
+                                        <input wire:model.defer="new_apellido_paterno" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Apellido materno</label>
+                                        <input wire:model.defer="new_apellido_materno" class="input-project" />
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="field-label">Nombres *</label>
+                                        <input wire:model.defer="new_nombres" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">CURP *</label>
+                                        <input wire:model.defer="new_curp" class="input-project" maxlength="18" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Email</label>
+                                        <input wire:model.defer="new_email" type="email" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">País de nacimiento</label>
+                                        <input wire:model.defer="new_pais_nacimiento" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Estado civil</label>
+                                        <select wire:model.defer="new_estado_civil" class="input-project">
+                                            <option value="">-- Seleccionar --</option>
+                                            <option value="soltero">Soltero/a</option>
+                                            <option value="casado">Casado/a</option>
+                                            <option value="divorciado">Divorciado/a</option>
+                                            <option value="viudo">Viudo/a</option>
+                                            <option value="union_libre">Unión libre</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Nombre del cónyuge</label>
+                                        <input wire:model.defer="new_nombre_conyuge" class="input-project" />
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="field-label">Calle y número *</label>
+                                        <input wire:model.defer="new_calle_numero" class="input-project" />
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label class="field-label">Referencia domiciliaria</label>
+                                        <textarea wire:model.defer="new_referencia_domiciliaria" class="input-project" rows="2"></textarea>
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Dependientes económicos</label>
+                                        <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Nombre de aval</label>
+                                        <input wire:model.defer="new_nombre_aval" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Actividad productiva</label>
+                                        <input wire:model.defer="new_actividad_productiva" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Años de experiencia</label>
+                                        <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Ingreso mensual</label>
+                                        <input wire:model.defer="new_ingreso_mensual" type="number" step="0.01" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Gasto mensual familiar</label>
+                                        <input wire:model.defer="new_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Crédito solicitado</label>
+                                        <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Estado</label>
+                                        <input wire:model.defer="new_estado" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Municipio</label>
+                                        <input wire:model.defer="new_municipio" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Colonia</label>
+                                        <input wire:model.defer="new_colonia" class="input-project" />
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Código Postal</label>
+                                        <input wire:model.defer="new_codigo_postal" class="input-project" />
+                                    </div>
+                                </div>
                                 <div class="mt-2 flex justify-end gap-2">
                                     <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear y seleccionar</button>
                                 </div>
@@ -134,28 +249,39 @@
                     <div class="mt-4">
                         <p class="text-sm text-gray-600">Agregar clientes al préstamo grupal.</p>
 
-                        @if(! $grupo_id && empty($clientesAgregados))
+            @if(! $grupo_id && empty($clientesAgregados))
                             <div class="mt-3 flex gap-2">
                                     <button type="button" wire:click.prevent="$set('showGrupoModal', true)" class="btn-outline">Buscar grupo</button>
                                     <button type="button" wire:click.prevent="openNewGrupoForm" class="btn-outline">Nuevo grupo</button>
                             </div>
 
                             @if($showNewGrupoForm)
-                                <div class="mt-2 p-3 border rounded bg-gray-50 w-full sm:w-1/2">
-                                    <label class="field-label">Nombre del grupo</label>
-                                    <input wire:model.defer="new_grupo_nombre" placeholder="{{ $suggested_grupo_name ?? 'Ej: Grupo A' }}" class="input-project" />
-                                    <label class="field-label mt-2">Descripción</label>
-                                    <textarea wire:model.defer="new_grupo_descripcion" class="input-project"></textarea>
-                                    @if(! empty($group_name_suggestions))
-                                        <div class="mt-2 text-sm text-gray-600">Sugerencias:</div>
-                                        <div class="mt-1 flex gap-2">
-                                            @foreach($group_name_suggestions as $s)
-                                                <button type="button" wire:click.prevent="selectSuggestedGroupName('{{ $s }}')" class="px-2 py-1 bg-gray-100 rounded text-sm">{{ $s }}</button>
-                                            @endforeach
+                                <div class="mt-2 p-4 border rounded bg-gray-50">
+                                    <div class="space-y-3">
+                                        <div>
+                                            <label class="field-label">Nombre del grupo</label>
+                                            <input wire:model.defer="new_grupo_nombre" placeholder="{{ $suggested_grupo_name ?? 'Ej: Grupo A' }}" class="input-project w-full" />
                                         </div>
-                                    @endif
-                                    <div class="mt-2 flex justify-end gap-2">
-                                        <button type="button" wire:click.prevent="addNewGrupo" class="btn-primary">Crear y continuar</button>
+
+                                        <div>
+                                            <label class="field-label">Descripción</label>
+                                            <textarea wire:model.defer="new_grupo_descripcion" class="input-project w-full" rows="2"></textarea>
+                                        </div>
+
+                                        @if(! empty($group_name_suggestions))
+                                            <div>
+                                                <div class="text-sm text-gray-600">Sugerencias:</div>
+                                                <div class="mt-1 flex flex-wrap gap-2">
+                                                    @foreach($group_name_suggestions as $s)
+                                                        <button type="button" wire:click.prevent="selectSuggestedGroupName('{{ $s }}')" class="px-2 py-1 bg-gray-100 rounded text-sm hover:bg-gray-200">{{ $s }}</button>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        <div class="flex justify-end">
+                                            <button type="button" wire:click.prevent="addNewGrupo" class="btn-primary">Crear y continuar</button>
+                                        </div>
                                     </div>
                                 </div>
                             @endif
@@ -163,9 +289,111 @@
                         @else
                             <div class="mt-3 flex items-center gap-2">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">{{ $grupo_nombre_selected ?? ('Miembros vinculados (' . count($clientesAgregados) . ')') }}</span>
-                                <button type="button" wire:click.prevent="$set('showClienteModal', true)" class="btn-outline">Agregar miembros</button>
+                                <button type="button" wire:click.prevent="$set('showClienteModal', true)" class="btn-outline">Agregar cliente existente</button>
+                                <button type="button" wire:click.prevent="$toggle('showNewClienteForm')" class="btn-outline">Crear cliente nuevo</button>
                                 <button type="button" wire:click.prevent="$set('grupo_id', null)" class="btn-outline">Deseleccionar grupo</button>
                             </div>
+
+                            @if($showNewClienteForm)
+                                <div class="mt-3 p-4 border rounded bg-gray-50">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="field-label">Apellido paterno *</label>
+                                            <input wire:model.defer="new_apellido_paterno" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Apellido materno</label>
+                                            <input wire:model.defer="new_apellido_materno" class="input-project" />
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label class="field-label">Nombres *</label>
+                                            <input wire:model.defer="new_nombres" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">CURP *</label>
+                                            <input wire:model.defer="new_curp" class="input-project" maxlength="18" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Email</label>
+                                            <input wire:model.defer="new_email" type="email" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">País de nacimiento</label>
+                                            <input wire:model.defer="new_pais_nacimiento" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Estado civil</label>
+                                            <select wire:model.defer="new_estado_civil" class="input-project">
+                                                <option value="">-- Seleccionar --</option>
+                                                <option value="soltero">Soltero/a</option>
+                                                <option value="casado">Casado/a</option>
+                                                <option value="divorciado">Divorciado/a</option>
+                                                <option value="viudo">Viudo/a</option>
+                                                <option value="union_libre">Unión libre</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Nombre del cónyuge</label>
+                                            <input wire:model.defer="new_nombre_conyuge" class="input-project" />
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label class="field-label">Calle y número *</label>
+                                            <input wire:model.defer="new_calle_numero" class="input-project" />
+                                        </div>
+                                        <div class="sm:col-span-2">
+                                            <label class="field-label">Referencia domiciliaria</label>
+                                            <textarea wire:model.defer="new_referencia_domiciliaria" class="input-project" rows="2"></textarea>
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Dependientes económicos</label>
+                                            <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Nombre de aval</label>
+                                            <input wire:model.defer="new_nombre_aval" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Actividad productiva</label>
+                                            <input wire:model.defer="new_actividad_productiva" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Años de experiencia</label>
+                                            <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Ingreso mensual</label>
+                                            <input wire:model.defer="new_ingreso_mensual" type="number" step="0.01" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Gasto mensual familiar</label>
+                                            <input wire:model.defer="new_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Crédito solicitado</label>
+                                            <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Estado</label>
+                                            <input wire:model.defer="new_estado" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Municipio</label>
+                                            <input wire:model.defer="new_municipio" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Colonia</label>
+                                            <input wire:model.defer="new_colonia" class="input-project" />
+                                        </div>
+                                        <div>
+                                            <label class="field-label">Código Postal</label>
+                                            <input wire:model.defer="new_codigo_postal" class="input-project" />
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 flex justify-end gap-2">
+                                        <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear y seleccionar</button>
+                                    </div>
+                                </div>
+                            @endif
 
                             <div class="mt-4">
                                 <table class="w-full table-auto border">
@@ -173,6 +401,7 @@
                                         <tr class="bg-gray-50">
                                             <th class="p-2 text-left">Miembro</th>
                                             <th class="p-2 text-left">Monto solicitado</th>
+                                            <th class="p-2">Representante</th>
                                             <th class="p-2">Acciones</th>
                                         </tr>
                                     </thead>
@@ -182,6 +411,9 @@
                                                 <td class="p-2">{{ $row['nombre'] ?? 'Cliente #' . $row['cliente_id'] }}</td>
                                                 <td class="p-2">
                                                     <input type="number" step="0.01" wire:model.defer="clientesAgregados.{{ $index }}.monto_solicitado" class="input-project w-32" />
+                                                </td>
+                                                <td class="p-2 text-center">
+                                                    <input type="radio" name="representante" value="{{ $row['cliente_id'] }}" wire:click="$set('representante_id', {{ $row['cliente_id'] }})" />
                                                 </td>
                                                 <td class="p-2 text-center">
                                                     <button type="button" wire:click.prevent="guardarMiembro({{ $index }})" class="btn-outline">Guardar</button>
@@ -213,6 +445,7 @@
                                     <span wire:loading.remove wire:target="finalizarVinculacionGrupo">Finalizar vinculación</span>
                                     <span wire:loading.inline wire:target="finalizarVinculacionGrupo">Procesando...</span>
                                 </button>
+                                <button type="button" wire:click.prevent="enviarAComite" class="btn-primary">Enviar a comité</button>
                                 <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar Paso 1</button>
                                 <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
                             </div>
@@ -253,6 +486,115 @@
                                 @endforeach
                             </ul>
                         @endif
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Modal: Editar cliente seleccionado --}}
+        @if($showEditClienteModal)
+            <div class="fixed inset-0 z-50 flex items-start justify-center p-4">
+                <div class="fixed inset-0 bg-black/50" wire:click="$set('showEditClienteModal', false)"></div>
+                <div class="relative bg-white rounded-lg shadow-lg w-full max-w-3xl p-4 z-10">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-semibold">Editar cliente</h3>
+                        <button type="button" wire:click="$set('showEditClienteModal', false)" class="text-gray-600">Cerrar</button>
+                    </div>
+                    <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="field-label">Apellido paterno *</label>
+                            <input wire:model.defer="edit_apellido_paterno" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Apellido materno</label>
+                            <input wire:model.defer="edit_apellido_materno" class="input-project" />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="field-label">Nombres *</label>
+                            <input wire:model.defer="edit_nombres" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">CURP *</label>
+                            <input wire:model.defer="edit_curp" class="input-project" maxlength="18" />
+                        </div>
+                        <div>
+                            <label class="field-label">Email</label>
+                            <input wire:model.defer="edit_email" type="email" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">País de nacimiento</label>
+                            <input wire:model.defer="edit_pais_nacimiento" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Estado civil</label>
+                            <select wire:model.defer="edit_estado_civil" class="input-project">
+                                <option value="">-- Seleccionar --</option>
+                                <option value="soltero">Soltero/a</option>
+                                <option value="casado">Casado/a</option>
+                                <option value="divorciado">Divorciado/a</option>
+                                <option value="viudo">Viudo/a</option>
+                                <option value="union_libre">Unión libre</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Nombre del cónyuge</label>
+                            <input wire:model.defer="edit_nombre_conyuge" class="input-project" />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="field-label">Calle y número *</label>
+                            <input wire:model.defer="edit_calle_numero" class="input-project" />
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="field-label">Referencia domiciliaria</label>
+                            <textarea wire:model.defer="edit_referencia_domiciliaria" class="input-project" rows="2"></textarea>
+                        </div>
+                        <div>
+                            <label class="field-label">Dependientes económicos</label>
+                            <input wire:model.defer="edit_dependientes_economicos" type="number" min="0" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Nombre de aval</label>
+                            <input wire:model.defer="edit_nombre_aval" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Actividad productiva</label>
+                            <input wire:model.defer="edit_actividad_productiva" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Años de experiencia</label>
+                            <input wire:model.defer="edit_anios_experiencia" type="number" min="0" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Ingreso mensual</label>
+                            <input wire:model.defer="edit_ingreso_mensual" type="number" step="0.01" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Gasto mensual familiar</label>
+                            <input wire:model.defer="edit_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Crédito solicitado</label>
+                            <input wire:model.defer="edit_credito_solicitado" type="number" step="0.01" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Estado</label>
+                            <input wire:model.defer="edit_estado" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Municipio</label>
+                            <input wire:model.defer="edit_municipio" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Colonia</label>
+                            <input wire:model.defer="edit_colonia" class="input-project" />
+                        </div>
+                        <div>
+                            <label class="field-label">Código Postal</label>
+                            <input wire:model.defer="edit_codigo_postal" class="input-project" />
+                        </div>
+                    </div>
+                    <div class="mt-3 flex justify-end gap-2">
+                        <button type="button" wire:click.prevent="saveEditedCliente" class="btn-primary">Guardar y aplicar</button>
                     </div>
                 </div>
             </div>

@@ -22,19 +22,30 @@
                     <tr class="border-t">
                         <td class="px-2 py-3">{{ $p->id }}</td>
                         <td class="px-2 py-3">
-                            @if($p->prestamoable)
-                                @if($p->prestamoable_type === App\Models\Cliente::class)
-                                    {{ $p->prestamoable->nombres ?? '' }} {{ $p->prestamoable->apellido_paterno ?? '' }}
-                                @else
-                                    {{ $p->prestamoable->nombre ?? '' }}
-                                @endif
+                            @php
+                                $solicitante = $p->producto === 'individual' ? optional($p->cliente) : optional($p->representante);
+                            @endphp
+                            @if($solicitante)
+                                {{ trim(($solicitante->nombres ?? '').' '.($solicitante->apellido_paterno ?? '')) }}
+                            @else
+                                —
                             @endif
                         </td>
-                        <td class="px-2 py-3">{{ number_format($p->monto, 2) }}</td>
+                        <td class="px-2 py-3">{{ number_format($p->monto ?? $p->monto_total ?? 0, 2) }}</td>
                         <td class="px-2 py-3">{{ $p->plazo }}</td>
                         <td class="px-2 py-3">
-                            <span class="inline-block px-2 py-1 rounded text-sm">
-                                {{ $p->estado }}
+                            @php
+                                $estado = $p->estado;
+                                $map = [
+                                    'en_curso' => 'bg-yellow-100 text-yellow-800',
+                                    'en_revision' => 'bg-blue-100 text-blue-800',
+                                    'autorizado' => 'bg-green-100 text-green-800',
+                                    'rechazado' => 'bg-red-100 text-red-800',
+                                ];
+                                $cls = $map[$estado] ?? 'bg-gray-100 text-gray-800';
+                            @endphp
+                            <span class="inline-block px-2 py-1 rounded text-sm {{ $cls }}">
+                                {{ str_replace('_', ' ', $estado) }}
                             </span>
                         </td>
                         <td class="px-2 py-3">{{ $p->created_at->format('Y-m-d') }}</td>

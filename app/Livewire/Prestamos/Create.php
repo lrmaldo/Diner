@@ -2,66 +2,133 @@
 
 namespace App\Livewire\Prestamos;
 
-use Livewire\Component;
-use App\Models\Prestamo;
 use App\Models\Cliente;
 use App\Models\Grupo;
-use Illuminate\Support\Str;
+use App\Models\Prestamo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Livewire\Component;
 
 class Create extends Component
 {
     public $tipo = 'cliente'; // 'cliente' o 'grupo'
+
     public $step = 1;
+
     public $producto = 'individual'; // 'individual' o 'grupal'
+
     public $prestamo_id;
+
     public $cliente_id;
+
     public $grupo_id;
+
     public $monto;
+
     public $monto_total;
+
     public $plazo = '4meses';
+
     public $periodo_pago = 'semana';
+
     public $periodicidad = 'semanal';
+
     public $dia_pago = 'martes';
+
     public $fecha_entrega;
+
     public $tasa_interes = 4.5;
+
     public $fecha_primer_pago;
+
     // UX helpers
     public $clienteSearch = '';
+
     public $grupoSearch = '';
 
     // Modal controls
     public $showClienteModal = false;
+
     public $showGrupoModal = false;
+
+    public $showEditClienteModal = false;
 
     // Modal filters (extra)
     public $cliente_filter_curp = '';
+
     public $cliente_filter_apellido = '';
 
     // Selected names for badge
     public $cliente_nombre_selected;
+
     public $grupo_nombre_selected;
 
     // clientes agregados (solo para grupal)
     public $clientesAgregados = []; // array of ['cliente_id'=>, 'monto_solicitado'=>]
 
+    public $representante_id = null; // cliente designado como representante
+
     // Inline create
     public $showNewClienteForm = false;
+
     public $new_apellido_paterno;
+
     public $new_apellido_materno;
+
     public $new_nombres;
+
     public $new_curp;
 
+    public $new_email;
+
+    public $new_pais_nacimiento;
+
+    public $new_nombre_conyuge;
+
+    public $new_calle_numero;
+
+    public $new_referencia_domiciliaria;
+
+    public $new_estado_civil;
+
+    public $new_dependientes_economicos;
+
+    public $new_nombre_aval;
+
+    public $new_actividad_productiva;
+
+    public $new_anios_experiencia;
+
+    public $new_ingreso_mensual;
+
+    public $new_gasto_mensual_familiar;
+
+    public $new_credito_solicitado;
+
+    public $new_estado;
+
+    public $new_municipio;
+
+    public $new_colonia;
+
+    public $new_codigo_postal;
+
     public $showNewGrupoForm = false;
+
     public $new_grupo_nombre;
+
     public $new_grupo_descripcion;
+
     public $suggested_grupo_name;
+
     public $group_name_suggestions = [];
 
     // expose admin flag to view
     public $isAdmin = false;
+
     // status alert for simple feedback
     public $status_message = null;
+
     public $status_type = 'success';
 
     public function mount($prestamo = null): void
@@ -99,8 +166,8 @@ class Create extends Component
             $term = $this->clienteSearch;
             $clientesQuery->where(function ($q) use ($term) {
                 $q->where('nombres', 'like', "%{$term}%")
-                  ->orWhere('apellido_paterno', 'like', "%{$term}%")
-                  ->orWhere('apellido_materno', 'like', "%{$term}%");
+                    ->orWhere('apellido_paterno', 'like', "%{$term}%")
+                    ->orWhere('apellido_materno', 'like', "%{$term}%");
                 if (is_numeric($term)) {
                     $q->orWhere('id', (int) $term);
                 }
@@ -114,7 +181,7 @@ class Create extends Component
         if ($this->cliente_filter_apellido) {
             $clientesQuery->where(function ($q) {
                 $q->where('apellido_paterno', 'like', "%{$this->cliente_filter_apellido}%")
-                  ->orWhere('apellido_materno', 'like', "%{$this->cliente_filter_apellido}%");
+                    ->orWhere('apellido_materno', 'like', "%{$this->cliente_filter_apellido}%");
             });
         }
 
@@ -127,8 +194,8 @@ class Create extends Component
             }
         }
 
-    $clientes = $clientesQuery->orderBy('nombres')->limit(10)->get();
-    $grupos = $gruposQuery->orderBy('nombre')->limit(10)->get();
+        $clientes = $clientesQuery->orderBy('nombres')->limit(10)->get();
+        $grupos = $gruposQuery->orderBy('nombre')->limit(10)->get();
 
         // set selected names for badges
         if ($this->cliente_id) {
@@ -160,8 +227,8 @@ class Create extends Component
         $rules = [
             'tipo' => ['required', 'in:cliente,grupo'],
             'producto' => ['required', 'in:individual,grupal'],
-            //'cliente_id' => ['required_if:tipo,cliente', 'exists:clientes,id'],
-            //'grupo_id' => ['required_if:tipo,grupo', 'exists:grupos,id'],
+            // 'cliente_id' => ['required_if:tipo,cliente', 'exists:clientes,id'],
+            // 'grupo_id' => ['required_if:tipo,grupo', 'exists:grupos,id'],
 
             'plazo' => ['required', 'in:4meses,4mesesD,5mesesD,6meses,1ano'],
             'periodicidad' => ['required', 'in:semanal,catorcenal,quincenal'],
@@ -182,7 +249,7 @@ class Create extends Component
 
     protected function validateFirstStep(): array
     {
-        $fields = ['producto','plazo','periodicidad','fecha_entrega','fecha_primer_pago','dia_pago'];
+        $fields = ['producto', 'plazo', 'periodicidad', 'fecha_entrega', 'fecha_primer_pago', 'dia_pago'];
         $allRules = method_exists($this, 'rules') ? $this->rules() : (property_exists($this, 'rules') ? $this->rules : []);
 
         $rulesSubset = [];
@@ -207,12 +274,13 @@ class Create extends Component
 
         if ($primer->lt($entrega)) {
             $this->addError('fecha_primer_pago', 'La fecha del primer pago no puede ser anterior a la fecha de entrega.');
+
             return;
         }
 
         // determinar periodicidad: preferir property periodicidad si existe
         $period = $this->periodicidad ?? $this->periodo_pago;
-        $periodDays = match($period) {
+        $periodDays = match ($period) {
             'semanal' => 7,
             'catorcenal' => 14,
             'quincenal' => 15,
@@ -263,16 +331,17 @@ class Create extends Component
 
         $this->prestamo_id = $prestamo->id;
         $this->step = 2;
-        session()->flash('success', 'Préstamo creado con folio: ' . $prestamo->folio);
+        session()->flash('success', 'Préstamo creado con folio: '.$prestamo->folio);
     }
 
     public function linkClienteIndividual(float $monto)
     {
         if (! isset($this->prestamo_id)) {
             $this->addError('prestamo', 'Primero crea el préstamo');
+
             return;
         }
-        $this->validate(['cliente_id' => ['required','exists:clientes,id']]);
+        $this->validate(['cliente_id' => ['required', 'exists:clientes,id']]);
 
         $prestamo = Prestamo::findOrFail($this->prestamo_id);
         $prestamo->cliente_id = $this->cliente_id;
@@ -280,6 +349,7 @@ class Create extends Component
         $prestamo->save();
 
         session()->flash('success', 'Cliente vinculado al préstamo');
+
         return redirect()->route('prestamos.index');
     }
 
@@ -287,6 +357,7 @@ class Create extends Component
     {
         if (! isset($this->prestamo_id)) {
             $this->addError('prestamo', 'Primero crea el préstamo');
+
             return;
         }
 
@@ -316,7 +387,7 @@ class Create extends Component
             $this->clientesAgregados[$index] = $entry;
         }
 
-    // dispatch browser event / Livewire dispatch helper for frontend feedback
+        // dispatch browser event / Livewire dispatch helper for frontend feedback
         $this->dispatch('miembroGuardado', [
             'success' => true,
             'message' => 'Miembro guardado correctamente.',
@@ -336,12 +407,16 @@ class Create extends Component
         $cliente = Cliente::find($id);
         $this->cliente_nombre_selected = $cliente ? trim("{$cliente->nombres} {$cliente->apellido_paterno} {$cliente->apellido_materno}") : null;
         $this->showClienteModal = false;
+        // abrir modal de edición para corroborar datos y capturar monto
+        if ($cliente) {
+            $this->openEditCliente($cliente->id);
+        }
 
         // if a group is selected, add the client to the clientesAgregados list (avoid duplicates)
         if ($this->grupo_id) {
             // normalize existing structure first
             $this->normalizeClientesAgregados();
-            $exists = collect($this->clientesAgregados)->first(fn($r) => is_array($r) && isset($r['cliente_id']) && $r['cliente_id'] == $cliente->id);
+            $exists = collect($this->clientesAgregados)->first(fn ($r) => is_array($r) && isset($r['cliente_id']) && $r['cliente_id'] == $cliente->id);
             if (! $exists) {
                 $this->clientesAgregados[] = ['cliente_id' => $cliente->id, 'monto_solicitado' => null, 'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}")];
             }
@@ -358,6 +433,7 @@ class Create extends Component
 
         if (! isset($this->clientesAgregados[$index])) {
             $this->addError('miembro', 'Índice de miembro inválido');
+
             return;
         }
 
@@ -368,11 +444,13 @@ class Create extends Component
         // validation: monto must be numeric and greater than zero
         if (! is_numeric($monto) || (float) $monto <= 0) {
             $this->addError('miembro', 'El monto solicitado debe ser un número mayor a 0.');
+
             return;
         }
 
         if (! $clienteId) {
             $this->addError('miembro', 'Cliente inválido');
+
             return;
         }
 
@@ -390,11 +468,13 @@ class Create extends Component
 
         if (! isset($this->prestamo_id)) {
             $this->addError('prestamo', 'Primero crea el préstamo');
+
             return;
         }
 
         if (empty($this->clientesAgregados)) {
             $this->addError('miembros', 'Debe agregar al menos un miembro al grupo antes de finalizar.');
+
             return;
         }
 
@@ -408,11 +488,13 @@ class Create extends Component
 
             if (! $clienteId) {
                 $this->addError('miembros', "Miembro inválido en la fila {$i}");
+
                 return;
             }
 
             if (! is_numeric($monto) || (float) $monto <= 0) {
                 $this->addError('miembros', "El monto de la fila {$i} debe ser un número mayor a 0.");
+
                 return;
             }
 
@@ -436,11 +518,53 @@ class Create extends Component
                     $prestamo->grupo_id = $g->id;
                 }
             }
+            if (! empty($this->representante_id)) {
+                $prestamo->representante_id = $this->representante_id;
+            }
             $prestamo->save();
         });
 
-        session()->flash('success', 'Vinculación completada. Préstamo finalizado con monto total: ' . number_format($total, 2));
+        session()->flash('success', 'Vinculación completada. Préstamo finalizado con monto total: '.number_format($total, 2));
         // redirect to index
+        redirect()->route('prestamos.index');
+    }
+
+    public function enviarAComite(): void
+    {
+        if (! $this->prestamo_id) {
+            $this->addError('prestamo', 'No hay préstamo para enviar.');
+
+            return;
+        }
+
+        $prestamo = Prestamo::findOrFail($this->prestamo_id);
+
+        if ($this->producto === 'individual') {
+            if (! $this->cliente_id) {
+                $this->addError('cliente', 'Debe seleccionar un cliente.');
+
+                return;
+            }
+            $prestamo->representante_id = $this->cliente_id;
+        } else {
+            // grupal: debe haber al menos un miembro y un representante elegido
+            if (empty($this->clientesAgregados)) {
+                $this->addError('miembros', 'Debe agregar al menos un miembro.');
+
+                return;
+            }
+            if (! $this->representante_id) {
+                $this->addError('representante', 'Debe seleccionar un representante del grupo.');
+
+                return;
+            }
+            $prestamo->representante_id = $this->representante_id;
+        }
+
+        $prestamo->estado = 'en_revision';
+        $prestamo->save();
+
+        session()->flash('success', 'Préstamo enviado a comité.');
         redirect()->route('prestamos.index');
     }
 
@@ -469,11 +593,28 @@ class Create extends Component
 
     public function addNewClient()
     {
-        $data = $this->validate([
+        $this->validate([
             'new_apellido_paterno' => ['required', 'string', 'max:255'],
             'new_apellido_materno' => ['nullable', 'string', 'max:255'],
             'new_nombres' => ['required', 'string', 'max:255'],
-            'new_curp' => ['nullable', 'string', 'max:18'],
+            'new_curp' => ['required', 'string', 'max:18'],
+            'new_email' => ['nullable', 'email', 'max:255'],
+            'new_pais_nacimiento' => ['nullable', 'string', 'max:255'],
+            'new_nombre_conyuge' => ['nullable', 'string', 'max:255'],
+            'new_calle_numero' => ['required', 'string', 'max:500'],
+            'new_referencia_domiciliaria' => ['nullable', 'string', 'max:1000'],
+            'new_estado_civil' => ['nullable', 'string', 'max:100'],
+            'new_dependientes_economicos' => ['nullable', 'integer', 'min:0'],
+            'new_nombre_aval' => ['nullable', 'string', 'max:255'],
+            'new_actividad_productiva' => ['nullable', 'string', 'max:255'],
+            'new_anios_experiencia' => ['nullable', 'integer', 'min:0'],
+            'new_ingreso_mensual' => ['nullable', 'numeric'],
+            'new_gasto_mensual_familiar' => ['nullable', 'numeric'],
+            'new_credito_solicitado' => ['nullable', 'numeric'],
+            'new_estado' => ['nullable', 'string', 'max:255'],
+            'new_municipio' => ['nullable', 'string', 'max:255'],
+            'new_colonia' => ['nullable', 'string', 'max:255'],
+            'new_codigo_postal' => ['nullable', 'string', 'max:20'],
         ]);
 
         $cliente = Cliente::create([
@@ -481,11 +622,46 @@ class Create extends Component
             'apellido_materno' => $this->new_apellido_materno,
             'nombres' => $this->new_nombres,
             'curp' => $this->new_curp,
+            'email' => $this->new_email,
+            'pais_nacimiento' => $this->new_pais_nacimiento,
+            'nombre_conyuge' => $this->new_nombre_conyuge,
+            'calle_numero' => $this->new_calle_numero,
+            'referencia_domiciliaria' => $this->new_referencia_domiciliaria,
+            'estado_civil' => $this->new_estado_civil,
+            'dependientes_economicos' => $this->new_dependientes_economicos,
+            'nombre_aval' => $this->new_nombre_aval,
+            'actividad_productiva' => $this->new_actividad_productiva,
+            'anios_experiencia' => $this->new_anios_experiencia,
+            'ingreso_mensual' => $this->new_ingreso_mensual,
+            'gasto_mensual_familiar' => $this->new_gasto_mensual_familiar,
+            'credito_solicitado' => $this->new_credito_solicitado,
+            'estado' => $this->new_estado,
+            'municipio' => $this->new_municipio,
+            'colonia' => $this->new_colonia,
+            'codigo_postal' => $this->new_codigo_postal,
         ]);
 
         $this->cliente_id = $cliente->id;
         $this->showNewClienteForm = false;
         $this->new_apellido_paterno = $this->new_apellido_materno = $this->new_nombres = $this->new_curp = null;
+        $this->new_email = $this->new_pais_nacimiento = $this->new_nombre_conyuge = null;
+        $this->new_calle_numero = $this->new_referencia_domiciliaria = null;
+        $this->new_estado_civil = $this->new_dependientes_economicos = null;
+        $this->new_nombre_aval = $this->new_actividad_productiva = null;
+        $this->new_anios_experiencia = $this->new_ingreso_mensual = $this->new_gasto_mensual_familiar = null;
+        $this->new_credito_solicitado = $this->new_estado = $this->new_municipio = $this->new_colonia = $this->new_codigo_postal = null;
+        // si estamos en flujo grupal, agregar a la lista de miembros con su monto solicitado
+        if ($this->producto === 'grupal') {
+            $this->normalizeClientesAgregados();
+            $exists = collect($this->clientesAgregados)->first(fn ($r) => is_array($r) && isset($r['cliente_id']) && (int) $r['cliente_id'] === (int) $this->cliente_id);
+            if (! $exists) {
+                $this->clientesAgregados[] = [
+                    'cliente_id' => $this->cliente_id,
+                    'monto_solicitado' => (float) ($cliente->credito_solicitado ?? 0),
+                    'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}"),
+                ];
+            }
+        }
         session()->flash('success', 'Cliente creado y seleccionado');
     }
 
@@ -547,7 +723,164 @@ class Create extends Component
     {
         $uid = auth()->check() ? auth()->id() : 'anon';
         $time = now()->format('YmdHis');
+
         return sprintf('GRU-%s-%s-%s', $uid, $time, Str::upper(Str::random(4)));
+    }
+
+    // Campos de edición de cliente (modal)
+    public $edit_cliente_id = null;
+
+    public $edit_apellido_paterno;
+
+    public $edit_apellido_materno;
+
+    public $edit_nombres;
+
+    public $edit_curp;
+
+    public $edit_email;
+
+    public $edit_pais_nacimiento;
+
+    public $edit_nombre_conyuge;
+
+    public $edit_calle_numero;
+
+    public $edit_referencia_domiciliaria;
+
+    public $edit_estado_civil;
+
+    public $edit_dependientes_economicos;
+
+    public $edit_nombre_aval;
+
+    public $edit_actividad_productiva;
+
+    public $edit_anios_experiencia;
+
+    public $edit_ingreso_mensual;
+
+    public $edit_gasto_mensual_familiar;
+
+    public $edit_credito_solicitado;
+
+    public $edit_estado;
+
+    public $edit_municipio;
+
+    public $edit_colonia;
+
+    public $edit_codigo_postal;
+
+    public function openEditCliente(int $id): void
+    {
+        $c = Cliente::findOrFail($id);
+        $this->edit_cliente_id = $c->id;
+        $this->edit_apellido_paterno = $c->apellido_paterno;
+        $this->edit_apellido_materno = $c->apellido_materno;
+        $this->edit_nombres = $c->nombres;
+        $this->edit_curp = $c->curp;
+        $this->edit_email = $c->email;
+        $this->edit_pais_nacimiento = $c->pais_nacimiento;
+        $this->edit_nombre_conyuge = $c->nombre_conyuge;
+        $this->edit_calle_numero = $c->calle_numero;
+        $this->edit_referencia_domiciliaria = $c->referencia_domiciliaria;
+        $this->edit_estado_civil = $c->estado_civil;
+        $this->edit_dependientes_economicos = $c->dependientes_economicos;
+        $this->edit_nombre_aval = $c->nombre_aval;
+        $this->edit_actividad_productiva = $c->actividad_productiva;
+        $this->edit_anios_experiencia = $c->anios_experiencia;
+        $this->edit_ingreso_mensual = $c->ingreso_mensual;
+        $this->edit_gasto_mensual_familiar = $c->gasto_mensual_familiar;
+        $this->edit_credito_solicitado = $c->credito_solicitado;
+        $this->edit_estado = $c->estado;
+        $this->edit_municipio = $c->municipio;
+        $this->edit_colonia = $c->colonia;
+        $this->edit_codigo_postal = $c->codigo_postal;
+        $this->showEditClienteModal = true;
+    }
+
+    public function saveEditedCliente(): void
+    {
+        if (! $this->edit_cliente_id) {
+            return;
+        }
+        $this->validate([
+            'edit_apellido_paterno' => ['required', 'string', 'max:255'],
+            'edit_apellido_materno' => ['nullable', 'string', 'max:255'],
+            'edit_nombres' => ['required', 'string', 'max:255'],
+            'edit_curp' => ['required', 'string', 'max:18'],
+            'edit_email' => ['nullable', 'email', 'max:255'],
+            'edit_pais_nacimiento' => ['nullable', 'string', 'max:255'],
+            'edit_nombre_conyuge' => ['nullable', 'string', 'max:255'],
+            'edit_calle_numero' => ['required', 'string', 'max:500'],
+            'edit_referencia_domiciliaria' => ['nullable', 'string', 'max:1000'],
+            'edit_estado_civil' => ['nullable', 'string', 'max:100'],
+            'edit_dependientes_economicos' => ['nullable', 'integer', 'min:0'],
+            'edit_nombre_aval' => ['nullable', 'string', 'max:255'],
+            'edit_actividad_productiva' => ['nullable', 'string', 'max:255'],
+            'edit_anios_experiencia' => ['nullable', 'integer', 'min:0'],
+            'edit_ingreso_mensual' => ['nullable', 'numeric'],
+            'edit_gasto_mensual_familiar' => ['nullable', 'numeric'],
+            'edit_credito_solicitado' => ['nullable', 'numeric'],
+            'edit_estado' => ['nullable', 'string', 'max:255'],
+            'edit_municipio' => ['nullable', 'string', 'max:255'],
+            'edit_colonia' => ['nullable', 'string', 'max:255'],
+            'edit_codigo_postal' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $c = Cliente::findOrFail($this->edit_cliente_id);
+        $c->update([
+            'apellido_paterno' => $this->edit_apellido_paterno,
+            'apellido_materno' => $this->edit_apellido_materno,
+            'nombres' => $this->edit_nombres,
+            'curp' => $this->edit_curp,
+            'email' => $this->edit_email,
+            'pais_nacimiento' => $this->edit_pais_nacimiento,
+            'nombre_conyuge' => $this->edit_nombre_conyuge,
+            'calle_numero' => $this->edit_calle_numero,
+            'referencia_domiciliaria' => $this->edit_referencia_domiciliaria,
+            'estado_civil' => $this->edit_estado_civil,
+            'dependientes_economicos' => $this->edit_dependientes_economicos,
+            'nombre_aval' => $this->edit_nombre_aval,
+            'actividad_productiva' => $this->edit_actividad_productiva,
+            'anios_experiencia' => $this->edit_anios_experiencia,
+            'ingreso_mensual' => $this->edit_ingreso_mensual,
+            'gasto_mensual_familiar' => $this->edit_gasto_mensual_familiar,
+            'credito_solicitado' => $this->edit_credito_solicitado,
+            'estado' => $this->edit_estado,
+            'municipio' => $this->edit_municipio,
+            'colonia' => $this->edit_colonia,
+            'codigo_postal' => $this->edit_codigo_postal,
+        ]);
+
+        // Ajustar monto o lista según producto
+        if ($this->producto === 'individual') {
+            $this->monto = (float) ($c->credito_solicitado ?? 0);
+            $this->cliente_id = $c->id;
+            $this->cliente_nombre_selected = trim("{$c->nombres} {$c->apellido_paterno} {$c->apellido_materno}");
+        } else {
+            // grupal: si ya está en la lista, actualizar su monto; si no, agregarlo
+            $this->normalizeClientesAgregados();
+            $found = false;
+            foreach ($this->clientesAgregados as $i => $row) {
+                if ((int) ($row['cliente_id'] ?? 0) === $c->id) {
+                    $this->clientesAgregados[$i]['monto_solicitado'] = (float) ($c->credito_solicitado ?? 0);
+                    $found = true;
+                    break;
+                }
+            }
+            if (! $found) {
+                $this->clientesAgregados[] = [
+                    'cliente_id' => $c->id,
+                    'monto_solicitado' => (float) ($c->credito_solicitado ?? 0),
+                    'nombre' => trim("{$c->nombres} {$c->apellido_paterno}"),
+                ];
+            }
+        }
+
+        $this->showEditClienteModal = false;
+        session()->flash('success', 'Cliente actualizado y aplicado al préstamo');
     }
 
     /**
@@ -558,12 +891,13 @@ class Create extends Component
     {
         if (! is_array($this->clientesAgregados)) {
             $this->clientesAgregados = [];
+
             return;
         }
 
         // aplanar un nivel si el primer elemento es un array que contiene arrays
         $first = reset($this->clientesAgregados);
-        if (is_array($first) && count($first) === 1 && is_array($first[0]) && isset($first[0][0]) && is_array($first[0][0]) ) {
+        if (is_array($first) && count($first) === 1 && is_array($first[0]) && isset($first[0][0]) && is_array($first[0][0])) {
             // detectamos estructura [[[{...},{...}]], {...}] -> queremos [{...},{...}]
             $flat = [];
             foreach ($this->clientesAgregados as $item) {
@@ -581,6 +915,7 @@ class Create extends Component
             }
             if (! empty($flat)) {
                 $this->clientesAgregados = $flat;
+
                 return;
             }
         }
@@ -606,7 +941,7 @@ class Create extends Component
     {
         $this->validate();
 
-        $prestamo = new Prestamo();
+        $prestamo = new Prestamo;
         $prestamo->monto = $this->monto;
         $prestamo->plazo = $this->plazo;
         $prestamo->periodo_pago = $this->periodo_pago;
@@ -624,6 +959,7 @@ class Create extends Component
         }
 
         session()->flash('success', 'Solicitud de préstamo creada con estado en_curso');
+
         return redirect()->route('prestamos.index');
     }
 }

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
 
 class Prestamo extends Model
 {
@@ -13,7 +12,7 @@ class Prestamo extends Model
     protected $table = 'prestamos';
 
     protected $fillable = [
-        'folio', 'producto', 'monto_total', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id'
+        'folio', 'producto', 'monto_total', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id', 'representante_id',
     ];
 
     protected $casts = [
@@ -35,7 +34,7 @@ class Prestamo extends Model
                 if ($last && preg_match('/-(\d+)$/', $last->folio, $m)) {
                     $num = intval($m[1]) + 1;
                 }
-                $model->folio = $prefix . str_pad($num, 4, '0', STR_PAD_LEFT);
+                $model->folio = $prefix.str_pad($num, 4, '0', STR_PAD_LEFT);
             }
         });
     }
@@ -49,6 +48,14 @@ class Prestamo extends Model
     public function cliente()
     {
         return $this->belongsTo(Cliente::class, 'cliente_id');
+    }
+
+    /**
+     * Representante del préstamo: cliente designado para préstamos grupales o el mismo cliente en individuales
+     */
+    public function representante()
+    {
+        return $this->belongsTo(Cliente::class, 'representante_id');
     }
 
     // relación muchos a muchos para prestamos grupales
