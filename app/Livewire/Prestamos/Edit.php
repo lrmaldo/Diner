@@ -399,6 +399,12 @@ class Edit extends Component
             if (! $exists) {
                 $this->clientesAgregados[] = ['cliente_id' => $cliente->id, 'monto_solicitado' => null, 'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}")];
             }
+            if ($this->prestamo_id && $cliente) {
+                $prestamo = Prestamo::find($this->prestamo_id);
+                if ($prestamo) {
+                    $prestamo->clientes()->syncWithoutDetaching([$cliente->id => ['monto_solicitado' => 0]]);
+                }
+            }
         }
     }
 
@@ -684,6 +690,12 @@ class Edit extends Component
                     'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}"),
                 ];
             }
+            if ($this->prestamo_id) {
+                $prestamo = Prestamo::find($this->prestamo_id);
+                if ($prestamo) {
+                    $prestamo->clientes()->syncWithoutDetaching([$cliente->id => ['monto_solicitado' => (float) ($cliente->credito_solicitado ?? 0)]]);
+                }
+            }
         } elseif ($this->producto === 'individual') {
             // en individual, aplicar el monto del crédito solicitado como monto del préstamo
             $this->monto = (float) ($cliente->credito_solicitado ?? 0);
@@ -885,6 +897,13 @@ class Edit extends Component
                     'monto_solicitado' => (float) ($c->credito_solicitado ?? 0),
                     'nombre' => trim("{$c->nombres} {$c->apellido_paterno}"),
                 ];
+            }
+            // sincronizar inmediatamente en pivot
+            if ($this->prestamo_id) {
+                $prestamo = Prestamo::find($this->prestamo_id);
+                if ($prestamo) {
+                    $prestamo->clientes()->syncWithoutDetaching([$c->id => ['monto_solicitado' => (float) ($c->credito_solicitado ?? 0)]]);
+                }
             }
         }
 

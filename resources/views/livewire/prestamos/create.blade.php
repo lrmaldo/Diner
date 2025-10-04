@@ -318,7 +318,6 @@
                                 <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">{{ $grupo_nombre_selected ?? ('Miembros vinculados (' . count($clientesAgregados) . ')') }}</span>
                                 <button type="button" wire:click.prevent="$set('showClienteModal', true)" class="btn-outline">Agregar cliente existente</button>
                                 <button type="button" wire:click.prevent="$toggle('showNewClienteForm')" class="btn-outline">Crear cliente nuevo</button>
-                                <button type="button" wire:click.prevent="$set('grupo_id', null)" class="btn-outline">Deseleccionar grupo</button>
                             </div>
 
                             @if($showNewClienteForm)
@@ -437,13 +436,13 @@
                                             <tr class="border-t" wire:key="miembro-{{ $row['cliente_id'] ?? $index }}">
                                                 <td class="p-2">{{ $row['nombre'] ?? 'Cliente #' . $row['cliente_id'] }}</td>
                                                 <td class="p-2">
-                                                    <input type="number" step="0.01" wire:model.defer="clientesAgregados.{{ $index }}.monto_solicitado" class="input-project w-32" />
+                                                    <input type="number" step="0.01" wire:model.lazy="clientesAgregados.{{ $index }}.monto_solicitado" wire:change="guardarMiembro({{ $index }})" wire:blur="guardarMiembro({{ $index }})" class="input-project w-32" />
                                                 </td>
                                                 <td class="p-2 text-center">
                                                     <input type="radio" name="representante" value="{{ $row['cliente_id'] }}" wire:click="selectRepresentante({{ $row['cliente_id'] }})" @checked((int)$representante_id === (int)($row['cliente_id'] ?? 0)) />
                                                 </td>
                                                 <td class="p-2 text-center space-x-2">
-                                                    <button type="button" wire:click.prevent="guardarMiembro({{ $index }})" class="btn-outline">Guardar</button>
+                                                    <button type="button" wire:click.prevent="openEditCliente({{ $row['cliente_id'] ?? 0 }})" class="btn-outline">Editar</button>
                                                     <button
                                                         type="button"
                                                         x-data
@@ -464,20 +463,6 @@
                             @endif
 
                             <div class="mt-4 flex gap-2 items-center">
-                                <button
-                                    type="button"
-                                    wire:click.prevent="finalizarVinculacionGrupo"
-                                    wire:loading.attr="disabled"
-                                    wire:target="finalizarVinculacionGrupo"
-                                    class="btn-primary flex items-center gap-2"
-                                >
-                                    <svg wire:loading.inline wire:target="finalizarVinculacionGrupo" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                    </svg>
-                                    <span wire:loading.remove wire:target="finalizarVinculacionGrupo">Finalizar vinculación</span>
-                                    <span wire:loading.inline wire:target="finalizarVinculacionGrupo">Procesando...</span>
-                                </button>
                                 <button type="button" wire:click.prevent="enviarAComite" class="btn-primary">Enviar a comité</button>
                                 <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar Paso 1</button>
                                 <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>

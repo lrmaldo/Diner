@@ -4,8 +4,8 @@ namespace Tests\Unit;
 
 use App\Livewire\Prestamos\Create as PrestamoCreate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Livewire\Livewire;
+use Tests\TestCase;
 
 class PrestamosEnviarAComiteTest extends TestCase
 {
@@ -28,6 +28,7 @@ class PrestamosEnviarAComiteTest extends TestCase
             ->set('clientesAgregados', [
                 ['cliente_id' => 999, 'nombre' => 'Cliente Prueba', 'monto_solicitado' => 1000],
             ])
-            ->assertSee('Enviar a comité');
+            ->assertSee('Enviar a comité')
+            ->assertDontSee('Finalizar vinculación');
     }
 }
