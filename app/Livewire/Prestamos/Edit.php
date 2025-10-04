@@ -532,7 +532,12 @@ class Edit extends Component
 
                 return;
             }
+            // en individual, asignar solicitante y persistir cliente y monto
             $prestamo->representante_id = $this->cliente_id;
+            $prestamo->cliente_id = $this->cliente_id;
+            if (is_numeric($this->monto) && (float) $this->monto > 0) {
+                $prestamo->monto_total = (float) $this->monto;
+            }
         } else {
             if (empty($this->clientesAgregados)) {
                 $this->addError('miembros', 'Debe agregar al menos un miembro.');
@@ -545,6 +550,20 @@ class Edit extends Component
                 return;
             }
             $prestamo->representante_id = $this->representante_id;
+            // si el monto_total no está definido aún, calcularlo desde los miembros en memoria
+            if (! is_numeric($prestamo->monto_total) || (float) $prestamo->monto_total <= 0) {
+                $this->normalizeClientesAgregados();
+                $total = 0.0;
+                foreach ($this->clientesAgregados as $row) {
+                    $m = $row['monto_solicitado'] ?? 0;
+                    if (is_numeric($m) && (float) $m > 0) {
+                        $total += (float) $m;
+                    }
+                }
+                if ($total > 0) {
+                    $prestamo->monto_total = $total;
+                }
+            }
         }
 
         $prestamo->estado = 'en_revision';
@@ -552,6 +571,33 @@ class Edit extends Component
 
         session()->flash('success', 'Préstamo enviado a comité.');
         redirect()->route('prestamos.index');
+    }
+
+    /**
+     * Seleccionar representante del grupo y persistirlo en el préstamo si existe (edición).
+     */
+    public function selectRepresentante(int $clienteId): void
+    {
+        $this->normalizeClientesAgregados();
+        $inList = collect($this->clientesAgregados)->contains(function ($r) use ($clienteId) {
+            return is_array($r) && isset($r['cliente_id']) && (int) $r['cliente_id'] === (int) $clienteId;
+        });
+
+        if (! $inList) {
+            $this->addError('representante', 'El representante debe ser miembro del grupo.');
+
+            return;
+        }
+
+        $this->representante_id = $clienteId;
+
+        if (! empty($this->prestamo_id)) {
+            $prestamo = Prestamo::find($this->prestamo_id);
+            if ($prestamo) {
+                $prestamo->representante_id = $clienteId;
+                $prestamo->save();
+            }
+        }
     }
 
     public function selectGrupo(int $id): void
@@ -638,6 +684,10 @@ class Edit extends Component
                     'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}"),
                 ];
             }
+        } elseif ($this->producto === 'individual') {
+            // en individual, aplicar el monto del crédito solicitado como monto del préstamo
+            $this->monto = (float) ($cliente->credito_solicitado ?? 0);
+            $this->cliente_nombre_selected = trim("{$cliente->nombres} {$cliente->apellido_paterno} {$cliente->apellido_materno}");
         }
         session()->flash('success', 'Cliente creado y seleccionado');
     }

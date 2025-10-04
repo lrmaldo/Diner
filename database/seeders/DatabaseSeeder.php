@@ -18,10 +18,10 @@ class DatabaseSeeder extends Seeder
 
         // Luego los otros seeders
         $this->call([
-            CapitalSeeder::class,
-            ClientSeeder::class,
+            //CapitalSeeder::class,
+           /*  ClientSeeder::class,
             LoanSeeder::class,
-            PaymentSeeder::class,
+            PaymentSeeder::class, */
             \Database\Seeders\ClienteSeeder::class,
         ]);
     }

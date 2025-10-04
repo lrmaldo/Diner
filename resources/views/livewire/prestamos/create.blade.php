@@ -118,6 +118,33 @@
                             @endphp
                             <span class="inline-block px-2 py-1 rounded text-sm {{ $cls }}">Estado: {{ str_replace('_', ' ', $estado) }}</span>
                         </div>
+                        @if($producto === 'individual')
+                            <div class="sm:col-span-3">
+                                <div class="text-gray-500">Monto del préstamo:</div>
+                                <div class="font-extrabold text-3xl text-green-700">$ {{ number_format((float) ($monto ?? 0), 2) }}</div>
+                                @if(!empty($cliente_nombre_selected))
+                                    <div class="text-sm text-gray-600 mt-1">Para: <span class="font-medium">{{ $cliente_nombre_selected }}</span></div>
+                                @endif
+                            </div>
+                        @elseif($producto === 'grupal')
+                            @php
+                                $__totalGrupo = 0.0;
+                                if (isset($clientesAgregados) && is_array($clientesAgregados)) {
+                                    foreach ($clientesAgregados as $__row) {
+                                        $__totalGrupo += (float) ($__row['monto_solicitado'] ?? 0);
+                                    }
+                                } elseif (isset($monto_total)) {
+                                    $__totalGrupo = (float) $monto_total;
+                                }
+                            @endphp
+                            <div class="sm:col-span-3">
+                                <div class="text-gray-500">Monto total del grupo:</div>
+                                <div class="font-extrabold text-3xl text-green-700">$ {{ number_format($__totalGrupo, 2) }}</div>
+                                @if(!empty($grupo_nombre_selected))
+                                    <div class="text-sm text-gray-600 mt-1">Grupo: <span class="font-medium">{{ $grupo_nombre_selected }}</span></div>
+                                @endif
+                            </div>
+                        @endif
                     </div>
 
                     <div class="mt-3 flex justify-end">
@@ -238,7 +265,7 @@
                         @endif
 
                         <div class="mt-4 flex gap-2">
-                            <button type="button" wire:click.prevent="linkClienteIndividual({{ $monto ?? 0 }})" class="btn-primary">Vincular y finalizar</button>
+                            <button type="button" wire:click.prevent="enviarAComite" class="btn-primary">Enviar a comité</button>
                             <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar Paso 1</button>
                             <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
                         </div>
@@ -413,7 +440,7 @@
                                                     <input type="number" step="0.01" wire:model.defer="clientesAgregados.{{ $index }}.monto_solicitado" class="input-project w-32" />
                                                 </td>
                                                 <td class="p-2 text-center">
-                                                    <input type="radio" name="representante" value="{{ $row['cliente_id'] }}" wire:click="$set('representante_id', {{ $row['cliente_id'] }})" />
+                                                    <input type="radio" name="representante" value="{{ $row['cliente_id'] }}" wire:click="selectRepresentante({{ $row['cliente_id'] }})" @checked((int)$representante_id === (int)($row['cliente_id'] ?? 0)) />
                                                 </td>
                                                 <td class="p-2 text-center space-x-2">
                                                     <button type="button" wire:click.prevent="guardarMiembro({{ $index }})" class="btn-outline">Guardar</button>

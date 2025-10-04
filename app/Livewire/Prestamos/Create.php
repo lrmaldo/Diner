@@ -312,9 +312,11 @@ class Create extends Component
             'producto' => $this->producto,
             'plazo' => $this->plazo,
             'periodicidad' => $this->periodicidad,
+            'periodo_pago' => $this->periodo_pago,
             'fecha_entrega' => $this->fecha_entrega,
             'fecha_primer_pago' => $this->fecha_primer_pago,
             'dia_pago' => $this->dia_pago,
+            'monto_total' => 0,
             'estado' => 'en_curso',
         ];
 
@@ -545,7 +547,13 @@ class Create extends Component
 
                 return;
             }
+            // en individual, el solicitante es el mismo cliente
             $prestamo->representante_id = $this->cliente_id;
+            // también persistimos el cliente asociado y el monto si está definido en el componente
+            $prestamo->cliente_id = $this->cliente_id;
+            if (is_numeric($this->monto) && (float) $this->monto > 0) {
+                $prestamo->monto_total = (float) $this->monto;
+            }
         } else {
             // grupal: debe haber al menos un miembro y un representante elegido
             if (empty($this->clientesAgregados)) {
@@ -559,6 +567,20 @@ class Create extends Component
                 return;
             }
             $prestamo->representante_id = $this->representante_id;
+            // si el monto_total no está definido aún, calcularlo desde los miembros en memoria
+            if (! is_numeric($prestamo->monto_total) || (float) $prestamo->monto_total <= 0) {
+                $this->normalizeClientesAgregados();
+                $total = 0.0;
+                foreach ($this->clientesAgregados as $row) {
+                    $m = $row['monto_solicitado'] ?? 0;
+                    if (is_numeric($m) && (float) $m > 0) {
+                        $total += (float) $m;
+                    }
+                }
+                if ($total > 0) {
+                    $prestamo->monto_total = $total;
+                }
+            }
         }
 
         $prestamo->estado = 'en_revision';
@@ -566,6 +588,35 @@ class Create extends Component
 
         session()->flash('success', 'Préstamo enviado a comité.');
         redirect()->route('prestamos.index');
+    }
+
+    /**
+     * Seleccionar representante del grupo y persistirlo en el préstamo si existe.
+     */
+    public function selectRepresentante(int $clienteId): void
+    {
+        // asegurar que el cliente esté en la lista de agregados
+        $this->normalizeClientesAgregados();
+        $inList = collect($this->clientesAgregados)->contains(function ($r) use ($clienteId) {
+            return is_array($r) && isset($r['cliente_id']) && (int) $r['cliente_id'] === (int) $clienteId;
+        });
+
+        if (! $inList) {
+            $this->addError('representante', 'El representante debe ser miembro del grupo.');
+
+            return;
+        }
+
+        $this->representante_id = $clienteId;
+
+        // si hay préstamo creado, persistir inmediatamente
+        if (! empty($this->prestamo_id)) {
+            $prestamo = Prestamo::find($this->prestamo_id);
+            if ($prestamo) {
+                $prestamo->representante_id = $clienteId;
+                $prestamo->save();
+            }
+        }
     }
 
     public function selectGrupo(int $id): void
@@ -661,6 +712,10 @@ class Create extends Component
                     'nombre' => trim("{$cliente->nombres} {$cliente->apellido_paterno}"),
                 ];
             }
+        } elseif ($this->producto === 'individual') {
+            // en individual, aplicar el monto del crédito solicitado como monto del préstamo
+            $this->monto = (float) ($cliente->credito_solicitado ?? 0);
+            $this->cliente_nombre_selected = trim("{$cliente->nombres} {$cliente->apellido_paterno} {$cliente->apellido_materno}");
         }
         session()->flash('success', 'Cliente creado y seleccionado');
     }
