@@ -17,6 +17,14 @@ class Create extends Component
 
     public $producto = 'individual'; // 'individual' o 'grupal'
 
+    // Status alert properties
+    public $status_type = 'success';
+
+    public $status_message = '';
+
+    // Para forzar actualizaciones de la vista
+    public $updateCounter = 0;
+
     public $prestamo_id;
 
     public $cliente_id;
@@ -126,14 +134,18 @@ class Create extends Component
     // expose admin flag to view
     public $isAdmin = false;
 
-    // status alert for simple feedback
-    public $status_message = null;
-
-    public $status_type = 'success';
-
     public function mount($prestamo = null): void
     {
         $this->isAdmin = auth()->check() && auth()->user()->hasRole('Administrador');
+
+        // Si hay mensajes flash en la sesión, establecerlos en las propiedades de alerta
+        if (session()->has('success')) {
+            $this->status_type = 'success';
+            $this->status_message = session('success');
+        } elseif (session()->has('error')) {
+            $this->status_type = 'error';
+            $this->status_message = session('error');
+        }
 
         // If a numeric id or route-binding provided, try to resolve the model
         if ($prestamo && ! ($prestamo instanceof \App\Models\Prestamo)) {
@@ -259,7 +271,17 @@ class Create extends Component
             }
         }
 
-        return $this->validate($rulesSubset);
+        $validatedData = $this->validate($rulesSubset);
+
+        // Validación adicional para préstamos grupales
+        if ($this->producto === 'grupal' && $this->step == 2) {
+            // Si estamos en el paso 2 y es un préstamo grupal, validamos que haya un representante
+            if (empty($this->representante_id)) {
+                $this->addError('representante', 'Debe seleccionar un representante del grupo para préstamos grupales.');
+            }
+        }
+
+        return $validatedData;
     }
 
     protected function validateFechaPrimerPago(): void
@@ -332,17 +354,91 @@ class Create extends Component
         $prestamo = Prestamo::create($data);
 
         // Si es grupal, crear grupo automático si no existe aún
-        if ($this->producto === 'grupal' && empty($this->grupo_id)) {
-            $grupo = $this->ensureAutoGrupoExists();
-            $prestamo->grupo_id = $grupo->id;
-            $prestamo->save();
-            $this->grupo_id = $grupo->id;
-            $this->grupo_nombre_selected = $grupo->nombre;
+        if ($this->producto === 'grupal') {
+            // Si no hay grupo seleccionado, creamos uno automático
+            if (empty($this->grupo_id)) {
+                $grupo = $this->ensureAutoGrupoExists();
+                $prestamo->grupo_id = $grupo->id;
+                $prestamo->save();
+                $this->grupo_id = $grupo->id;
+                $this->grupo_nombre_selected = $grupo->nombre;
+            }
+
+            // Si ya hay un representante seleccionado, lo asignamos al préstamo
+            if (! empty($this->representante_id)) {
+                $prestamo->representante_id = $this->representante_id;
+                $prestamo->save();
+            }
         }
 
         $this->prestamo_id = $prestamo->id;
         $this->step = 2;
-        session()->flash('success', 'Préstamo creado con folio: '.$prestamo->folio);
+        $this->showMessage('success', 'Préstamo creado con folio: '.$prestamo->folio);
+    }
+
+    public function updatePrestamo(): void
+    {
+        if (! $this->prestamo_id) {
+            $this->addError('prestamo', 'No hay préstamo cargado para actualizar.');
+            $this->showMessage('error', 'No hay préstamo cargado para actualizar.');
+
+            return;
+        }
+
+        $this->validateFirstStep();
+        $this->validateFechaPrimerPago();
+
+        if ($this->getErrorBag()->isNotEmpty()) {
+            $this->showMessage('error', 'Hay errores en el formulario. Por favor revisa los campos marcados.');
+
+            return;
+        }
+
+        $prestamo = Prestamo::findOrFail($this->prestamo_id);
+
+        $prestamo->producto = $this->producto;
+        $prestamo->plazo = $this->plazo;
+        $prestamo->periodicidad = $this->periodicidad;
+        $prestamo->periodo_pago = $this->periodo_pago;
+        $prestamo->fecha_entrega = $this->fecha_entrega;
+        $prestamo->fecha_primer_pago = $this->fecha_primer_pago;
+        $prestamo->dia_pago = $this->dia_pago;
+
+        // Solo permitir cambiar tasa_interes si el usuario es administrador
+        if (auth()->check() && auth()->user()->hasRole('Administrador')) {
+            $prestamo->tasa_interes = $this->tasa_interes;
+        }
+
+        // Si es grupal, validamos que se haya seleccionado un representante
+        if ($prestamo->producto === 'grupal') {
+            if (empty($this->representante_id) && empty($prestamo->representante_id)) {
+                $this->addError('representante', 'Debe seleccionar un representante del grupo para préstamos grupales.');
+                $this->showMessage('error', 'Debe seleccionar un representante del grupo para préstamos grupales.');
+
+                return;
+            }
+
+            // Si hay un representante seleccionado, lo asignamos al préstamo
+            if (! empty($this->representante_id)) {
+                $prestamo->representante_id = $this->representante_id;
+            }
+        }
+
+        $prestamo->save();
+
+        // Llamamos al método específico para mostrar mensajes
+        $this->showMessage('success', 'Préstamo actualizado correctamente ('.now()->format('H:i:s').')');
+    }
+
+    /**
+     * Método dedicado para mostrar mensajes con actualización forzada
+     */
+    public function showMessage(string $type, string $message): void
+    {
+        $this->status_type = $type;
+        $this->status_message = $message;
+        $this->updateCounter++; // Forzar actualización
+        $this->dispatch('prestamo-actualizado');
     }
 
     protected function ensureAutoGrupoExists(): Grupo
@@ -1085,5 +1181,27 @@ class Create extends Component
         session()->flash('success', 'Solicitud de préstamo creada con estado en_curso');
 
         return redirect()->route('prestamos.index');
+    }
+
+    /**
+     * Elimina el cliente seleccionado del préstamo individual
+     */
+    public function removeCliente(): void
+    {
+        // Si existe un préstamo y tiene un cliente vinculado, lo desvinculamos
+        if ($this->prestamo_id) {
+            $prestamo = Prestamo::find($this->prestamo_id);
+            if ($prestamo && $prestamo->cliente_id) {
+                $prestamo->cliente_id = null;
+                $prestamo->save();
+            }
+        }
+
+        // Limpiamos las variables locales
+        $this->cliente_id = null;
+        $this->cliente_nombre_selected = null;
+
+        // Mostramos mensaje de confirmación
+        $this->showMessage('success', 'Cliente eliminado del préstamo correctamente.');
     }
 }

@@ -122,6 +122,9 @@ class Edit extends Component
 
     public $status_type = 'success';
 
+    // Para compatibilidad con la vista compartida create.blade.php
+    public $updateCounter = 0;
+
     // Compatibilidad con vista compartida (botón individual usa $monto)
     public $monto = null;
 
@@ -321,7 +324,18 @@ class Edit extends Component
 
         $prestamo->save();
 
-        session()->flash('success', 'Préstamo actualizado correctamente.');
+        $this->showMessage('success', 'Préstamo actualizado correctamente.');
+    }
+
+    /**
+     * Método dedicado para mostrar mensajes con actualización forzada
+     */
+    public function showMessage(string $type, string $message): void
+    {
+        $this->status_type = $type;
+        $this->status_message = $message;
+        $this->updateCounter++; // Forzar actualización
+        $this->dispatch('prestamo-actualizado');
     }
 
     /**
@@ -337,7 +351,7 @@ class Edit extends Component
         }
 
         $this->step = 2;
-        session()->flash('success', 'Continuando a vinculación');
+        $this->showMessage('success', 'Continuando a agregar clientes');
     }
 
     public function linkClienteIndividual(float $monto)
@@ -354,7 +368,7 @@ class Edit extends Component
         $prestamo->monto_total = $monto;
         $prestamo->save();
 
-        session()->flash('success', 'Cliente vinculado al préstamo');
+        $this->showMessage('success', 'Cliente vinculado al préstamo');
 
         return redirect()->route('prestamos.index');
     }
@@ -541,7 +555,7 @@ class Edit extends Component
             $prestamo->save();
         });
 
-        session()->flash('success', 'Vinculación completada. Préstamo finalizado con monto total: '.number_format($total, 2));
+        $this->showMessage('success', 'Agregar clientes completado. Préstamo finalizado con monto total: '.number_format($total, 2));
         redirect()->route('prestamos.index');
     }
 
@@ -598,7 +612,7 @@ class Edit extends Component
         $prestamo->estado = 'en_revision';
         $prestamo->save();
 
-        session()->flash('success', 'Préstamo enviado a comité.');
+        $this->showMessage('success', 'Préstamo enviado a comité.');
         redirect()->route('prestamos.index');
     }
 
@@ -724,7 +738,7 @@ class Edit extends Component
             $this->monto = (float) ($cliente->credito_solicitado ?? 0);
             $this->cliente_nombre_selected = trim("{$cliente->nombres} {$cliente->apellido_paterno} {$cliente->apellido_materno}");
         }
-        session()->flash('success', 'Cliente creado y seleccionado');
+        $this->showMessage('success', 'Cliente creado y seleccionado');
     }
 
     public function addNewGrupo()
@@ -742,7 +756,7 @@ class Edit extends Component
         $this->grupo_id = $grupo->id;
         $this->showNewGrupoForm = false;
         $this->new_grupo_nombre = $this->new_grupo_descripcion = null;
-        session()->flash('success', 'Grupo creado y seleccionado');
+        $this->showMessage('success', 'Grupo creado y seleccionado');
         $this->showClienteModal = true;
     }
 
@@ -931,7 +945,7 @@ class Edit extends Component
         }
 
         $this->showEditClienteModal = false;
-        session()->flash('success', 'Cliente actualizado y aplicado al préstamo');
+        $this->showMessage('success', 'Cliente actualizado y aplicado al préstamo');
     }
 
     protected function normalizeClientesAgregados(): void
@@ -969,5 +983,27 @@ class Edit extends Component
             return is_array($r) && isset($r['cliente_id']);
         }));
         $this->clientesAgregados = $filtered;
+    }
+
+    /**
+     * Elimina el cliente seleccionado del préstamo individual
+     */
+    public function removeCliente(): void
+    {
+        // Si existe un préstamo y tiene un cliente vinculado, lo desvinculamos
+        if ($this->prestamo_id) {
+            $prestamo = Prestamo::find($this->prestamo_id);
+            if ($prestamo && $prestamo->cliente_id) {
+                $prestamo->cliente_id = null;
+                $prestamo->save();
+            }
+        }
+
+        // Limpiamos las variables locales
+        $this->cliente_id = null;
+        $this->cliente_nombre_selected = null;
+
+        // Mostramos mensaje de confirmación
+        $this->showMessage('success', 'Cliente eliminado del préstamo correctamente.');
     }
 }

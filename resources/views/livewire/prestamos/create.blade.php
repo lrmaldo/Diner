@@ -1,12 +1,27 @@
 <div class="p-6 max-w-4xl mx-auto">
+    <script>
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('prestamo-actualizado', () => {
+                console.log('Préstamo actualizado. Actualizando interfaz...');
+                // Forzar actualización de Livewire (alternativa)
+                // window.location.reload();
+            });
+        });
+    </script>
     <div class="mb-6 flex items-center justify-between">
         <h1 class="text-2xl font-semibold">Solicitar préstamo</h1>
         <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver</a>
     </div>
- {{-- usar componente de status-alert para feedback en la vista --}}
-                <div class="mt-2">
-                    <x-status-alert :type="$status_type" :message="$status_message" />
-                </div>
+
+    {{-- Componente de status-alert para feedback en la vista --}}
+    <div class="mt-2">
+        @if($status_message)
+            <div class="animate-pulse">
+                <x-status-alert :type="$status_type" :message="$status_message" :timeout="0" />
+            </div>
+        @endif
+    </div>
+
     <div class="bg-white shadow rounded-lg p-6">
 
         {{-- Paso 1: formulario de creación del préstamo --}}
@@ -14,7 +29,7 @@
             <form class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="sm:col-span-2">
                     <h2 class="text-lg font-semibold">Paso 1 — Crear préstamo</h2>
-                    <p class="text-sm text-gray-600 mt-1">Completa los datos del préstamo. Después pulsa Crear para generar el folio y pasar al paso de vinculación.</p>
+                    <p class="text-sm text-gray-600 mt-1">Completa los datos del préstamo. Después pulsa Crear para generar el folio y pasar al paso de agregar clientes.</p>
                 </div>
 
                 <div>
@@ -55,7 +70,7 @@
                     <input wire:model="fecha_primer_pago" type="date" class="input-project" />
                 </div>
 
-                <!-- Monto total eliminado del formulario, se gestiona en la vinculación -->
+                <!-- Monto total eliminado del formulario, se gestiona al agregar clientes -->
 
                 <div>
                     <label class="field-label">Tasa de interés (%)</label>
@@ -79,7 +94,7 @@
                     <a href="{{ route('prestamos.index') }}" class="btn-outline">Cancelar</a>
                     @if(! empty($prestamo) && $prestamo->id)
                         <button type="button" wire:click.prevent="updatePrestamo" class="btn-primary">Actualizar Paso 1</button>
-                        <button type="button" wire:click.prevent="crearPrestamo" class="btn-primary">Ir a Vinculación</button>
+                        <button type="button" wire:click.prevent="crearPrestamo" class="btn-primary">Ir a agregar clientes</button>
                     @else
                         <button type="button" wire:click.prevent="crearPrestamo" class="btn-primary">Crear</button>
                     @endif
@@ -87,12 +102,12 @@
             </form>
         @endif
 
-        {{-- Paso 2: resumen + vincular clientes (después de crear préstamo) --}}
+        {{-- Paso 2: resumen + agregar clientes (después de crear préstamo) --}}
         @if($step == 2)
             <div>
                 {{-- Depuración: estado actual del componente (temporal) --}}
                 <div class="mb-3 text-sm text-gray-500">Estado: <strong>producto</strong>={{ $producto ?? 'n/a' }}, <strong>step</strong>={{ $step }}</div>
-                <h2 class="text-lg font-semibold">Paso 2 — Vincular clientes</h2>
+                <h2 class="text-lg font-semibold">Paso 2 — Agregar clientes</h2>
                 <p class="text-sm text-gray-600">Préstamo creado con folio: <strong>{{ optional($prestamo)->folio }}</strong></p>
 
                 {{-- Bloque resumen no editable del préstamo --}}
@@ -155,12 +170,27 @@
                 @if($producto === 'individual')
                     <div class="mt-4">
                         <label class="field-label">Cliente</label>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <button type="button" wire:click.prevent="$set('showClienteModal', true)" class="btn-outline">Buscar cliente</button>
-                            @if($cliente_nombre_selected)
-                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">{{ $cliente_nombre_selected }}</span>
-                            @endif
                             <button type="button" wire:click.prevent="$toggle('showNewClienteForm')" class="btn-outline">Nuevo cliente</button>
+
+                            @if($cliente_nombre_selected)
+                                <div class="flex items-center mt-2 w-full">
+                                    <div class="flex-grow p-3 bg-blue-50 border border-blue-200 rounded-l-lg">
+                                        <span class="font-medium text-blue-800">{{ $cliente_nombre_selected }}</span>
+                                    </div>
+                                    <button type="button" wire:click.prevent="openEditCliente({{ $cliente_id }})" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                        </svg>
+                                    </button>
+                                    <button type="button" wire:click.prevent="removeCliente" class="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-r-lg">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            @endif
                         </div>
 
                         @if($showNewClienteForm)
@@ -388,7 +418,12 @@
                                         <tr class="bg-gray-50">
                                             <th class="p-2 text-left">Miembro</th>
                                             <th class="p-2 text-left">Monto solicitado</th>
-                                            <th class="p-2">Representante</th>
+                                            <th class="p-2">
+                                                Representante
+                                                @error('representante')
+                                                    <div class="text-xs text-red-600 font-normal">{{ $message }}</div>
+                                                @enderror
+                                            </th>
                                             <th class="p-2">Acciones</th>
                                         </tr>
                                     </thead>
@@ -428,7 +463,6 @@
                                 <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar Paso 1</button>
                                 <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
                             </div>
-                        @endif
                     </div>
                 @endif
             </div>
