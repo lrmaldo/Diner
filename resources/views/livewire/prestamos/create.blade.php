@@ -276,51 +276,12 @@
                     <div class="mt-4">
                         <p class="text-sm text-gray-600">Agregar clientes al préstamo grupal.</p>
 
-            @if(! $grupo_id && empty($clientesAgregados))
-                            <div class="mt-3 flex gap-2">
-                                    <button type="button" wire:click.prevent="$set('showGrupoModal', true)" class="btn-outline">Buscar grupo</button>
-                                    <button type="button" wire:click.prevent="openNewGrupoForm" class="btn-outline">Nuevo grupo</button>
-                            </div>
-
-                            @if($showNewGrupoForm)
-                                <div class="mt-2 p-4 border rounded bg-gray-50">
-                                    <div class="space-y-3">
-                                        <div>
-                                            <label class="field-label">Nombre del grupo</label>
-                                            <input wire:model.defer="new_grupo_nombre" placeholder="{{ $suggested_grupo_name ?? 'Ej: Grupo A' }}" class="input-project w-full" />
-                                        </div>
-
-                                        <div>
-                                            <label class="field-label">Descripción</label>
-                                            <textarea wire:model.defer="new_grupo_descripcion" class="input-project w-full" rows="2"></textarea>
-                                        </div>
-
-                                        @if(! empty($group_name_suggestions))
-                                            <div>
-                                                <div class="text-sm text-gray-600">Sugerencias:</div>
-                                                <div class="mt-1 flex flex-wrap gap-2">
-                                                    @foreach($group_name_suggestions as $s)
-                                                        <button type="button" wire:click.prevent="selectSuggestedGroupName('{{ $s }}')" class="px-2 py-1 bg-gray-100 rounded text-sm hover:bg-gray-200">{{ $s }}</button>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        @endif
-
-                                        <div class="flex justify-end">
-                                            <button type="button" wire:click.prevent="addNewGrupo" class="btn-primary">Crear y continuar</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                        @else
-                            <div class="mt-3 flex items-center gap-2">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">{{ $grupo_nombre_selected ?? ('Miembros vinculados (' . count($clientesAgregados) . ')') }}</span>
-                                <button type="button" wire:click.prevent="$set('showClienteModal', true)" class="btn-outline">Agregar cliente existente</button>
-                                <button type="button" wire:click.prevent="$toggle('showNewClienteForm')" class="btn-outline">Crear cliente nuevo</button>
-                            </div>
-
-                            @if($showNewClienteForm)
+                        <div class="mt-3 flex items-center gap-2">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">{{ $grupo_nombre_selected ?? 'representante grupal' }}</span>
+                            <button type="button" wire:click.prevent="$set('showClienteModal', true)" class="btn-outline">Agregar cliente existente</button>
+                            <button type="button" wire:click.prevent="$toggle('showNewClienteForm')" class="btn-outline">Crear cliente nuevo</button>
+                        </div>
+                        @if($showNewClienteForm)
                                 <div class="mt-3 p-4 border rounded bg-gray-50">
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>

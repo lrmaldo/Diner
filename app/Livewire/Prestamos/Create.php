@@ -331,9 +331,34 @@ class Create extends Component
 
         $prestamo = Prestamo::create($data);
 
+        // Si es grupal, crear grupo automático si no existe aún
+        if ($this->producto === 'grupal' && empty($this->grupo_id)) {
+            $grupo = $this->ensureAutoGrupoExists();
+            $prestamo->grupo_id = $grupo->id;
+            $prestamo->save();
+            $this->grupo_id = $grupo->id;
+            $this->grupo_nombre_selected = $grupo->nombre;
+        }
+
         $this->prestamo_id = $prestamo->id;
         $this->step = 2;
         session()->flash('success', 'Préstamo creado con folio: '.$prestamo->folio);
+    }
+
+    protected function ensureAutoGrupoExists(): Grupo
+    {
+        $base = 'representante grupal';
+        $name = $base;
+        $i = 1;
+        while (Grupo::where('nombre', $name)->exists()) {
+            $name = $base.' '.$i;
+            $i++;
+        }
+
+        return Grupo::create([
+            'nombre' => $name,
+            'descripcion' => 'Grupo autogenerado al crear el préstamo',
+        ]);
     }
 
     public function linkClienteIndividual(float $monto)

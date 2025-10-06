@@ -143,12 +143,35 @@ class Edit extends Component
         $this->monto_total = $prestamo->monto_total;
         $this->representante_id = $prestamo->representante_id;
 
-        // load clientesAgregados if grupal
+        // load clientesAgregados if grupal y asignar grupo automático si falta
         if ($prestamo->producto === 'grupal') {
+            if (empty($this->grupo_id)) {
+                $grupo = $this->ensureAutoGrupoExists();
+                $prestamo->grupo_id = $grupo->id;
+                $prestamo->save();
+                $this->grupo_id = $grupo->id;
+                $this->grupo_nombre_selected = $grupo->nombre;
+            }
             $this->clientesAgregados = $prestamo->clientes()->get()->map(function ($c) {
                 return ['cliente_id' => $c->id, 'monto_solicitado' => $c->pivot->monto_solicitado ?? null, 'nombre' => trim("{$c->nombres} {$c->apellido_paterno}")];
             })->toArray();
         }
+    }
+
+    protected function ensureAutoGrupoExists(): Grupo
+    {
+        $base = 'representante grupal';
+        $name = $base;
+        $i = 1;
+        while (Grupo::where('nombre', $name)->exists()) {
+            $name = $base.' '.$i;
+            $i++;
+        }
+
+        return Grupo::create([
+            'nombre' => $name,
+            'descripcion' => 'Grupo autogenerado al abrir edición',
+        ]);
     }
 
     public function render()
