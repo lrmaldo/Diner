@@ -12,7 +12,7 @@ class Prestamo extends Model
     protected $table = 'prestamos';
 
     protected $fillable = [
-        'folio', 'producto', 'monto_total', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id', 'representante_id',
+        'folio', 'producto', 'monto_total', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id', 'representante_id', 'motivo_rechazo',
     ];
 
     protected $casts = [
@@ -80,10 +80,11 @@ class Prestamo extends Model
         // Aquí se podría disparar la lógica de descuento de capital o eventos.
     }
 
-    public function rechazar(User $user): void
+    public function rechazar(User $user, ?string $motivo = null): void
     {
         $this->estado = 'rechazado';
         $this->autorizado_por = $user->id;
+        $this->motivo_rechazo = $motivo;
         $this->save();
     }
 }

@@ -29,7 +29,7 @@
             <form class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="sm:col-span-2">
                     <h2 class="text-lg font-semibold">Paso 1 — Crear préstamo</h2>
-                    <p class="text-sm text-gray-600 mt-1">Completa los datos del préstamo. Después pulsa Crear para generar el folio y pasar al paso de agregar clientes.</p>
+                    <p class="text-sm text-gray-600 mt-1">Completa los datos del préstamo. Después pulsa Crear para generar el ID y pasar al paso de agregar clientes.</p>
                 </div>
 
                 <div>
@@ -108,7 +108,7 @@
                 {{-- Depuración: estado actual del componente (temporal) --}}
                 <div class="mb-3 text-sm text-gray-500">Estado: <strong>producto</strong>={{ $producto ?? 'n/a' }}, <strong>step</strong>={{ $step }}</div>
                 <h2 class="text-lg font-semibold">Paso 2 — Agregar clientes</h2>
-                <p class="text-sm text-gray-600">Préstamo creado con folio: <strong>{{ optional($prestamo)->folio }}</strong></p>
+                <p class="text-sm text-gray-600">Préstamo creado con ID: <strong>{{ optional($prestamo)->id }}</strong></p>
 
                 {{-- Bloque resumen no editable del préstamo --}}
                 <div class="mt-3 border rounded p-4 bg-gray-50">

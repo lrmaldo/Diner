@@ -42,8 +42,15 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:ver prestamos'])->group(function () {
         Route::get('/prestamos/nuevo', \App\Livewire\Prestamos\Create::class)->name('prestamos.create');
         Route::get('/prestamos', \App\Livewire\Prestamos\Index::class)->name('prestamos.index');
-    Route::get('/prestamos/{prestamo}/editar', \App\Livewire\Prestamos\Edit::class)->middleware('permission:editar prestamos')->name('prestamos.edit');
+        Route::get('/prestamos/{id}', \App\Livewire\Prestamos\Show::class)->name('prestamos.show');
+        Route::get('/prestamos/{prestamo}/editar', \App\Livewire\Prestamos\Edit::class)->middleware('permission:editar prestamos')->name('prestamos.edit');
+    });
 
+    // Ruta para historial de clientes
+    Route::middleware(['permission:ver clientes'])->group(function () {
+        Route::get('/clientes/{id}/historial', function ($id) {
+            return redirect()->route('clients.show', $id);
+        })->name('clientes.historial');
     });
 
 });
