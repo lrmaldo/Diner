@@ -58,9 +58,8 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {{-- Columna principal --}}
-        <div class="lg:col-span-2 space-y-6">
+    {{-- Columna principal - Ahora ocupa todo el ancho --}}
+    <div class="space-y-6">
             {{-- Datos generales del préstamo --}}
             <div class="bg-white shadow rounded-lg p-6">
                 <h2 class="text-xl font-semibold mb-4 flex items-center">
@@ -143,18 +142,58 @@
                             <thead>
                                 <tr class="border-b">
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nombre</th>
-                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">CURP</th>
+                                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">Historial</th>
                                     <th class="px-4 py-3 text-right text-sm font-medium text-gray-700">Monto Solicitado</th>
                                     <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">Rol</th>
+                                    <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 @foreach($prestamo->clientes as $cliente)
+                                    @php
+                                        // Obtener historial de préstamos del cliente
+                                        $historialCliente = \App\Models\Prestamo::where(function($query) use ($cliente) {
+                                            $query->where('cliente_id', $cliente->id)
+                                                  ->orWhereHas('clientes', function($q) use ($cliente) {
+                                                      $q->where('clientes.id', $cliente->id);
+                                                  });
+                                        })
+                                        ->where('id', '!=', $prestamo->id)
+                                        ->orderBy('created_at', 'desc')
+                                        ->limit(10)
+                                        ->get();
+                                    @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-4 py-3">
                                             <p class="font-medium text-gray-900">{{ trim($cliente->nombres . ' ' . $cliente->apellido_paterno . ' ' . $cliente->apellido_materno) }}</p>
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-600">{{ $cliente->curp }}</td>
+                                        <td class="px-4 py-3">
+                                            @if($historialCliente->isEmpty())
+                                                <span class="text-xs text-gray-400 italic">Sin historial</span>
+                                            @else
+                                                <div class="flex gap-1 items-end h-16 justify-center" title="{{ $historialCliente->count() }} préstamos anteriores">
+                                                    @foreach($historialCliente as $hist)
+                                                        @php
+                                                            $colorBarra = match($hist->estado) {
+                                                                'autorizado' => 'bg-green-500',
+                                                                'rechazado' => 'bg-red-500',
+                                                                'en_revision' => 'bg-yellow-500',
+                                                                'en_curso' => 'bg-blue-500',
+                                                                default => 'bg-gray-400'
+                                                            };
+                                                            // Altura proporcional al monto (normalizado entre 30% y 100%)
+                                                            $maxMonto = $historialCliente->max('monto_total') ?: 1;
+                                                            $altura = max(30, ($hist->monto_total / $maxMonto) * 100);
+                                                        @endphp
+                                                        <div
+                                                            class="w-3.5 {{ $colorBarra }} rounded-t transition-all hover:opacity-75 hover:scale-110 cursor-pointer shadow-sm"
+                                                            style="height: {{ $altura }}%"
+                                                            title="Préstamo #{{ $hist->id }} - ${{ number_format($hist->monto_total, 2) }} - {{ ucfirst(str_replace('_', ' ', $hist->estado)) }}"
+                                                        ></div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </td>
                                         <td class="px-4 py-3 text-right font-medium text-green-600">
                                             ${{ number_format($cliente->pivot->monto_solicitado ?? 0, 2) }}
                                         </td>
@@ -167,6 +206,13 @@
                                                 <span class="text-xs text-gray-500">Integrante</span>
                                             @endif
                                         </td>
+                                        <td class="px-4 py-3 text-center">
+                                            <a href="{{ route('clients.show', $cliente->id) }}"
+                                               class="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
+                                               title="Ver datos completos del cliente">
+                                                <i class="fas fa-eye mr-1"></i> Ver datos
+                                            </a>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -178,20 +224,21 @@
             {{-- Datos del cliente (si es individual) --}}
             @if($prestamo->producto === 'individual' && $prestamo->cliente)
                 <div class="bg-white shadow rounded-lg p-6">
-                    <h2 class="text-xl font-semibold mb-4 flex items-center">
-                        <i class="fas fa-user text-blue-600 mr-2"></i>
-                        Información del Cliente
-                    </h2>
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-user text-blue-600 mr-2"></i>
+                            Información del Cliente
+                        </h2>
+                        <a href="{{ route('clients.show', $prestamo->cliente->id) }}"
+                           class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                            <i class="fas fa-eye mr-2"></i> Ver datos completos
+                        </a>
+                    </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Nombre Completo</label>
                             <p class="text-lg font-medium">{{ trim($prestamo->cliente->nombres . ' ' . $prestamo->cliente->apellido_paterno . ' ' . $prestamo->cliente->apellido_materno) }}</p>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-500 mb-1">CURP</label>
-                            <p class="text-lg font-medium">{{ $prestamo->cliente->curp ?? 'No disponible' }}</p>
                         </div>
 
                         <div>
@@ -222,47 +269,9 @@
                     </div>
                 </div>
             @endif
-        </div>
 
-        {{-- Columna lateral - Historial y estadísticas --}}
-        <div class="space-y-6">
-            {{-- Porcentaje de cumplimiento --}}
-            <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-lg font-semibold mb-4 flex items-center">
-                    <i class="fas fa-chart-pie text-blue-600 mr-2"></i>
-                    Cumplimiento de Pagos
-                </h3>
-
-                <div class="flex flex-col items-center">
-                    <div class="relative w-32 h-32">
-                        <svg class="w-full h-full transform -rotate-90">
-                            <circle cx="64" cy="64" r="56" stroke="#e5e7eb" stroke-width="8" fill="none" />
-                            <circle
-                                cx="64"
-                                cy="64"
-                                r="56"
-                                stroke="{{ $porcentajeCumplimiento >= 80 ? '#10b981' : ($porcentajeCumplimiento >= 50 ? '#f59e0b' : '#ef4444') }}"
-                                stroke-width="8"
-                                fill="none"
-                                stroke-dasharray="{{ 2 * 3.14159 * 56 }}"
-                                stroke-dashoffset="{{ 2 * 3.14159 * 56 * (1 - $porcentajeCumplimiento / 100) }}"
-                                stroke-linecap="round"
-                            />
-                        </svg>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="text-3xl font-bold {{ $porcentajeCumplimiento >= 80 ? 'text-green-600' : ($porcentajeCumplimiento >= 50 ? 'text-orange-600' : 'text-red-600') }}">
-                                {{ $porcentajeCumplimiento }}%
-                            </span>
-                        </div>
-                    </div>
-                    <p class="mt-3 text-sm text-gray-600 text-center">
-                        Porcentaje basado en préstamos anteriores
-                    </p>
-                </div>
-            </div>
-
-            {{-- Historial Crediticio --}}
-            <div class="bg-white shadow rounded-lg p-6">
+            {{-- Historial Crediticio Mejorado con Alpine.js --}}
+            <div class="bg-white shadow rounded-lg p-6" x-data="{ expanded: false }">
                 <h3 class="text-lg font-semibold mb-4 flex items-center">
                     <i class="fas fa-history text-blue-600 mr-2"></i>
                     Historial Crediticio
@@ -278,7 +287,8 @@
                     </div>
                 @else
                     <div class="space-y-3">
-                        @foreach($historialPrestamos as $hist)
+                        {{-- Mostrar primeros 3 préstamos --}}
+                        @foreach($historialPrestamos->take(3) as $index => $hist)
                             @php
                                 $colorMap = [
                                     'autorizado' => 'green',
@@ -294,14 +304,25 @@
                                     'blue' => 'bg-blue-500',
                                     'gray' => 'bg-gray-500',
                                 ][$color];
+                                $colorText = [
+                                    'green' => 'text-green-700',
+                                    'orange' => 'text-orange-700',
+                                    'red' => 'text-red-700',
+                                    'blue' => 'text-blue-700',
+                                    'gray' => 'text-gray-700',
+                                ][$color];
                             @endphp
-                            <div class="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                            <div class="border rounded-lg p-3 hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='{{ route('prestamos.show', $hist->id) }}'">
                                 <div class="flex items-start justify-between mb-2">
                                     <div class="flex-grow">
                                         <p class="font-medium text-gray-900">Préstamo #{{ $hist->id }}</p>
-                                        <p class="text-xs text-gray-500">{{ $hist->created_at->format('d/m/Y') }}</p>
+                                        <p class="text-xs text-gray-500">
+                                            <i class="far fa-calendar mr-1"></i>{{ $hist->created_at->format('d/m/Y') }}
+                                            <span class="mx-2">•</span>
+                                            <i class="far fa-clock mr-1"></i>{{ $hist->created_at->diffForHumans() }}
+                                        </p>
                                     </div>
-                                    <span class="text-xs capitalize {{ $colorBg }} text-white px-2 py-1 rounded">
+                                    <span class="text-xs capitalize {{ $colorBg }} text-white px-2 py-1 rounded whitespace-nowrap">
                                         {{ str_replace('_', ' ', $hist->estado) }}
                                     </span>
                                 </div>
@@ -322,20 +343,119 @@
                                 </div>
 
                                 {{-- Barra de comportamiento --}}
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="{{ $colorBg }} h-2 rounded-full" style="width: {{ $hist->estado === 'autorizado' ? '100' : ($hist->estado === 'en_revision' ? '60' : '30') }}%"></div>
+                                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    <div class="{{ $colorBg }} h-2 rounded-full transition-all duration-500" style="width: {{ $hist->estado === 'autorizado' ? '100' : ($hist->estado === 'en_revision' ? '60' : '30') }}%"></div>
                                 </div>
+                                <p class="text-[10px] text-gray-400 mt-1 {{ $colorText }}">
+                                    @if($hist->estado === 'autorizado')
+                                        ✓ Puntualidad: Excelente
+                                    @elseif($hist->estado === 'en_revision')
+                                        ⏳ En revisión por el comité
+                                    @else
+                                        ✗ No autorizado
+                                    @endif
+                                </p>
                             </div>
                         @endforeach
+
+                        {{-- Préstamos adicionales (ocultos por defecto) --}}
+                        @if($historialPrestamos->count() > 3)
+                            <div x-show="expanded" x-collapse>
+                                @foreach($historialPrestamos->skip(3) as $index => $hist)
+                                    @php
+                                        $colorMap = [
+                                            'autorizado' => 'green',
+                                            'en_revision' => 'orange',
+                                            'rechazado' => 'red',
+                                            'en_curso' => 'blue',
+                                        ];
+                                        $color = $colorMap[$hist->estado] ?? 'gray';
+                                        $colorBg = [
+                                            'green' => 'bg-green-500',
+                                            'orange' => 'bg-orange-500',
+                                            'red' => 'bg-red-500',
+                                            'blue' => 'bg-blue-500',
+                                            'gray' => 'bg-gray-500',
+                                        ][$color];
+                                        $colorText = [
+                                            'green' => 'text-green-700',
+                                            'orange' => 'text-orange-700',
+                                            'red' => 'text-red-700',
+                                            'blue' => 'text-blue-700',
+                                            'gray' => 'text-gray-700',
+                                        ][$color];
+                                    @endphp
+                                    <div class="border rounded-lg p-3 hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='{{ route('prestamos.show', $hist->id) }}'">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex-grow">
+                                                <p class="font-medium text-gray-900">Préstamo #{{ $hist->id }}</p>
+                                                <p class="text-xs text-gray-500">
+                                                    <i class="far fa-calendar mr-1"></i>{{ $hist->created_at->format('d/m/Y') }}
+                                                    <span class="mx-2">•</span>
+                                                    <i class="far fa-clock mr-1"></i>{{ $hist->created_at->diffForHumans() }}
+                                                </p>
+                                            </div>
+                                            <span class="text-xs capitalize {{ $colorBg }} text-white px-2 py-1 rounded whitespace-nowrap">
+                                                {{ str_replace('_', ' ', $hist->estado) }}
+                                            </span>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 text-xs mb-2">
+                                            <div>
+                                                <span class="text-gray-500">Tipo:</span>
+                                                <span class="font-medium capitalize">{{ $hist->producto }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-gray-500">Plazo:</span>
+                                                <span class="font-medium">{{ $hist->plazo }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-sm font-semibold text-green-600 mb-2">
+                                            ${{ number_format($hist->monto_total ?? 0, 2) }}
+                                        </div>
+
+                                        {{-- Barra de comportamiento --}}
+                                        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                            <div class="{{ $colorBg }} h-2 rounded-full transition-all duration-500" style="width: {{ $hist->estado === 'autorizado' ? '100' : ($hist->estado === 'en_revision' ? '60' : '30') }}%"></div>
+                                        </div>
+                                        <p class="text-[10px] text-gray-400 mt-1 {{ $colorText }}">
+                                            @if($hist->estado === 'autorizado')
+                                                ✓ Puntualidad: Excelente
+                                            @elseif($hist->estado === 'en_revision')
+                                                ⏳ En revisión por el comité
+                                            @else
+                                                ✗ No autorizado
+                                            @endif
+                                        </p>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            {{-- Botón para expandir/colapsar --}}
+                            <button
+                                @click="expanded = !expanded"
+                                class="w-full mt-3 py-2 px-4 border border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 font-medium"
+                            >
+                                <span x-show="!expanded">
+                                    <i class="fas fa-chevron-down"></i>
+                                    Ver historial completo ({{ $historialPrestamos->count() }} créditos)
+                                </span>
+                                <span x-show="expanded" x-cloak>
+                                    <i class="fas fa-chevron-up"></i>
+                                    Ver menos
+                                </span>
+                            </button>
+                        @endif
                     </div>
 
                     @if($prestamo->producto === 'individual' && $prestamo->cliente_id)
                         <a href="{{ route('clientes.historial', $prestamo->cliente_id) }}" class="block mt-4 text-center text-sm text-blue-600 hover:text-blue-800 font-medium">
-                            Ver historial completo <i class="fas fa-arrow-right ml-1"></i>
+                            <i class="fas fa-external-link-alt mr-1"></i> Abrir historial completo en nueva página
                         </a>
                     @elseif($prestamo->representante_id)
                         <a href="{{ route('clientes.historial', $prestamo->representante_id) }}" class="block mt-4 text-center text-sm text-blue-600 hover:text-blue-800 font-medium">
-                            Ver historial completo <i class="fas fa-arrow-right ml-1"></i>
+                            <i class="fas fa-external-link-alt mr-1"></i> Abrir historial completo en nueva página
                         </a>
                     @endif
                 @endif
