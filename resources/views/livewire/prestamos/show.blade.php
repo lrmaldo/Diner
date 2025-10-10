@@ -288,7 +288,7 @@
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-500 mb-1">Historial Crediticio</label>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Historial Crediticio y Monto</label>
                             @php
                                 // Obtener historial de préstamos del cliente individual
                                 $historialClienteIndividual = \App\Models\Prestamo::where(function($query) use ($prestamo) {
@@ -304,39 +304,47 @@
 
                                 $totalPrestamosCliente = $historialClienteIndividual->count();
                             @endphp
-                            @if($historialClienteIndividual->isEmpty())
-                                <span class="text-sm text-gray-400 italic">Sin historial previo</span>
-                            @else
-                                <div class="flex items-end gap-3">
-                                    <div class="flex gap-1 items-end h-16" title="{{ $totalPrestamosCliente }} préstamos anteriores">
-                                        @foreach($historialClienteIndividual as $hist)
-                                            @php
-                                                $colorBarra = match($hist->estado) {
-                                                'autorizado' => 'bg-green-500',
-                                                'rechazado' => 'bg-red-500',
-                                                'en_revision' => 'bg-yellow-500',
-                                                'en_curso' => 'bg-blue-500',
-                                                default => 'bg-gray-400'
-                                            };
-                                            // Altura proporcional al monto (normalizado entre 30% y 100%)
-                                            $maxMonto = $historialClienteIndividual->max('monto_total') ?: 1;
-                                            $altura = max(30, ($hist->monto_total / $maxMonto) * 100);
-                                        @endphp
-                                        <div
-                                            class="w-3.5 {{ $colorBarra }} rounded-t transition-all hover:opacity-75 hover:scale-110 cursor-pointer shadow-sm"
-                                            style="height: {{ $altura }}%"
-                                            title="Préstamo #{{ $hist->id }} - ${{ number_format($hist->monto_total, 2) }} - {{ ucfirst(str_replace('_', ' ', $hist->estado)) }}"
-                                        ></div>
-                                    @endforeach
-                                    </div>
-                                    <div class="flex flex-col justify-center">
-                                        <div class="text-center">
-                                            <p class="text-3xl font-bold text-blue-600">{{ $totalPrestamosCliente }}</p>
-                                            <p class="text-xs text-gray-500 mt-1">préstamo{{ $totalPrestamosCliente != 1 ? 's' : '' }}</p>
+                            <div class="flex items-center gap-4">
+                                @if($historialClienteIndividual->isEmpty())
+                                    <span class="text-sm text-gray-400 italic">Sin historial previo</span>
+                                @else
+                                    <div class="flex items-end gap-3">
+                                        <div class="flex gap-1 items-end h-16" title="{{ $totalPrestamosCliente }} préstamos anteriores">
+                                            @foreach($historialClienteIndividual as $hist)
+                                                @php
+                                                    $colorBarra = match($hist->estado) {
+                                                    'autorizado' => 'bg-green-500',
+                                                    'rechazado' => 'bg-red-500',
+                                                    'en_revision' => 'bg-yellow-500',
+                                                    'en_curso' => 'bg-blue-500',
+                                                    default => 'bg-gray-400'
+                                                };
+                                                // Altura proporcional al monto (normalizado entre 30% y 100%)
+                                                $maxMonto = $historialClienteIndividual->max('monto_total') ?: 1;
+                                                $altura = max(30, ($hist->monto_total / $maxMonto) * 100);
+                                            @endphp
+                                            <div
+                                                class="w-3.5 {{ $colorBarra }} rounded-t transition-all hover:opacity-75 hover:scale-110 cursor-pointer shadow-sm"
+                                                style="height: {{ $altura }}%"
+                                                title="Préstamo #{{ $hist->id }} - ${{ number_format($hist->monto_total, 2) }} - {{ ucfirst(str_replace('_', ' ', $hist->estado)) }}"
+                                            ></div>
+                                        @endforeach
+                                        </div>
+                                        <div class="flex flex-col justify-center">
+                                            <div class="text-center">
+                                                <p class="text-3xl font-bold text-blue-600">{{ $totalPrestamosCliente }}</p>
+                                                <p class="text-xs text-gray-500 mt-1">préstamo{{ $totalPrestamosCliente != 1 ? 's' : '' }}</p>
+                                            </div>
                                         </div>
                                     </div>
+                                @endif
+                                <div class="border-l-2 border-gray-300 pl-4 ml-2">
+                                    <div class="text-center">
+                                        <p class="text-sm text-gray-500 mb-1">Monto</p>
+                                        <p class="text-2xl font-bold text-green-600">${{ number_format($prestamo->monto_total, 2) }}</p>
+                                    </div>
                                 </div>
-                            @endif
+                            </div>
                         </div>
 
                         <div class="md:col-span-2">
