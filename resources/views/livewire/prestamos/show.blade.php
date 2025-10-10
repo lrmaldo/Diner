@@ -190,27 +190,38 @@
                                             @if($historialCliente->isEmpty())
                                                 <span class="text-xs text-gray-400 italic">Sin historial</span>
                                             @else
-                                                <div class="flex gap-1 items-end h-16 justify-center" title="{{ $historialCliente->count() }} préstamos anteriores">
-                                                    @foreach($historialCliente as $hist)
-                                                        @php
-                                                            $colorBarra = match($hist->estado) {
-                                                                'autorizado' => 'bg-green-500',
-                                                                'rechazado' => 'bg-red-500',
-                                                                'en_revision' => 'bg-yellow-500',
-                                                                'en_curso' => 'bg-blue-500',
-                                                                default => 'bg-gray-400'
-                                                            };
-                                                            // Altura proporcional al monto (normalizado entre 30% y 100%)
-                                                            $maxMonto = $historialCliente->max('monto_total') ?: 1;
-                                                            $altura = max(30, ($hist->monto_total / $maxMonto) * 100);
-                                                        @endphp
-                                                        <div
-                                                            class="w-3.5 {{ $colorBarra }} rounded-t transition-all hover:opacity-75 hover:scale-110 cursor-pointer shadow-sm"
-                                                            style="height: {{ $altura }}%"
-                                                            title="Préstamo #{{ $hist->id }} - ${{ number_format($hist->monto_total, 2) }} - {{ ucfirst(str_replace('_', ' ', $hist->estado)) }}"
+                                                <div class="flex items-center justify-center gap-3">
+                                                    <div class="flex gap-1 items-end h-16" title="{{ $historialCliente->count() }} préstamos anteriores">
+                                                        @foreach($historialCliente as $hist)
+                                                            @php
+                                                                $colorBarra = match($hist->estado) {
+                                                                    'autorizado' => 'bg-green-500',
+                                                                    'rechazado' => 'bg-red-500',
+                                                                    'en_revision' => 'bg-yellow-500',
+                                                                    'en_curso' => 'bg-blue-500',
+                                                                    default => 'bg-gray-400'
+                                                                };
+                                                                // Altura proporcional al monto (normalizado entre 30% y 100%)
+                                                                $maxMonto = $historialCliente->max('monto_total') ?: 1;
+                                                                $altura = max(30, ($hist->monto_total / $maxMonto) * 100);
+                                                            @endphp
+                                                            <div
+                                                                class="w-3.5 {{ $colorBarra }} rounded-t transition-all hover:opacity-75 hover:scale-110 cursor-pointer shadow-sm"
+                                                                style="height: {{ $altura }}%"
+                                                                title="Préstamo #{{ $hist->id }} - ${{ number_format($hist->monto_total, 2) }} - {{ ucfirst(str_replace('_', ' ', $hist->estado)) }}"
                                                         ></div>
                                                     @endforeach
                                                 </div>
+                                                @php
+                                                    $totalPrestamosCliente = $historialCliente->count();
+                                                @endphp
+                                                <div class="flex flex-col justify-center">
+                                                    <div class="text-center">
+                                                        <p class="text-3xl font-bold text-blue-600">{{ $totalPrestamosCliente }}</p>
+                                                        <p class="text-xs text-gray-500 mt-1">préstamo{{ $totalPrestamosCliente !== 1 ? 's' : '' }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 text-right font-medium text-green-600">
@@ -290,14 +301,17 @@
                                 ->orderBy('created_at', 'desc')
                                 ->limit(10)
                                 ->get();
+
+                                $totalPrestamosCliente = $historialClienteIndividual->count();
                             @endphp
                             @if($historialClienteIndividual->isEmpty())
                                 <span class="text-sm text-gray-400 italic">Sin historial previo</span>
                             @else
-                                <div class="flex gap-1 items-end h-16" title="{{ $historialClienteIndividual->count() }} préstamos anteriores">
-                                    @foreach($historialClienteIndividual as $hist)
-                                        @php
-                                            $colorBarra = match($hist->estado) {
+                                <div class="flex items-end gap-3">
+                                    <div class="flex gap-1 items-end h-16" title="{{ $totalPrestamosCliente }} préstamos anteriores">
+                                        @foreach($historialClienteIndividual as $hist)
+                                            @php
+                                                $colorBarra = match($hist->estado) {
                                                 'autorizado' => 'bg-green-500',
                                                 'rechazado' => 'bg-red-500',
                                                 'en_revision' => 'bg-yellow-500',
@@ -314,6 +328,13 @@
                                             title="Préstamo #{{ $hist->id }} - ${{ number_format($hist->monto_total, 2) }} - {{ ucfirst(str_replace('_', ' ', $hist->estado)) }}"
                                         ></div>
                                     @endforeach
+                                    </div>
+                                    <div class="flex flex-col justify-center">
+                                        <div class="text-center">
+                                            <p class="text-3xl font-bold text-blue-600">{{ $totalPrestamosCliente }}</p>
+                                            <p class="text-xs text-gray-500 mt-1">préstamo{{ $totalPrestamosCliente != 1 ? 's' : '' }}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
                         </div>
