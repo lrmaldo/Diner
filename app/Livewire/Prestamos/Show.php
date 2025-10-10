@@ -12,7 +12,7 @@ class Show extends Component
 
     public $prestamo;
 
-    public $historialPrestamos = [];
+    public $historialPrestamos;
 
     public $porcentajeCumplimiento = 0;
 
@@ -29,6 +29,7 @@ class Show extends Component
     public function mount($id)
     {
         $this->prestamoId = $id;
+        $this->historialPrestamos = collect([]); // Inicializar como colección vacía
         $this->loadPrestamo();
         $this->loadHistorial();
     }
@@ -46,7 +47,8 @@ class Show extends Component
             $clienteId = $this->prestamo->cliente_id;
 
             // Buscar TODOS los préstamos anteriores del mismo cliente (sin límite)
-            $this->historialPrestamos = Prestamo::where('cliente_id', $clienteId)
+            $this->historialPrestamos = Prestamo::with(['cliente', 'clientes', 'representante'])
+                ->where('cliente_id', $clienteId)
                 ->where('id', '!=', $this->prestamoId)
                 ->orderByDesc('created_at')
                 ->get();
@@ -54,10 +56,14 @@ class Show extends Component
             $representanteId = $this->prestamo->representante_id;
 
             // Buscar TODOS los préstamos anteriores del representante
-            $this->historialPrestamos = Prestamo::where('representante_id', $representanteId)
+            $this->historialPrestamos = Prestamo::with(['cliente', 'clientes', 'representante'])
+                ->where('representante_id', $representanteId)
                 ->where('id', '!=', $this->prestamoId)
                 ->orderByDesc('created_at')
                 ->get();
+        } else {
+            // Si no hay cliente_id ni representante_id, retornar colección vacía
+            $this->historialPrestamos = collect([]);
         }
 
         $this->totalHistorial = $this->historialPrestamos->count();

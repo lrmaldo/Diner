@@ -1,4 +1,17 @@
-<div class="p-4 max-w-7xl mx-auto">
+<div class="p-4 max-w-7xl mx-auto" x-data="{
+    clienteSeleccionado: null,
+    nombreCliente: 'Todos los clientes',
+    seleccionarCliente(id, nombre) {
+        this.clienteSeleccionado = id;
+        this.nombreCliente = nombre;
+        // Hacer scroll al historial
+        document.getElementById('historial-crediticio').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    limpiarSeleccion() {
+        this.clienteSeleccionado = null;
+        this.nombreCliente = 'Todos los clientes';
+    }
+}">
     {{-- Encabezado --}}
     <div class="mb-6 bg-white shadow rounded-lg p-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -163,9 +176,15 @@
                                         ->limit(10)
                                         ->get();
                                     @endphp
-                                    <tr class="hover:bg-gray-50">
+                                    <tr class="hover:bg-gray-50" :class="{ 'bg-blue-50': clienteSeleccionado === {{ $cliente->id }} }">
                                         <td class="px-4 py-3">
-                                            <p class="font-medium text-gray-900">{{ trim($cliente->nombres . ' ' . $cliente->apellido_paterno . ' ' . $cliente->apellido_materno) }}</p>
+                                            <p
+                                                class="font-medium text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                                                @click="seleccionarCliente({{ $cliente->id }}, '{{ trim($cliente->nombres . ' ' . $cliente->apellido_paterno . ' ' . $cliente->apellido_materno) }}')"
+                                                title="Click para ver el historial de este cliente"
+                                            >
+                                                {{ trim($cliente->nombres . ' ' . $cliente->apellido_paterno . ' ' . $cliente->apellido_materno) }}
+                                            </p>
                                         </td>
                                         <td class="px-4 py-3">
                                             @if($historialCliente->isEmpty())
@@ -238,7 +257,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Nombre Completo</label>
-                            <p class="text-lg font-medium">{{ trim($prestamo->cliente->nombres . ' ' . $prestamo->cliente->apellido_paterno . ' ' . $prestamo->cliente->apellido_materno) }}</p>
+                            <p
+                                class="text-lg font-medium cursor-pointer hover:text-blue-600 transition-colors"
+                                @click="seleccionarCliente({{ $prestamo->cliente->id }}, '{{ trim($prestamo->cliente->nombres . ' ' . $prestamo->cliente->apellido_paterno . ' ' . $prestamo->cliente->apellido_materno) }}')"
+                                title="Click para ver el historial"
+                            >
+                                {{ trim($prestamo->cliente->nombres . ' ' . $prestamo->cliente->apellido_paterno . ' ' . $prestamo->cliente->apellido_materno) }}
+                            </p>
                         </div>
 
                         <div>
@@ -249,6 +274,48 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-500 mb-1">Estado Civil</label>
                             <p class="text-lg capitalize">{{ $prestamo->cliente->estado_civil ?? 'No especificado' }}</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-500 mb-1">Historial Crediticio</label>
+                            @php
+                                // Obtener historial de préstamos del cliente individual
+                                $historialClienteIndividual = \App\Models\Prestamo::where(function($query) use ($prestamo) {
+                                    $query->where('cliente_id', $prestamo->cliente->id)
+                                          ->orWhereHas('clientes', function($q) use ($prestamo) {
+                                              $q->where('clientes.id', $prestamo->cliente->id);
+                                          });
+                                })
+                                ->where('id', '!=', $prestamo->id)
+                                ->orderBy('created_at', 'desc')
+                                ->limit(10)
+                                ->get();
+                            @endphp
+                            @if($historialClienteIndividual->isEmpty())
+                                <span class="text-sm text-gray-400 italic">Sin historial previo</span>
+                            @else
+                                <div class="flex gap-1 items-end h-16" title="{{ $historialClienteIndividual->count() }} préstamos anteriores">
+                                    @foreach($historialClienteIndividual as $hist)
+                                        @php
+                                            $colorBarra = match($hist->estado) {
+                                                'autorizado' => 'bg-green-500',
+                                                'rechazado' => 'bg-red-500',
+                                                'en_revision' => 'bg-yellow-500',
+                                                'en_curso' => 'bg-blue-500',
+                                                default => 'bg-gray-400'
+                                            };
+                                            // Altura proporcional al monto (normalizado entre 30% y 100%)
+                                            $maxMonto = $historialClienteIndividual->max('monto_total') ?: 1;
+                                            $altura = max(30, ($hist->monto_total / $maxMonto) * 100);
+                                        @endphp
+                                        <div
+                                            class="w-3.5 {{ $colorBarra }} rounded-t transition-all hover:opacity-75 hover:scale-110 cursor-pointer shadow-sm"
+                                            style="height: {{ $altura }}%"
+                                            title="Préstamo #{{ $hist->id }} - ${{ number_format($hist->monto_total, 2) }} - {{ ucfirst(str_replace('_', ' ', $hist->estado)) }}"
+                                        ></div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
 
                         <div class="md:col-span-2">
@@ -271,11 +338,26 @@
             @endif
 
             {{-- Historial Crediticio Mejorado con Alpine.js --}}
-            <div class="bg-white shadow rounded-lg p-6" x-data="{ expanded: false }">
-                <h3 class="text-lg font-semibold mb-4 flex items-center">
-                    <i class="fas fa-history text-blue-600 mr-2"></i>
-                    Historial Crediticio
-                </h3>
+            <div id="historial-crediticio" class="bg-white shadow rounded-lg p-6" x-data="{ expanded: false }">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold flex items-center">
+                        <i class="fas fa-history text-blue-600 mr-2"></i>
+                        Historial Crediticio
+                    </h3>
+
+                    {{-- Indicador de filtro activo --}}
+                    <div x-show="clienteSeleccionado !== null" class="flex items-center gap-2">
+                        <span class="text-sm text-gray-600">Mostrando historial de:</span>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800" x-text="nombreCliente"></span>
+                        <button
+                            @click="limpiarSeleccion()"
+                            class="text-xs text-red-600 hover:text-red-800 font-medium"
+                            title="Ver todos los préstamos"
+                        >
+                            <i class="fas fa-times-circle mr-1"></i> Limpiar filtro
+                        </button>
+                    </div>
+                </div>
 
                 @if($historialPrestamos->isEmpty())
                     <div class="text-center py-8">
@@ -286,7 +368,32 @@
                         <p class="text-gray-400 text-xs mt-1">Este es el primer préstamo registrado</p>
                     </div>
                 @else
-                    <div class="space-y-3">
+                    <div class="space-y-3" x-data="{
+                        countVisible() {
+                            if (this.clienteSeleccionado === null) return {{ $historialPrestamos->count() }};
+                            return [...document.querySelectorAll('[data-clientes]')]
+                                .filter(el => el.getAttribute('data-clientes').split(',').includes(this.clienteSeleccionado.toString()))
+                                .length;
+                        }
+                    }">
+                        {{-- Mensaje cuando no hay resultados filtrados --}}
+                        <div
+                            x-show="clienteSeleccionado !== null && countVisible() === 0"
+                            class="text-center py-8"
+                        >
+                            <svg class="h-16 w-16 mx-auto text-gray-400 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <p class="text-gray-500 text-sm">No se encontraron préstamos anteriores</p>
+                            <p class="text-gray-400 text-xs mt-1" x-text="'para ' + nombreCliente"></p>
+                            <button
+                                @click="limpiarSeleccion()"
+                                class="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                                <i class="fas fa-arrow-left mr-1"></i> Ver todos los préstamos
+                            </button>
+                        </div>
+
                         {{-- Mostrar primeros 3 préstamos --}}
                         @foreach($historialPrestamos->take(3) as $index => $hist)
                             @php
@@ -311,8 +418,27 @@
                                     'blue' => 'text-blue-700',
                                     'gray' => 'text-gray-700',
                                 ][$color];
+
+                                // Determinar IDs de clientes relacionados
+                                $clientesIds = [];
+                                if ($hist->cliente_id) {
+                                    $clientesIds[] = $hist->cliente_id;
+                                }
+                                if ($hist->producto === 'grupal' && $hist->clientes) {
+                                    $clientesIds = array_merge($clientesIds, $hist->clientes->pluck('id')->toArray());
+                                }
+                                if ($hist->representante_id) {
+                                    $clientesIds[] = $hist->representante_id;
+                                }
+                                $clientesIdsStr = implode(',', array_unique($clientesIds));
                             @endphp
-                            <div class="border rounded-lg p-3 hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='{{ route('prestamos.show', $hist->id) }}'">
+                            <div
+                                class="border rounded-lg p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                                onclick="window.location.href='{{ route('prestamos.show', $hist->id) }}'"
+                                data-clientes="{{ $clientesIdsStr }}"
+                                x-show="clienteSeleccionado === null || ({{ !empty($clientesIdsStr) ? 1 : 0 }} && '{{ $clientesIdsStr }}'.split(',').includes(clienteSeleccionado.toString()))"
+                                x-transition
+                            >
                                 <div class="flex items-start justify-between mb-2">
                                     <div class="flex-grow">
                                         <p class="font-medium text-gray-900">Préstamo #{{ $hist->id }}</p>
@@ -384,8 +510,27 @@
                                             'blue' => 'text-blue-700',
                                             'gray' => 'text-gray-700',
                                         ][$color];
+
+                                        // Determinar IDs de clientes relacionados
+                                        $clientesIds = [];
+                                        if ($hist->cliente_id) {
+                                            $clientesIds[] = $hist->cliente_id;
+                                        }
+                                        if ($hist->producto === 'grupal' && $hist->clientes) {
+                                            $clientesIds = array_merge($clientesIds, $hist->clientes->pluck('id')->toArray());
+                                        }
+                                        if ($hist->representante_id) {
+                                            $clientesIds[] = $hist->representante_id;
+                                        }
+                                        $clientesIdsStr = implode(',', array_unique($clientesIds));
                                     @endphp
-                                    <div class="border rounded-lg p-3 hover:bg-gray-50 transition-colors cursor-pointer" onclick="window.location.href='{{ route('prestamos.show', $hist->id) }}'">
+                                    <div
+                                        class="border rounded-lg p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                                        onclick="window.location.href='{{ route('prestamos.show', $hist->id) }}'"
+                                        data-clientes="{{ $clientesIdsStr }}"
+                                        x-show="clienteSeleccionado === null || ({{ !empty($clientesIdsStr) ? 1 : 0 }} && '{{ $clientesIdsStr }}'.split(',').includes(clienteSeleccionado.toString()))"
+                                        x-transition
+                                    >
                                         <div class="flex items-start justify-between mb-2">
                                             <div class="flex-grow">
                                                 <p class="font-medium text-gray-900">Préstamo #{{ $hist->id }}</p>
