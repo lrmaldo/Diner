@@ -90,29 +90,76 @@
         @endif
     </div>
 
-    {{-- Información del cliente para préstamos individuales --}}
+    {{-- Tabla de cliente para préstamos individuales (formato similar a solicitantes) --}}
     @if($prestamo && $prestamo->producto === 'individual' && $prestamo->cliente)
         <div class="bg-white shadow rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Cliente</h3>
-            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div>
-                    <p class="font-medium text-gray-900">
-                        {{ trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? '')) }}
-                    </p>
-                    @if($prestamo->cliente->email)
-                        <p class="text-sm text-gray-600 mt-1">{{ $prestamo->cliente->email }}</p>
-                    @endif
-                </div>
-                <div class="text-right">
-                    <p class="text-sm text-gray-600">Monto solicitado</p>
-                    <p class="text-xl font-bold text-green-600">${{ number_format($prestamo->monto_total ?? 0, 2) }}</p>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Solicitante</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nombre</th>
+                            <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">Historial</th>
+                            <th class="px-4 py-3 text-right text-sm font-medium text-gray-700">Solicitado</th>
+                            <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">C.P</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3">
+                                <p class="font-medium text-gray-900">
+                                    {{ trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? '')) }}
+                                </p>
+                                @if($prestamo->cliente->curp)
+                                    <p class="text-xs text-gray-500 mt-1">{{ $prestamo->cliente->curp }}</p>
+                                @endif
+                                {{-- Botón Encuesta debajo del nombre --}}
+                                <div class="mt-2">
+                                    <a href="{{ route('clients.show', $prestamo->cliente->id) }}"
+                                       class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
+                                        Encuesta
+                                    </a>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex items-center justify-center gap-2">
+                                    {{-- Gráfica de barras mini --}}
+                                    <div class="flex gap-1 items-end h-12">
+                                        @for($i = 1; $i <= 4; $i++)
+                                            <div
+                                                class="w-4 rounded-t"
+                                                style="height: {{ [40, 70, 25, 85][$i-1] }}%; background-color: {{ ['#10b981', '#ef4444', '#eab308', '#10b981'][$i-1] }};"
+                                                title="Préstamo {{ $i }}">
+                                            </div>
+                                        @endfor
+                                    </div>
+                                    <div class="text-sm font-bold text-gray-700">
+                                        4
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 text-right">
+                                <span class="font-medium text-green-600">
+                                    ${{ number_format($prestamo->monto_total ?? 0, 2) }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                @if($prestamo->cliente->capacidad_pago)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        Sí
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        No
+                                    </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </div>
-    @endif
-
-    {{-- Tabla de solicitantes según bosquejo --}}
-    {{-- Solo mostrar para préstamos grupales que tienen clientes en la tabla pivot --}}
+        @endif    {{-- Tabla de solicitantes para préstamos grupales --}}
     @if($prestamo && $prestamo->producto === 'grupal' && $prestamo->clientes && $prestamo->clientes->count())
         <div class="bg-white shadow rounded-lg p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Solicitantes</h3>
@@ -139,6 +186,17 @@
                                             <i class="fas fa-star mr-1"></i> Representante
                                         </span>
                                     @endif
+                                    {{-- Mostrar CURP debajo del nombre --}}
+                                    @if($cliente->curp)
+                                        <p class="text-xs text-gray-500 mt-2">{{ $cliente->curp }}</p>
+                                    @endif
+                                    {{-- Botón Encuesta debajo del nombre --}}
+                                    <div class="mt-2">
+                                        <a href="{{ route('clients.show', $cliente->id) }}"
+                                           class="inline-flex items-center px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md transition-colors">
+                                            Encuesta
+                                        </a>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center justify-center gap-2">
