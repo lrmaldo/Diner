@@ -12,13 +12,14 @@ class Prestamo extends Model
     protected $table = 'prestamos';
 
     protected $fillable = [
-        'folio', 'producto', 'monto_total', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id', 'representante_id', 'motivo_rechazo',
+        'folio', 'producto', 'monto_total', 'monto_sugerido', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id', 'representante_id', 'motivo_rechazo',
     ];
 
     protected $casts = [
         'fecha_entrega' => 'date',
         'fecha_primer_pago' => 'date',
         'monto_total' => 'decimal:2',
+        'monto_sugerido' => 'decimal:2',
         'tasa_interes' => 'decimal:4',
     ];
 
@@ -62,7 +63,7 @@ class Prestamo extends Model
     public function clientes()
     {
         return $this->belongsToMany(Cliente::class, 'cliente_prestamo', 'prestamo_id', 'cliente_id')
-            ->withPivot('monto_solicitado')
+            ->withPivot('monto_solicitado', 'monto_sugerido')
             ->withTimestamps();
     }
 

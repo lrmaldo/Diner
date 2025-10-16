@@ -12,75 +12,37 @@ class Show extends Component
 
     public $prestamo;
 
-    public $historialPrestamos;
+    public $comentarios = '';
 
-    public $porcentajeCumplimiento = 0;
-
-    public $totalHistorial = 0;
-
-    public $estadisticas = [
-        'total_prestado' => 0,
-        'total_autorizado' => 0,
-        'total_rechazado' => 0,
-        'promedio_monto' => 0,
-        'prestamos_activos' => 0,
-    ];
+    // Simplificación temporal: desactivar historial y estadísticas
+    // Mantener propiedades comentadas para evitar referencias en vistas futuras
+    // public $historialPrestamos;
+    // public $porcentajeCumplimiento = 0;
+    // public $totalHistorial = 0;
+    // public $estadisticas = [
+    //     'total_prestado' => 0,
+    //     'total_autorizado' => 0,
+    //     'total_rechazado' => 0,
+    //     'promedio_monto' => 0,
+    //     'prestamos_activos' => 0,
+    // ];
 
     public function mount($id)
     {
         $this->prestamoId = $id;
-        $this->historialPrestamos = collect([]); // Inicializar como colección vacía
         $this->loadPrestamo();
-        $this->loadHistorial();
     }
 
     public function loadPrestamo()
     {
-        $this->prestamo = Prestamo::with(['cliente', 'clientes', 'representante', 'autorizador'])
+    $this->prestamo = Prestamo::with(['clientes', 'cliente', 'representante'])
             ->findOrFail($this->prestamoId);
     }
 
-    public function loadHistorial()
-    {
-        // Obtener el historial según el tipo de préstamo
-        if ($this->prestamo->producto === 'individual' && $this->prestamo->cliente_id) {
-            $clienteId = $this->prestamo->cliente_id;
-
-            // Buscar TODOS los préstamos anteriores del mismo cliente (sin límite)
-            $this->historialPrestamos = Prestamo::with(['cliente', 'clientes', 'representante'])
-                ->where('cliente_id', $clienteId)
-                ->where('id', '!=', $this->prestamoId)
-                ->orderByDesc('created_at')
-                ->get();
-        } elseif ($this->prestamo->producto === 'grupal' && $this->prestamo->representante_id) {
-            $representanteId = $this->prestamo->representante_id;
-
-            // Buscar TODOS los préstamos anteriores del representante
-            $this->historialPrestamos = Prestamo::with(['cliente', 'clientes', 'representante'])
-                ->where('representante_id', $representanteId)
-                ->where('id', '!=', $this->prestamoId)
-                ->orderByDesc('created_at')
-                ->get();
-        } else {
-            // Si no hay cliente_id ni representante_id, retornar colección vacía
-            $this->historialPrestamos = collect([]);
-        }
-
-        $this->totalHistorial = $this->historialPrestamos->count();
-
-        // Calcular estadísticas del historial
-        if ($this->totalHistorial > 0) {
-            $this->estadisticas['total_prestado'] = $this->historialPrestamos->sum('monto_total');
-            $this->estadisticas['total_autorizado'] = $this->historialPrestamos->where('estado', 'autorizado')->count();
-            $this->estadisticas['total_rechazado'] = $this->historialPrestamos->where('estado', 'rechazado')->count();
-            $this->estadisticas['promedio_monto'] = $this->historialPrestamos->avg('monto_total');
-            $this->estadisticas['prestamos_activos'] = $this->historialPrestamos->whereIn('estado', ['en_curso', 'en_revision', 'autorizado'])->count();
-
-            // Calcular porcentaje de cumplimiento
-            $autorizados = $this->estadisticas['total_autorizado'];
-            $this->porcentajeCumplimiento = round(($autorizados / $this->totalHistorial) * 100);
-        }
-    }
+    // Historial temporalmente deshabilitado para evitar sobrecarga
+    // public function loadHistorial()
+    // {
+    // }
 
     public function getComportamientoColor($prestamo)
     {
@@ -97,8 +59,89 @@ class Show extends Component
         return 'gray';
     }
 
+    public function autorizar()
+    {
+        // Verificar que el usuario tenga permiso
+        if (! auth()->user()->can('aprobar prestamos')) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => 'No tienes permiso para autorizar préstamos.',
+            ]);
+
+            return;
+        }
+
+        // Verificar que el préstamo no esté ya autorizado o rechazado
+        if ($this->prestamo->estado === 'autorizado') {
+            $this->dispatch('alert', [
+                'type' => 'warning',
+                'message' => 'Este préstamo ya ha sido autorizado.',
+            ]);
+
+            return;
+        }
+
+        if ($this->prestamo->estado === 'rechazado') {
+            $this->dispatch('alert', [
+                'type' => 'warning',
+                'message' => 'No se puede autorizar un préstamo rechazado.',
+            ]);
+
+            return;
+        }
+
+        // Autorizar el préstamo
+        $this->prestamo->autorizar(auth()->user());
+
+        // Recargar el préstamo
+        $this->loadPrestamo();
+
+        $this->dispatch('alert', [
+            'type' => 'success',
+            'message' => 'Préstamo autorizado exitosamente.',
+        ]);
+    }
+
+    public function rechazar(): void
+    {
+        if (! auth()->user()->can('aprobar prestamos')) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => 'No tienes permiso para rechazar préstamos.',
+            ]);
+
+            return;
+        }
+
+        if ($this->prestamo->estado === 'rechazado') {
+            $this->dispatch('alert', [
+                'type' => 'warning',
+                'message' => 'Este préstamo ya ha sido rechazado.',
+            ]);
+
+            return;
+        }
+
+        if ($this->prestamo->estado === 'autorizado') {
+            $this->dispatch('alert', [
+                'type' => 'warning',
+                'message' => 'No se puede rechazar un préstamo autorizado.',
+            ]);
+
+            return;
+        }
+
+        $this->prestamo->rechazar(auth()->user());
+        $this->loadPrestamo();
+
+        $this->dispatch('alert', [
+            'type' => 'success',
+            'message' => 'Préstamo rechazado exitosamente.',
+        ]);
+    }
+
     public function render()
     {
-        return view('livewire.prestamos.show');
+        return view('livewire.prestamos.show_min');
     }
 }
