@@ -78,7 +78,7 @@
             <thead>
                 <tr class="text-left border-b">
                     <th class="px-3 py-3 text-sm font-medium text-gray-700">Folio</th>
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Fecha</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Fecha de entrega</th>
                     <th class="px-3 py-3 text-sm font-medium text-gray-700">Tipo de Producto</th>
                     <th class="px-3 py-3 text-sm font-medium text-gray-700">Integrantes</th>
                     <th class="px-3 py-3 text-sm font-medium text-gray-700">Monto</th>
@@ -92,7 +92,7 @@
                 @foreach($prestamos as $p)
                     <tr class="border-t hover:bg-gray-50 transition-colors">
                         <td class="px-3 py-3 font-medium text-sm">{{ $p->id }}</td>
-                        <td class="px-3 py-3 text-sm">{{ $p->created_at->format('d/m/Y') }}</td>
+                        <td class="px-3 py-3 text-sm">{{ $p->fecha_entrega ? $p->fecha_entrega->format('d/m/Y') : '—' }}</td>
                         <td class="px-3 py-3 text-sm">
                             <span class="capitalize">{{ $p->producto ?? 'N/A' }}</span>
                         </td>
@@ -144,12 +144,6 @@
                                         <a href="{{ route('prestamos.edit', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                             <i class="fas fa-edit mr-1"></i> Editar
                                         </a>
-                                        <button wire:click.prevent="autorizar({{ $p->id }})" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-check mr-1"></i> Aprobar
-                                        </button>
-                                        <button wire:click.prevent="confirmarRechazo({{ $p->id }})" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                            <i class="fas fa-times mr-1"></i> Rechazar
-                                        </button>
                                     @elseif($p->estado === 'rechazado')
                                         <a href="{{ route('prestamos.edit', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                             <i class="fas fa-edit mr-1"></i> Editar
@@ -333,14 +327,6 @@
                     <button type="button" wire:click="cerrarModales" class="btn-outline">
                         Cerrar
                     </button>
-                    @if($prestamoSeleccionado->estado === 'en_curso' || $prestamoSeleccionado->estado === 'en_revision')
-                        <button type="button" wire:click="autorizar({{ $prestamoSeleccionado->id }})" class="btn-primary">
-                            Aprobar
-                        </button>
-                        <button type="button" wire:click="confirmarRechazo({{ $prestamoSeleccionado->id }})" class="btn-danger">
-                            Rechazar
-                        </button>
-                    @endif
                 </div>
             </div>
         </div>
