@@ -23,22 +23,23 @@ class Prestamo extends Model
         'tasa_interes' => 'decimal:4',
     ];
 
-    protected static function booted()
-    {
-        static::creating(function ($model) {
-            if (empty($model->folio)) {
-                // generar folio único: PRE-YYYYMMDD-NNNN
-                $date = date('Ymd');
-                $prefix = "PRE-{$date}-";
-                $last = self::where('folio', 'like', "{$prefix}%")->orderByDesc('id')->first();
-                $num = 1;
-                if ($last && preg_match('/-(\d+)$/', $last->folio, $m)) {
-                    $num = intval($m[1]) + 1;
-                }
-                $model->folio = $prefix.str_pad($num, 4, '0', STR_PAD_LEFT);
-            }
-        });
-    }
+    // Generador de folio deshabilitado - ahora usamos el ID directamente
+    // protected static function booted()
+    // {
+    //     static::creating(function ($model) {
+    //         if (empty($model->folio)) {
+    //             // generar folio único: PRE-YYYYMMDD-NNNN
+    //             $date = date('Ymd');
+    //             $prefix = "PRE-{$date}-";
+    //             $last = self::where('folio', 'like', "{$prefix}%")->orderByDesc('id')->first();
+    //             $num = 1;
+    //             if ($last && preg_match('/-(\d+)$/', $last->folio, $m)) {
+    //                 $num = intval($m[1]) + 1;
+    //             }
+    //             $model->folio = $prefix.str_pad($num, 4, '0', STR_PAD_LEFT);
+    //         }
+    //     });
+    // }
 
     public function prestamoable()
     {

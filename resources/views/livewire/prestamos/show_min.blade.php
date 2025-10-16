@@ -1,24 +1,90 @@
 <div class="p-6 max-w-6xl mx-auto">
-    {{-- Header compacto según bosquejo --}}
-    <div class="bg-white shadow rounded-lg p-4 mb-6">
+    {{-- Header con información del préstamo --}}
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
         @if($prestamo)
-            <div class="flex flex-wrap items-center justify-between gap-4">
+            {{-- Título y estado --}}
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
                 <div>
-                    <h1 class="text-xl font-bold text-gray-900">PRE-{{ str_pad($prestamo->id, 4, '0', STR_PAD_LEFT) }}</h1>
-                    <p class="text-sm text-gray-600">{{ ucfirst($prestamo->producto ?? 'N/A') }} - ${{ number_format($prestamo->monto_total ?? 0, 2) }}</p>
+                    <h1 class="text-2xl font-bold text-gray-900 mb-1">Préstamo creado con ID: {{ $prestamo->id }}</h1>
                 </div>
                 <div class="text-right">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                    <span class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold
                         @if($prestamo->estado === 'autorizado') bg-green-100 text-green-800
                         @elseif($prestamo->estado === 'rechazado') bg-red-100 text-red-800
-                        @elseif(in_array($prestamo->estado, ['pendiente', 'en_revision'])) bg-blue-100 text-blue-800
+                        @elseif(in_array($prestamo->estado, ['pendiente', 'en_revision', 'en_curso'])) bg-yellow-100 text-yellow-800
                         @else bg-gray-100 text-gray-800 @endif">
+                        Estado:
                         @if($prestamo->estado === 'en_revision')
-                            En revisión
+                            en revisión
+                        @elseif($prestamo->estado === 'en_curso')
+                            en curso
                         @else
-                            {{ ucfirst($prestamo->estado ?? 'N/A') }}
+                            {{ $prestamo->estado ?? 'N/A' }}
                         @endif
                     </span>
+                </div>
+            </div>
+
+            {{-- Información del préstamo en grid --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {{-- Columna 1 --}}
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">Producto:</p>
+                        <p class="font-semibold text-gray-900">{{ ucfirst($prestamo->producto ?? 'N/A') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Fecha de entrega:</p>
+                        <p class="font-semibold text-gray-900">
+                            {{ $prestamo->fecha_entrega ? $prestamo->fecha_entrega->format('Y-m-d') : '—' }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Día de pago:</p>
+                        <p class="font-semibold text-gray-900">{{ ucfirst($prestamo->dia_pago ?? '—') }}</p>
+                    </div>
+                </div>
+
+                {{-- Columna 2 --}}
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">Plazo:</p>
+                        <p class="font-semibold text-gray-900">{{ $prestamo->plazo ?? '—' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Fecha primer pago:</p>
+                        <p class="font-semibold text-gray-900">
+                            {{ $prestamo->fecha_primer_pago ? $prestamo->fecha_primer_pago->format('Y-m-d') : '—' }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- Columna 3 --}}
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-sm text-gray-500">Periodicidad:</p>
+                        <p class="font-semibold text-gray-900">{{ ucfirst($prestamo->periodicidad ?? '—') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Tasa de interés:</p>
+                        <p class="font-semibold text-gray-900">{{ $prestamo->tasa_interes ?? '0' }}%</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Monto del préstamo destacado --}}
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <div class="flex items-end justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Monto del préstamo:</p>
+                        <p class="text-3xl font-bold text-green-600">${{ number_format($prestamo->monto_total ?? 0, 2) }}</p>
+                    </div>
+                    <div>
+                        <a href="{{ route('prestamos.edit', $prestamo->id) }}"
+                           class="inline-flex items-center px-4 py-2 bg-white border border-red-300 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium">
+                            Editar préstamo
+                        </a>
+                    </div>
                 </div>
             </div>
         @endif
