@@ -41,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
     // Rutas para préstamos
     Route::middleware(['permission:ver prestamos'])->group(function () {
         Route::get('/prestamos/nuevo', \App\Livewire\Prestamos\Create::class)->name('prestamos.create');
+        Route::get('/prestamos/autorizados', \App\Livewire\Prestamos\Autorizados::class)->name('prestamos.autorizados');
         Route::get('/prestamos', \App\Livewire\Prestamos\Index::class)->name('prestamos.index');
         Route::get('/prestamos/{id}', \App\Livewire\Prestamos\Show::class)->name('prestamos.show');
         Route::get('/prestamos/{prestamo}/editar', \App\Livewire\Prestamos\Edit::class)->middleware('permission:editar prestamos')->name('prestamos.edit');

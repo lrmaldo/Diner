@@ -1,7 +1,10 @@
 <div class="p-4 max-w-full mx-auto">
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-semibold">Préstamos</h1>
-        <a href="{{ route('prestamos.create') }}" class="btn-primary text-center">Solicitar crédito</a>
+        <div class="flex gap-2 flex-wrap">
+            <a href="{{ route('prestamos.autorizados') }}" class="btn-outline text-center">Ver autorizados</a>
+            <a href="{{ route('prestamos.create') }}" class="btn-primary text-center">Solicitar crédito</a>
+        </div>
     </div>
 
     <div class="bg-white shadow rounded-lg p-4 mb-4">
@@ -134,57 +137,71 @@
                         </td>
                         <td class="px-3 py-3 text-right">
                             <div class="flex justify-end gap-2 flex-wrap">
-                                {{-- Acciones para usuarios Administradores (comité) --}}
-                                @if(auth()->user()->hasRole('Administrador'))
+                                {{-- Lógica de permisos por rol --}}
+                                @php
+                                    $userRole = auth()->user()->role;
+                                    $isAdmin = auth()->user()->hasRole('Administrador');
+                                    $isCajero = auth()->user()->hasRole('Cajero');
+
+                                    // Definir qué estados puede ver cada rol
+                                    $canViewForCajero = true; // Cajero ve todos los estados
+                                    $canViewForAdmin = in_array($p->estado, ['en_revision', 'en_comite']); // Administrador solo ve en revisión/comité
+
+                                    // Definir qué puede editar cada rol
+                                    $canEditForCajero = $p->estado === 'en_curso'; // Cajero solo edita 'en curso'
+                                    $canEditForAdmin = in_array($p->estado, ['en_revision', 'en_comite']); // Administrador edita en revisión/comité
+                                @endphp
+
+                                {{-- Vista para Administradores (Comité) --}}
+                                @if($isAdmin)
+                                    @if($canViewForAdmin)
+                                        <a href="{{ route('prestamos.show', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <i class="fas fa-eye mr-1"></i> Ver detalle
+                                        </a>
+
+                                        @if($canEditForAdmin)
+                                            <a href="{{ route('prestamos.edit', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                <i class="fas fa-edit mr-1"></i> Editar crédito
+                                            </a>
+                                        @endif
+                                    @endif
+
+                                {{-- Vista para Cajeros --}}
+                                @elseif($isCajero)
+                                    @if($canViewForCajero)
+                                        <a href="{{ route('prestamos.show', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            <i class="fas fa-eye mr-1"></i> Ver detalle
+                                        </a>
+
+                                        @if($canEditForCajero)
+                                            <a href="{{ route('prestamos.edit', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                <i class="fas fa-edit mr-1"></i> Editar
+                                            </a>
+                                        @endif
+
+                                        {{-- Acciones especiales para Cajero según estado --}}
+                                        @if($p->estado === 'en_curso')
+                                            <button wire:click.prevent="enviarARevision({{ $p->id }})" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                <i class="fas fa-paper-plane mr-1"></i> Enviar a comité
+                                            </button>
+                                        @elseif($p->estado === 'en_revision')
+                                            <span class="text-xs text-gray-500 italic">En revisión por comité</span>
+                                        @elseif($p->estado === 'rechazado')
+                                            <button wire:click.prevent="verMotivoRechazo({{ $p->id }})" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                <i class="fas fa-info-circle mr-1"></i> Ver motivo
+                                            </button>
+                                        @elseif($p->estado === 'autorizado')
+                                            <span class="inline-flex items-center text-green-600 font-medium text-xs">
+                                                <i class="fas fa-check-circle mr-1"></i> Aprobado
+                                            </span>
+                                        @endif
+                                    @endif
+
+                                {{-- Fallback para otros roles --}}
+                                @else
                                     <a href="{{ route('prestamos.show', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                         <i class="fas fa-eye mr-1"></i> Ver detalle
                                     </a>
-
-                                    @if($p->estado === 'en_curso' || $p->estado === 'en_revision')
-                                        <a href="{{ route('prestamos.edit', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-edit mr-1"></i> Editar
-                                        </a>
-                                    @elseif($p->estado === 'rechazado')
-                                        <a href="{{ route('prestamos.edit', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-edit mr-1"></i> Editar
-                                        </a>
-                                    @endif
-
-                                {{-- Acciones para usuarios Cajero --}}
-                                @else
-                                    @if($p->estado === 'en_curso')
-                                        <a href="{{ route('prestamos.show', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-eye mr-1"></i> Ver
-                                        </a>
-                                        <a href="{{ route('prestamos.edit', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-edit mr-1"></i> Editar
-                                        </a>
-                                        <button wire:click.prevent="enviarARevision({{ $p->id }})" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-paper-plane mr-1"></i> Enviar a comité
-                                        </button>
-                                    @elseif($p->estado === 'en_revision')
-                                        <a href="{{ route('prestamos.show', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-eye mr-1"></i> Ver
-                                        </a>
-                                        <span class="text-xs text-gray-500 italic">En revisión por comité</span>
-                                    @elseif($p->estado === 'rechazado')
-                                        <a href="{{ route('prestamos.show', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-eye mr-1"></i> Ver
-                                        </a>
-                                        <a href="{{ route('prestamos.edit', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-edit mr-1"></i> Corregir
-                                        </a>
-                                        <button wire:click.prevent="verMotivoRechazo({{ $p->id }})" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                            <i class="fas fa-info-circle mr-1"></i> Ver motivo
-                                        </button>
-                                    @elseif($p->estado === 'autorizado')
-                                        <a href="{{ route('prestamos.show', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <i class="fas fa-eye mr-1"></i> Ver
-                                        </a>
-                                        <span class="inline-flex items-center text-green-600 font-medium text-xs">
-                                            <i class="fas fa-check-circle mr-1"></i> Aprobado
-                                        </span>
-                                    @endif
                                 @endif
                             </div>
                         </td>
