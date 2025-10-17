@@ -170,9 +170,9 @@ class Index extends Component
     public function enviarARevision(int $id)
     {
         $prestamo = Prestamo::findOrFail($id);
-        $prestamo->estado = 'en_revision';
+        $prestamo->estado = 'en_comite';
         $prestamo->save();
-        session()->flash('success', 'Préstamo enviado a revisión por el comité');
+        session()->flash('success', 'Préstamo enviado a comité');
         $this->dispatch('refreshComponent');
     }
 

@@ -11,11 +11,11 @@
                     <span class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold
                         @if($prestamo->estado === 'autorizado') bg-green-100 text-green-800
                         @elseif($prestamo->estado === 'rechazado') bg-red-100 text-red-800
-                        @elseif(in_array($prestamo->estado, ['pendiente', 'en_revision', 'en_curso'])) bg-yellow-100 text-yellow-800
+                        @elseif(in_array($prestamo->estado, ['pendiente', 'en_comite', 'en_curso'])) bg-yellow-100 text-yellow-800
                         @else bg-gray-100 text-gray-800 @endif">
                         Estado:
-                        @if($prestamo->estado === 'en_revision')
-                            en revisión
+                        @if($prestamo->estado === 'en_comite')
+                            en comité
                         @elseif($prestamo->estado === 'en_curso')
                             en curso
                         @else
@@ -322,7 +322,7 @@
 
     {{-- Botones de acción del comité (SOLO ADMINISTRADORES) --}}
     @if(auth()->user()->isAdmin())
-        @if($prestamo && in_array($prestamo->estado, ['pendiente', 'en_revision']))
+        @if($prestamo && in_array($prestamo->estado, ['pendiente', 'en_comite']))
             <div class="bg-white shadow rounded-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">
                     <i class="fas fa-gavel mr-2"></i>

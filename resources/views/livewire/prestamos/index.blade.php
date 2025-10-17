@@ -2,6 +2,9 @@
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-semibold">Préstamos</h1>
         <div class="flex gap-2 flex-wrap">
+            @if(auth()->user()->hasRole('Administrador'))
+                <a href="{{ route('prestamos.en-comite') }}" class="btn-outline text-center">En comité</a>
+            @endif
             <a href="{{ route('prestamos.autorizados') }}" class="btn-outline text-center">Ver autorizados</a>
             <a href="{{ route('prestamos.create') }}" class="btn-primary text-center">Solicitar crédito</a>
         </div>
@@ -28,7 +31,7 @@
                 <select wire:model.live="estado" id="estado" class="input-project">
                     <option value="">Todos</option>
                     <option value="en_curso">En curso</option>
-                    <option value="en_revision">En revisión</option>
+                    <option value="en_comite">En comité</option>
                     <option value="autorizado">Autorizado</option>
                     <option value="rechazado">Rechazado</option>
                 </select>
@@ -125,7 +128,7 @@
                                 $estado = $p->estado;
                                 $map = [
                                     'en_curso' => 'bg-yellow-100 text-yellow-800',
-                                    'en_revision' => 'bg-blue-100 text-blue-800',
+                                    'en_comite' => 'bg-blue-100 text-blue-800',
                                     'autorizado' => 'bg-green-100 text-green-800',
                                     'rechazado' => 'bg-red-100 text-red-800',
                                 ];
@@ -145,11 +148,11 @@
 
                                     // Definir qué estados puede ver cada rol
                                     $canViewForCajero = true; // Cajero ve todos los estados
-                                    $canViewForAdmin = in_array($p->estado, ['en_revision', 'en_comite']); // Administrador solo ve en revisión/comité
+                                    $canViewForAdmin = in_array($p->estado, ['en_comite']); // Administrador solo ve en comité
 
                                     // Definir qué puede editar cada rol
                                     $canEditForCajero = $p->estado === 'en_curso'; // Cajero solo edita 'en curso'
-                                    $canEditForAdmin = in_array($p->estado, ['en_revision', 'en_comite']); // Administrador edita en revisión/comité
+                                    $canEditForAdmin = in_array($p->estado, ['en_comite']); // Administrador edita en comité
                                 @endphp
 
                                 {{-- Vista para Administradores (Comité) --}}
@@ -184,7 +187,7 @@
                                             <button wire:click.prevent="enviarARevision({{ $p->id }})" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                 <i class="fas fa-paper-plane mr-1"></i> Enviar a comité
                                             </button>
-                                        @elseif($p->estado === 'en_revision')
+                                        @elseif($p->estado === 'en_comite')
                                             <span class="text-xs text-gray-500 italic">En revisión por comité</span>
                                         @elseif($p->estado === 'rechazado')
                                             <button wire:click.prevent="verMotivoRechazo({{ $p->id }})" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">

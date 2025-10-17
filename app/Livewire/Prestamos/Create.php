@@ -711,7 +711,7 @@ class Create extends Component
             }
         }
 
-        $prestamo->estado = 'en_revision';
+        $prestamo->estado = 'en_comite';
         $prestamo->save();
 
         session()->flash('success', 'Préstamo enviado a comité.');

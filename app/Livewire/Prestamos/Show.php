@@ -50,7 +50,7 @@ class Show extends Component
         // En el futuro, esto debería basarse en el historial de pagos real
         if ($prestamo->estado === 'autorizado') {
             return 'green';
-        } elseif ($prestamo->estado === 'en_revision') {
+        } elseif ($prestamo->estado === 'en_comite') {
             return 'orange';
         } elseif ($prestamo->estado === 'rechazado') {
             return 'red';

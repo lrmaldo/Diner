@@ -609,7 +609,7 @@ class Edit extends Component
             }
         }
 
-        $prestamo->estado = 'en_revision';
+        $prestamo->estado = 'en_comite';
         $prestamo->save();
 
         $this->showMessage('success', 'Préstamo enviado a comité.');
