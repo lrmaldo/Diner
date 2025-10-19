@@ -46,6 +46,9 @@ class Index extends Component
         } elseif ($user->hasRole('Administrador')) {
             // Administrador ve: en_curso, en_comite, rechazado
             $query->whereIn('estado', ['en_curso', 'en_comite', 'rechazado']);
+        } elseif ($user->hasRole('Asesor')) {
+            // Asesor NO ve nada en esta vista (solo puede ver autorizados en /prestamos/autorizados)
+            $query->where('estado', 'nonexistent_status'); // Filtro que no devuelve nada
         }
 
         // Aplicar filtros de búsqueda

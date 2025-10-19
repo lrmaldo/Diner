@@ -145,14 +145,17 @@
                                     $userRole = auth()->user()->role;
                                     $isAdmin = auth()->user()->hasRole('Administrador');
                                     $isCajero = auth()->user()->hasRole('Cajero');
+                                    $isAsesor = auth()->user()->hasRole('Asesor');
 
                                     // Definir qué estados puede ver cada rol
                                     $canViewForCajero = in_array($p->estado, ['en_comite', 'rechazado', 'en_curso']); // Cajero NO ve autorizados aquí
                                     $canViewForAdmin = in_array($p->estado, ['en_curso', 'en_comite', 'rechazado']); // Administrador ve en_curso, en_comite, rechazado
+                                    $canViewForAsesor = false; // Asesor NO ve nada en esta vista (solo autorizados)
 
                                     // Definir qué puede editar cada rol
                                     $canEditForCajero = $p->estado === 'en_curso'; // Cajero solo edita 'en curso'
                                     $canEditForAdmin = in_array($p->estado, ['en_comite']); // Administrador solo edita en comité (para autorizar/rechazar)
+                                    $canEditForAsesor = false; // Asesor NO edita nada
                                 @endphp
 
                                 {{-- Vista para Administradores (Comité) --}}
@@ -210,6 +213,11 @@
                                             </span>
                                         @endif
                                     @endif
+
+                                {{-- Vista para Asesores --}}
+                                @elseif($isAsesor)
+                                    {{-- Asesor NO ve nada en esta vista --}}
+                                    <span class="text-xs text-gray-500 italic">Sin acceso a esta vista</span>
 
                                 {{-- Fallback para otros roles --}}
                                 @else
