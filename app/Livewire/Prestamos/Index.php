@@ -44,8 +44,8 @@ class Index extends Component
             // Cajero solo ve: en_curso, en_comite, rechazado (NO autorizados)
             $query->whereIn('estado', ['en_curso', 'en_comite', 'rechazado']);
         } elseif ($user->hasRole('Administrador')) {
-            // Administrador solo ve: en_comite
-            $query->where('estado', 'en_comite');
+            // Administrador ve: en_curso, en_comite, rechazado
+            $query->whereIn('estado', ['en_curso', 'en_comite', 'rechazado']);
         }
 
         // Aplicar filtros de búsqueda

@@ -148,11 +148,11 @@
 
                                     // Definir qué estados puede ver cada rol
                                     $canViewForCajero = in_array($p->estado, ['en_comite', 'rechazado', 'en_curso']); // Cajero NO ve autorizados aquí
-                                    $canViewForAdmin = in_array($p->estado, ['en_comite']); // Administrador solo ve en comité
+                                    $canViewForAdmin = in_array($p->estado, ['en_curso', 'en_comite', 'rechazado']); // Administrador ve en_curso, en_comite, rechazado
 
                                     // Definir qué puede editar cada rol
                                     $canEditForCajero = $p->estado === 'en_curso'; // Cajero solo edita 'en curso'
-                                    $canEditForAdmin = in_array($p->estado, ['en_comite']); // Administrador edita en comité
+                                    $canEditForAdmin = in_array($p->estado, ['en_comite']); // Administrador solo edita en comité (para autorizar/rechazar)
                                 @endphp
 
                                 {{-- Vista para Administradores (Comité) --}}
@@ -166,6 +166,17 @@
                                             <a href="{{ route('prestamos.edit', $p->id) }}" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                 <i class="fas fa-edit mr-1"></i> Editar crédito
                                             </a>
+                                        @endif
+
+                                        {{-- Acciones específicas para Administrador según estado --}}
+                                        @if($p->estado === 'en_comite')
+                                            <span class="text-xs text-blue-600 italic">Pendiente de evaluación</span>
+                                        @elseif($p->estado === 'en_curso')
+                                            <span class="text-xs text-yellow-600 italic">En proceso</span>
+                                        @elseif($p->estado === 'rechazado')
+                                            <button wire:click.prevent="verMotivoRechazo({{ $p->id }})" class="inline-flex items-center px-2.5 py-1.5 text-xs font-medium rounded bg-red-600 text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                <i class="fas fa-info-circle mr-1"></i> Ver motivo
+                                            </button>
                                         @endif
                                     @endif
 
