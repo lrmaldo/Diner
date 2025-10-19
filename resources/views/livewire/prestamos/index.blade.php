@@ -147,7 +147,7 @@
                                     $isCajero = auth()->user()->hasRole('Cajero');
 
                                     // Definir qué estados puede ver cada rol
-                                    $canViewForCajero = true; // Cajero ve todos los estados
+                                    $canViewForCajero = in_array($p->estado, ['en_comite', 'rechazado', 'en_curso']); // Cajero NO ve autorizados aquí
                                     $canViewForAdmin = in_array($p->estado, ['en_comite']); // Administrador solo ve en comité
 
                                     // Definir qué puede editar cada rol

@@ -38,6 +38,16 @@ class Index extends Component
     {
         $query = Prestamo::with(['cliente', 'clientes', 'representante']);
 
+        // Filtrado por rol de usuario
+        $user = auth()->user();
+        if ($user->hasRole('Cajero')) {
+            // Cajero solo ve: en_curso, en_comite, rechazado (NO autorizados)
+            $query->whereIn('estado', ['en_curso', 'en_comite', 'rechazado']);
+        } elseif ($user->hasRole('Administrador')) {
+            // Administrador solo ve: en_comite
+            $query->where('estado', 'en_comite');
+        }
+
         // Aplicar filtros de búsqueda
         if (! empty($this->search)) {
             $query->where(function ($q) {
