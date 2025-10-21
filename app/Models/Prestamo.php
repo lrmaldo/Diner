@@ -12,7 +12,7 @@ class Prestamo extends Model
     protected $table = 'prestamos';
 
     protected $fillable = [
-        'folio', 'producto', 'monto_total', 'monto_sugerido', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id', 'representante_id', 'motivo_rechazo',
+        'folio', 'producto', 'monto_total', 'monto_sugerido', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'garantia', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id', 'representante_id', 'asesor_id', 'motivo_rechazo',
     ];
 
     protected $casts = [
@@ -21,6 +21,7 @@ class Prestamo extends Model
         'monto_total' => 'decimal:2',
         'monto_sugerido' => 'decimal:2',
         'tasa_interes' => 'decimal:4',
+        'garantia' => 'decimal:2',
     ];
 
     // Generador de folio deshabilitado - ahora usamos el ID directamente
@@ -71,6 +72,14 @@ class Prestamo extends Model
     public function autorizador()
     {
         return $this->belongsTo(User::class, 'autorizado_por');
+    }
+
+    /**
+     * Asesor asignado al préstamo
+     */
+    public function asesor()
+    {
+        return $this->belongsTo(User::class, 'asesor_id');
     }
 
     public function autorizar(User $user): void

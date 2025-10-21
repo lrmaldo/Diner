@@ -33,6 +33,82 @@
                 </div>
 
                 <div>
+                    <label class="field-label">Asesor</label>
+                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
+                        <button
+                            type="button"
+                            @click="open = !open; if(open) $wire.searchAsesores()"
+                            class="input-project w-full text-left flex items-center justify-between"
+                        >
+                            <span class="block truncate">
+                                @if($asesorSelected)
+                                    {{ $asesorSelected['name'] }}
+                                @else
+                                    Seleccionar asesor...
+                                @endif
+                            </span>
+                            <svg class="ml-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+
+                        <div
+                            x-show="open"
+                            x-transition:leave="transition ease-in duration-100"
+                            x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0"
+                            class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                        >
+                            <div class="p-2">
+                                <input
+                                    wire:model.live.debounce.300ms="asesorSearch"
+                                    wire:input="searchAsesores"
+                                    type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Buscar asesor..."
+                                    autocomplete="off"
+                                />
+                            </div>
+                            @if(!empty($asesores))
+                                <div class="max-h-48 overflow-y-auto">
+                                    @foreach($asesores as $asesor)
+                                        <button
+                                            type="button"
+                                            wire:click="selectAsesor({{ $asesor->id }})"
+                                            @click="open = false"
+                                            class="w-full px-3 py-2 text-left hover:bg-blue-50 border-b border-gray-100 last:border-b-0 focus:bg-blue-50 focus:outline-none"
+                                        >
+                                            <div class="font-medium text-gray-900">{{ $asesor->name }}</div>
+                                            <div class="text-xs text-gray-500">{{ $asesor->email }}</div>
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="px-3 py-2 text-sm text-gray-500">
+                                    @if(empty($asesorSearch))
+                                        Escribe para buscar asesores...
+                                    @else
+                                        No se encontraron asesores
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+
+                        @if($asesorSelected)
+                            <button
+                                type="button"
+                                wire:click="clearAsesor"
+                                class="absolute right-8 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-600"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
+                <div>
                     <label class="field-label">Producto</label>
                     <select wire:model="producto" class="input-project">
                         <option value="individual">Individual</option>
@@ -80,6 +156,14 @@
                 </div>
 
                 <div>
+                    <label class="field-label">Garantía (%)</label>
+                    <div class="relative">
+                        <input wire:model="garantia" type="number" step="0.01" min="0" max="100" class="input-project pr-8" placeholder="10.00" />
+                        <span class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500">%</span>
+                    </div>
+                </div>
+
+                <div>
                     <label class="field-label">Día de pago</label>
                     <select wire:model="dia_pago" class="input-project">
                         <option value="lunes">Lunes</option>
@@ -119,7 +203,9 @@
                         <div><span class="text-gray-500">Fecha de entrega:</span> <span class="font-medium">{{ $fecha_entrega }}</span></div>
                         <div><span class="text-gray-500">Fecha primer pago:</span> <span class="font-medium">{{ $fecha_primer_pago ?: '—' }}</span></div>
                         <div><span class="text-gray-500">Tasa de interés:</span> <span class="font-medium">{{ number_format((float) $tasa_interes, 2) }}%</span></div>
+                        <div><span class="text-gray-500">Garantía:</span> <span class="font-medium">{{ number_format((float) $garantia, 2) }}%</span></div>
                         <div><span class="text-gray-500">Día de pago:</span> <span class="font-medium">{{ ucfirst($dia_pago) }}</span></div>
+                        <div><span class="text-gray-500">Asesor:</span> <span class="font-medium">{{ $asesorSelected['name'] ?? '—' }}</span></div>
                         <div class="sm:col-span-2">
                             @php
                                 $estado = optional($prestamo)->estado ?? 'en_curso';
