@@ -5,6 +5,7 @@ namespace App\Livewire\Prestamos;
 use App\Models\Cliente;
 use App\Models\Grupo;
 use App\Models\Prestamo;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -30,6 +31,16 @@ class Edit extends Component
     public $fecha_primer_pago;
 
     public $tasa_interes;
+
+    public $garantia = 10.00;
+
+    public $asesor_id;
+
+    public $asesorSearch = '';
+
+    public $asesorSelected;
+
+    public $asesores = [];
 
     public $cliente_id;
 
@@ -141,9 +152,28 @@ class Edit extends Component
         $this->fecha_primer_pago = $prestamo->fecha_primer_pago ? $prestamo->fecha_primer_pago->toDateString() : null;
         $this->dia_pago = $prestamo->dia_pago;
         $this->tasa_interes = $prestamo->tasa_interes;
+        $this->garantia = $prestamo->garantia ?? $this->garantia;
+
+        // Cargar datos del asesor si está asignado
+        if ($prestamo->asesor_id) {
+            $this->asesor_id = $prestamo->asesor_id;
+            $asesor = User::find($prestamo->asesor_id);
+            if ($asesor) {
+                $this->asesorSelected = [
+                    'id' => $asesor->id,
+                    'name' => $asesor->name,
+                    'email' => $asesor->email,
+                ];
+            }
+        }
+
         $this->cliente_id = $prestamo->cliente_id;
         $this->grupo_id = $prestamo->grupo_id;
         $this->monto_total = $prestamo->monto_total;
+
+        // Para compatibilidad con vista compartida (préstamos individuales usan $monto)
+        $this->monto = $prestamo->monto_total;
+
         $this->representante_id = $prestamo->representante_id;
 
         // load clientesAgregados if grupal y asignar grupo automático si falta
@@ -158,6 +188,12 @@ class Edit extends Component
             $this->clientesAgregados = $prestamo->clientes()->get()->map(function ($c) {
                 return ['cliente_id' => $c->id, 'monto_solicitado' => $c->pivot->monto_solicitado ?? null, 'nombre' => trim("{$c->nombres} {$c->apellido_paterno}")];
             })->toArray();
+        } elseif ($prestamo->producto === 'individual' && $prestamo->cliente_id) {
+            // Cargar nombre del cliente para préstamos individuales
+            $cliente = Cliente::find($prestamo->cliente_id);
+            if ($cliente) {
+                $this->cliente_nombre_selected = trim("{$cliente->nombres} {$cliente->apellido_paterno}");
+            }
         }
     }
 
@@ -235,6 +271,8 @@ class Edit extends Component
             'dia_pago' => ['required', 'in:lunes,martes,miercoles,jueves,viernes'],
             'fecha_entrega' => ['required', 'date'],
             'fecha_primer_pago' => ['nullable', 'date'],
+            'garantia' => ['required', 'numeric', 'min:0', 'max:100'],
+            'asesor_id' => ['nullable', 'exists:users,id'],
         ];
 
         if ($isAdmin) {
@@ -248,7 +286,7 @@ class Edit extends Component
 
     protected function validateFirstStep(): array
     {
-        $fields = ['producto', 'plazo', 'periodicidad', 'fecha_entrega', 'fecha_primer_pago', 'dia_pago'];
+        $fields = ['producto', 'plazo', 'periodicidad', 'fecha_entrega', 'fecha_primer_pago', 'dia_pago', 'garantia', 'asesor_id'];
         $allRules = method_exists($this, 'rules') ? $this->rules() : (property_exists($this, 'rules') ? $this->rules : []);
 
         $rulesSubset = [];
@@ -317,6 +355,8 @@ class Edit extends Component
         $prestamo->fecha_entrega = $this->fecha_entrega;
         $prestamo->fecha_primer_pago = $this->fecha_primer_pago;
         $prestamo->dia_pago = $this->dia_pago;
+        $prestamo->garantia = $this->garantia;
+        $prestamo->asesor_id = $this->asesor_id;
 
         if ($this->isAdmin) {
             $prestamo->tasa_interes = $this->tasa_interes;
@@ -1005,5 +1045,66 @@ class Edit extends Component
 
         // Mostramos mensaje de confirmación
         $this->showMessage('success', 'Cliente eliminado del préstamo correctamente.');
+    }
+
+    /**
+     * Buscar asesores basado en el término de búsqueda
+     */
+    public function searchAsesores(): void
+    {
+        if (empty($this->asesorSearch)) {
+            $this->asesores = User::whereHas('roles', function ($query) {
+                $query->where('name', 'Asesor');
+            })->limit(10)->get();
+        } else {
+            $this->asesores = User::whereHas('roles', function ($query) {
+                $query->where('name', 'Asesor');
+            })
+                ->where(function ($query) {
+                    $query->where('name', 'like', '%'.$this->asesorSearch.'%')
+                        ->orWhere('email', 'like', '%'.$this->asesorSearch.'%');
+                })
+                ->limit(10)
+                ->get();
+        }
+    }
+
+    /**
+     * Seleccionar un asesor del dropdown
+     */
+    public function selectAsesor(int $asesorId): void
+    {
+        $asesor = User::find($asesorId);
+        if ($asesor) {
+            $this->asesor_id = $asesor->id;
+            $this->asesorSelected = [
+                'id' => $asesor->id,
+                'name' => $asesor->name,
+                'email' => $asesor->email,
+            ];
+            $this->asesorSearch = '';
+            $this->asesores = [];
+        }
+    }
+
+    /**
+     * Limpiar la selección del asesor
+     */
+    public function clearAsesor(): void
+    {
+        $this->asesor_id = null;
+        $this->asesorSelected = null;
+        $this->asesorSearch = '';
+        $this->asesores = [];
+    }
+
+    /**
+     * Actualización reactiva del campo de búsqueda
+     */
+    public function updatedAsesorSearch(): void
+    {
+        if (empty($this->asesorSearch) && ! $this->asesorSelected) {
+            $this->asesores = [];
+        }
     }
 }

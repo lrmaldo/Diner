@@ -154,7 +154,7 @@
 
                                     // Definir qué puede editar cada rol
                                     $canEditForCajero = $p->estado === 'en_curso'; // Cajero solo edita 'en curso'
-                                    $canEditForAdmin = in_array($p->estado, ['en_comite']); // Administrador solo edita en comité (para autorizar/rechazar)
+                                    $canEditForAdmin = in_array($p->estado, ['en_curso', 'en_comite']); // Administrador edita 'en curso' y 'en comité'
                                     $canEditForAsesor = false; // Asesor NO edita nada
                                 @endphp
 

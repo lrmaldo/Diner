@@ -177,8 +177,8 @@
                 <div class="sm:col-span-2 flex justify-end gap-2 mt-2">
                     <a href="{{ route('prestamos.index') }}" class="btn-outline">Cancelar</a>
                     @if(! empty($prestamo) && $prestamo->id)
-                        <button type="button" wire:click.prevent="updatePrestamo" class="btn-primary">Actualizar Paso 1</button>
-                        <button type="button" wire:click.prevent="crearPrestamo" class="btn-primary">Ir a agregar clientes</button>
+                       {{--  <button type="button" wire:click.prevent="updatePrestamo" class="btn-primary">Actualizar Paso 1</button> --}}
+                        <button type="button" wire:click.prevent="updatePrestamo" class="btn-primary">Ir a agregar clientes</button>
                     @else
                         <button type="button" wire:click.prevent="crearPrestamo" class="btn-primary">Crear</button>
                     @endif
@@ -382,8 +382,7 @@
 
                         <div class="mt-4 flex gap-2">
                             <button type="button" wire:click.prevent="enviarAComite" class="btn-primary">Enviar a comité</button>
-                            <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar Paso 1</button>
-                            <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
+
                         </div>
                     </div>
                 @endif
@@ -546,8 +545,7 @@
 
                             <div class="mt-4 flex gap-2 items-center">
                                 <button type="button" wire:click.prevent="enviarAComite" class="btn-primary">Enviar a comité</button>
-                                <button type="button" wire:click.prevent="$set('step', 1)" class="btn-outline">Editar Paso 1</button>
-                                <a href="{{ route('prestamos.index') }}" class="btn-outline">Volver al listado</a>
+
                             </div>
                     </div>
                 @endif

@@ -402,7 +402,7 @@ class Create extends Component
 
         $this->prestamo_id = $prestamo->id;
         $this->step = 2;
-        $this->showMessage('success', 'Préstamo creado con folio: '.$prestamo->folio);
+        $this->showMessage('success', 'Préstamo creado con #: '.$prestamo->id);
     }
 
     public function updatePrestamo(): void
@@ -457,8 +457,11 @@ class Create extends Component
 
         $prestamo->save();
 
+        // Cambiar al paso 2 para agregar clientes
+        $this->step = 2;
+
         // Llamamos al método específico para mostrar mensajes
-        $this->showMessage('success', 'Préstamo actualizado correctamente ('.now()->format('H:i:s').')');
+        $this->showMessage('success', 'Préstamo actualizado correctamente. Ahora puedes agregar clientes.');
     }
 
     /**
