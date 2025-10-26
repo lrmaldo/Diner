@@ -12,7 +12,7 @@ class Prestamo extends Model
     protected $table = 'prestamos';
 
     protected $fillable = [
-        'folio', 'producto', 'monto_total', 'monto_sugerido', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'garantia', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id', 'representante_id', 'asesor_id', 'motivo_rechazo',
+        'folio', 'producto', 'monto_total', 'monto_sugerido', 'plazo', 'periodicidad', 'periodo_pago', 'dia_pago', 'fecha_entrega', 'fecha_primer_pago', 'tasa_interes', 'garantia', 'estado', 'autorizado_por', 'cliente_id', 'grupo_id', 'representante_id', 'asesor_id', 'motivo_rechazo', 'comentarios_comite',
     ];
 
     protected $casts = [

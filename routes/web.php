@@ -32,7 +32,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Rutas para gestión de clientes
     Route::middleware(['permission:ver clientes'])->group(function () {
-    Route::get('/clients', \App\Livewire\Clients\Index::class)->name('clients.index');
+        Route::get('/clients', \App\Livewire\Clients\Index::class)->name('clients.index');
         Route::get('/clients/create', \App\Livewire\Clients\Create::class)->middleware('permission:crear clientes')->name('clients.create');
         Route::get('/clients/{cliente}/edit', \App\Livewire\Clients\Edit::class)->middleware('permission:editar clientes')->name('clients.edit');
         Route::get('/clients/{cliente}', \App\Livewire\Clients\Show::class)->name('clients.show');
@@ -42,7 +42,8 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:ver prestamos'])->group(function () {
         Route::get('/prestamos/nuevo', \App\Livewire\Prestamos\Create::class)->name('prestamos.create');
         Route::get('/prestamos/autorizados', \App\Livewire\Prestamos\Autorizados::class)->name('prestamos.autorizados');
-        Route::get('/prestamos/en-comite', \App\Livewire\Prestamos\EnComite::class)->middleware('role:Administrador')->name('prestamos.en-comite');
+        // Permitir acceso a Administrador y Asesor
+        Route::get('/prestamos/en-comite', \App\Livewire\Prestamos\EnComite::class)->middleware('role:Administrador|Asesor')->name('prestamos.en-comite');
         Route::get('/prestamos', \App\Livewire\Prestamos\Index::class)->name('prestamos.index');
         Route::get('/prestamos/{id}', \App\Livewire\Prestamos\Show::class)->name('prestamos.show');
         Route::get('/prestamos/{prestamo}/editar', \App\Livewire\Prestamos\Edit::class)->middleware('permission:editar prestamos')->name('prestamos.edit');
@@ -56,7 +57,5 @@ Route::middleware(['auth'])->group(function () {
     });
 
 });
-
-
 
 require __DIR__.'/auth.php';

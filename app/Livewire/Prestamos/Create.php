@@ -60,6 +60,8 @@ class Create extends Component
 
     public $fecha_primer_pago;
 
+    public $comentarios_comite = '';
+
     // UX helpers
     public $clienteSearch = '';
 
@@ -173,6 +175,7 @@ class Create extends Component
             $this->dia_pago = $prestamo->dia_pago ?? $this->dia_pago;
             $this->tasa_interes = $prestamo->tasa_interes ?? $this->tasa_interes;
             $this->garantia = $prestamo->garantia ?? $this->garantia;
+            $this->comentarios_comite = $prestamo->comentarios_comite ?? $this->comentarios_comite;
 
             // Cargar datos del asesor si está asignado
             if ($prestamo->asesor_id) {
@@ -190,6 +193,11 @@ class Create extends Component
             // If prestamo exists but clients not linked (or missing), go to step 2 to continue
             $this->step = 2;
         }
+
+        // Cargar todos los asesores disponibles
+        $this->asesores = User::whereHas('roles', function ($query) {
+            $query->where('name', 'Asesor');
+        })->orderBy('name')->get();
     }
 
     public function render()
@@ -274,6 +282,7 @@ class Create extends Component
             'fecha_primer_pago' => ['nullable', 'date'],
             'garantia' => ['required', 'numeric', 'min:0', 'max:100'],
             'asesor_id' => ['nullable', 'exists:users,id'],
+            'comentarios_comite' => ['nullable', 'string', 'max:1000'],
         ];
 
         if ($isAdmin) {
@@ -288,7 +297,7 @@ class Create extends Component
 
     protected function validateFirstStep(): array
     {
-        $fields = ['producto', 'plazo', 'periodicidad', 'fecha_entrega', 'fecha_primer_pago', 'dia_pago', 'garantia', 'asesor_id'];
+        $fields = ['producto', 'plazo', 'periodicidad', 'fecha_entrega', 'fecha_primer_pago', 'dia_pago', 'garantia', 'asesor_id', 'comentarios_comite'];
         $allRules = method_exists($this, 'rules') ? $this->rules() : (property_exists($this, 'rules') ? $this->rules : []);
 
         $rulesSubset = [];
@@ -369,6 +378,7 @@ class Create extends Component
             'estado' => 'en_curso',
             'garantia' => $this->garantia,
             'asesor_id' => $this->asesor_id,
+            'comentarios_comite' => $this->comentarios_comite,
         ];
 
         // only allow overriding tasa_interes if user is admin
@@ -434,6 +444,7 @@ class Create extends Component
         $prestamo->dia_pago = $this->dia_pago;
         $prestamo->garantia = $this->garantia;
         $prestamo->asesor_id = $this->asesor_id;
+        $prestamo->comentarios_comite = $this->comentarios_comite;
 
         // Solo permitir cambiar tasa_interes si el usuario es administrador
         if (auth()->check() && auth()->user()->hasRole('Administrador')) {
@@ -1297,6 +1308,25 @@ class Create extends Component
     {
         if (empty($this->asesorSearch) && ! $this->asesorSelected) {
             $this->asesores = [];
+        }
+    }
+
+    /**
+     * Cuando cambia el asesor_id, actualizar asesorSelected para compatibilidad
+     */
+    public function updatedAsesorId(): void
+    {
+        if ($this->asesor_id) {
+            $asesor = $this->asesores->firstWhere('id', $this->asesor_id);
+            if ($asesor) {
+                $this->asesorSelected = [
+                    'id' => $asesor->id,
+                    'name' => $asesor->name,
+                    'email' => $asesor->email,
+                ];
+            }
+        } else {
+            $this->asesorSelected = null;
         }
     }
 }

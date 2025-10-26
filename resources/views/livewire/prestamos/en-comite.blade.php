@@ -76,7 +76,7 @@
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Monto</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Representante</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Plazo</th>
-                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Estado</th>
+                            {{-- Estado removido en esta vista (no necesario) --}}
                             <th class="px-3 py-3 text-sm font-medium text-gray-700 text-right">Acciones</th>
                         </tr>
                     </thead>
@@ -109,11 +109,7 @@
                                     @endif
                                 </td>
                                 <td class="px-3 py-3 text-sm">{{ $p->plazo }} meses</td>
-                                <td class="px-3 py-3 text-sm">
-                                    <span class="inline-block px-2 py-1 rounded text-xs font-medium whitespace-nowrap bg-blue-100 text-blue-800">
-                                        En comité
-                                    </span>
-                                </td>
+                                {{-- Estado removido en esta vista --}}
                                 <td class="px-3 py-3 text-right">
                                     <div class="flex justify-end gap-2">
                                         <!-- Ver detalles -->
@@ -163,7 +159,7 @@
                 </svg>
             </div>
             <div class="ml-3">
-                <h3 class="text-sm font-medium text-blue-800">Vista de Comité - Solo Administradores</h3>
+                <h3 class="text-sm font-medium text-blue-800">Vista de Comité - Solo Administradores y asesor asignado</h3>
                 <div class="mt-2 text-sm text-blue-700">
                     <p>Esta vista muestra únicamente los préstamos que están pendientes de decisión del comité. Como administrador, puedes evaluar cada préstamo y tomar la decisión de autorizarlo o rechazarlo.</p>
                 </div>
