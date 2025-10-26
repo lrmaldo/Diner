@@ -13,6 +13,7 @@ class Show extends Component
     public $prestamo;
 
     public $comentarios = '';
+    public $motivoRechazo = '';
 
     // Simplificación temporal: desactivar historial y estadísticas
     // Mantener propiedades comentadas para evitar referencias en vistas futuras
@@ -131,7 +132,19 @@ class Show extends Component
             return;
         }
 
-        $this->prestamo->rechazar(auth()->user());
+        // Requiere motivo para rechazar
+        if (empty(trim($this->motivoRechazo))) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => 'Se requiere un motivo para rechazar el préstamo.',
+            ]);
+
+            return;
+        }
+
+        $this->prestamo->rechazar(auth()->user(), $this->motivoRechazo);
+        // limpiar motivo después de rechazar
+        $this->motivoRechazo = '';
         $this->loadPrestamo();
 
         $this->dispatch('alert', [

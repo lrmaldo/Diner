@@ -64,6 +64,11 @@
     </div>
 
     <div class="bg-white shadow rounded-lg overflow-hidden">
+        @if(auth()->check() && auth()->user()->hasRole('Asesor'))
+            <div class="px-4 py-3 bg-yellow-50 border-l-4 border-yellow-300 rounded-b mb-4">
+                <p class="text-sm text-yellow-800">Mostrando únicamente los préstamos que están asignados a usted como asesor.</p>
+            </div>
+        @endif
         @if($prestamos->count() > 0)
             <div class="overflow-x-auto">
                 <table class="min-w-full table-auto">

@@ -90,6 +90,20 @@
         @endif
     </div>
 
+    {{-- Comentarios del comité --}}
+    @if($prestamo)
+        <div class="bg-white shadow rounded-lg p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Comentarios del Comité</h3>
+            <div class="text-gray-700 whitespace-pre-line">
+                @if(!empty($prestamo->comentarios_comite))
+                    {{ $prestamo->comentarios_comite }}
+                @else
+                    <p class="text-sm text-gray-500 italic">No hay comentarios del comité.</p>
+                @endif
+            </div>
+        </div>
+    @endif
+
     {{-- Tabla de cliente para préstamos individuales (formato similar a solicitantes) --}}
     @if($prestamo && $prestamo->producto === 'individual' && $prestamo->cliente)
         <div class="bg-white shadow rounded-lg p-6 mb-6">
@@ -320,10 +334,10 @@
     @endif
     --}}
 
-    {{-- Botones de acción del comité (SOLO ADMINISTRADORES) --}}
-    @if(auth()->user()->isAdmin())
+    {{-- Botones de acción del comité (Administradores y asesor asignado) --}}
+    @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->id() === $prestamo->asesor_id))
         @if($prestamo && in_array($prestamo->estado, ['pendiente', 'en_comite']))
-            <div class="bg-white shadow rounded-lg p-6">
+            <div x-data="{ rejectOpen: false }" class="bg-white shadow rounded-lg p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">
                     <i class="fas fa-gavel mr-2"></i>
                     Acciones del Comité
@@ -355,12 +369,45 @@
 
                     {{-- Botón Rechazar --}}
                     <button
-                        wire:click="rechazar"
-                        wire:confirm="¿Está seguro de que desea rechazar este préstamo?"
+                        type="button"
+                        @click="rejectOpen = !rejectOpen"
+                        :aria-expanded="rejectOpen.toString()"
                         class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center">
                         <i class="fas fa-times-circle mr-2"></i>
                         Rechazar
                     </button>
+                </div>
+
+                {{-- Acordeón de rechazo (abre cuando el usuario presiona 'Rechazar') --}}
+                <div class="mt-4">
+                    <div x-show="rejectOpen" x-cloak x-transition class="bg-red-50 border border-red-200 rounded-lg p-4 mt-3">
+                        <label for="motivoRechazo" class="block text-sm font-medium text-gray-700 mb-2">
+                            Motivo de rechazo (requerido)
+                        </label>
+                        <textarea
+                            id="motivoRechazo"
+                            wire:model.defer="motivoRechazo"
+                            rows="4"
+                            class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-red-500 focus:border-red-500 mb-3"
+                            placeholder="Explique el motivo por el cual se rechaza el préstamo..."></textarea>
+
+                        <div class="flex gap-3">
+                            <button
+                                wire:click="rechazar"
+                                wire:loading.attr="disabled"
+                                wire:target="rechazar"
+                                class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                                Enviar rechazo
+                            </button>
+
+                            <button
+                                type="button"
+                                @click.prevent="rejectOpen = false; $wire.set('motivoRechazo', '');"
+                                class="flex-1 bg-white border border-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         @endif
@@ -398,7 +445,7 @@
             </div>
         @endif
     @else
-        {{-- Mensaje para usuarios no administradores --}}
+        {{-- Mensaje para usuarios no administradores o no asignados --}}
         @if($prestamo && $prestamo->estado === 'rechazado')
             <div class="bg-red-50 border-2 border-red-500 shadow rounded-lg p-8">
                 <div class="text-center">
@@ -417,7 +464,7 @@
             <div class="bg-white shadow rounded-lg p-6">
                 <p class="text-center text-sm text-gray-500">
                     <i class="fas fa-lock mr-1"></i>
-                    Solo los administradores pueden realizar acciones sobre este préstamo.
+                    Solo los administradores y el asesor asignado pueden realizar acciones sobre este préstamo.
                 </p>
             </div>
         @endif
