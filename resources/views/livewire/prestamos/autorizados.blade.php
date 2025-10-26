@@ -71,25 +71,43 @@
                 <table class="min-w-full table-auto">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Folio</th>
-                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Fecha de autorización</th>
-                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Tipo de Producto</th>
-                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Integrantes</th>
-                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Monto</th>
+                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Grupo</th>
+                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Tipo de producto</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Representante</th>
+                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Crédito / Monto</th>
+                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Integrantes</th>
+                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Fecha de entrega</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Plazo</th>
-                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Autorizado por</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700 text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($prestamos as $p)
                             <tr class="border-t hover:bg-gray-50 transition-colors">
+                                <!-- Grupo (ID del préstamo) -->
                                 <td class="px-3 py-3 font-medium text-sm">{{ $p->id }}</td>
-                                <td class="px-3 py-3 text-sm">{{ $p->updated_at->format('d/m/Y H:i') }}</td>
+
+                                <!-- Tipo de producto -->
                                 <td class="px-3 py-3 text-sm">
                                     <span class="capitalize">{{ $p->producto ?? 'N/A' }}</span>
                                 </td>
+
+                                <!-- Representante -->
+                                <td class="px-3 py-3 text-sm">
+                                    @php $representante = $p->representante; @endphp
+                                    @if($representante)
+                                        {{ trim(($representante->nombres ?? '').' '.($representante->apellido_paterno ?? '')) }}
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+
+                                <!-- Crédito / Monto -->
+                                <td class="px-3 py-3 font-medium text-sm">
+                                    ${{ number_format($p->monto_total ?? 0, 2) }}
+                                </td>
+
+                                <!-- Integrantes -->
                                 <td class="px-3 py-3 text-sm text-center">
                                     @if($p->producto === 'grupal')
                                         {{ $p->clientes->count() }}
@@ -97,56 +115,35 @@
                                         1
                                     @endif
                                 </td>
-                                <td class="px-3 py-3 font-medium text-sm">
-                                    ${{ number_format($p->monto_total ?? 0, 2) }}
-                                </td>
+
+                                <!-- Fecha de entrega -->
                                 <td class="px-3 py-3 text-sm">
-                                    @php
-                                        $representante = $p->representante;
-                                    @endphp
-                                    @if($representante)
-                                        {{ trim(($representante->nombres ?? '').' '.($representante->apellido_paterno ?? '')) }}
-                                    @else
-                                        —
-                                    @endif
+                                    {{ $p->fecha_entrega ? $p->fecha_entrega->format('d/m/Y h:i a') : '—' }}
                                 </td>
-                                <td class="px-3 py-3 text-sm">{{ $p->plazo }} meses</td>
-                                <td class="px-3 py-3 text-sm">
-                                    @if($p->autorizador)
-                                        {{ $p->autorizador->name }}
-                                    @else
-                                        —
-                                    @endif
-                                </td>
+
+                                <!-- Plazo -->
+                                <td class="px-3 py-3 text-sm">{{ $p->plazo }} </td>
+
+                                <!-- Acciones -->
                                 <td class="px-3 py-3 text-right">
                                     <div class="flex justify-end gap-2">
-                                        <!-- Ver detalles -->
-                                        <a href="{{ route('prestamos.show', $p->id) }}"
+                                        <!-- Detalle (PDF) -->
+                                                     <a href="{{ route('prestamos.print', ['prestamo' => $p->id, 'type' => 'detalle']) }}" target="_blank" rel="noopener"
                                            class="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m0 0l-3-3m3 3l3-3" />
                                             </svg>
-                                            Ver
+                                            Detalle (PDF)
                                         </a>
 
-                                        <!-- Generar contrato/documentos -->
-                                        <button type="button"
-                                                class="inline-flex items-center px-3 py-1 border border-green-300 shadow-sm text-xs font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        <!-- Pagaré (PDF) -->
+                                                     <a href="{{ route('prestamos.print', ['prestamo' => $p->id, 'type' => 'pagare']) }}" target="_blank" rel="noopener"
+                                           class="inline-flex items-center px-3 py-1 border border-blue-300 shadow-sm text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h10" />
                                             </svg>
-                                            Contrato
-                                        </button>
-
-                                        <!-- Generar cheque -->
-                                        <button type="button"
-                                                class="inline-flex items-center px-3 py-1 border border-blue-300 shadow-sm text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                            </svg>
-                                            Cheque
-                                        </button>
+                                            Pagaré (PDF)
+                                        </a>
                                     </div>
                                 </td>
                             </tr>

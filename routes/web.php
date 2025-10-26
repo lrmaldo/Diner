@@ -45,6 +45,19 @@ Route::middleware(['auth'])->group(function () {
         // Permitir acceso a Administrador y Asesor
         Route::get('/prestamos/en-comite', \App\Livewire\Prestamos\EnComite::class)->middleware('role:Administrador|Asesor')->name('prestamos.en-comite');
         Route::get('/prestamos', \App\Livewire\Prestamos\Index::class)->name('prestamos.index');
+        // Rutas para vistas imprimibles (detalle / pagaré)
+        Route::get('/prestamos/{prestamo}/print/{type}', function (\App\Models\Prestamo $prestamo, $type) {
+            if (! in_array($type, ['detalle', 'pagare'])) {
+                abort(404);
+            }
+
+            if ($type === 'detalle') {
+                return view('pdfs.prestamo_detalle', ['prestamo' => $prestamo]);
+            }
+
+            return view('pdfs.prestamo_pagare', ['prestamo' => $prestamo]);
+        })->name('prestamos.print');
+
         Route::get('/prestamos/{id}', \App\Livewire\Prestamos\Show::class)->name('prestamos.show');
         Route::get('/prestamos/{prestamo}/editar', \App\Livewire\Prestamos\Edit::class)->middleware('permission:editar prestamos')->name('prestamos.edit');
     });
