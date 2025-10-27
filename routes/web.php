@@ -58,6 +58,23 @@ Route::middleware(['auth'])->group(function () {
             return view('pdfs.prestamo_pagare', ['prestamo' => $prestamo]);
         })->name('prestamos.print');
 
+        // Ruta para descarga en PDF (usa barryvdh/laravel-dompdf si está instalado)
+        Route::get('/prestamos/{prestamo}/print/{type}/download', function (\App\Models\Prestamo $prestamo, $type) {
+            if (! in_array($type, ['detalle', 'pagare'])) {
+                abort(404);
+            }
+
+            // Intentar generar PDF con la librería barryvdh/laravel-dompdf
+            if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
+                $view = $type === 'detalle' ? 'pdfs.prestamo_detalle' : 'pdfs.prestamo_pagare';
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($view, ['prestamo' => $prestamo, 'forPdf' => true])->setPaper('a4');
+                $filename = "prestamo-{$prestamo->id}-{$type}.pdf";
+                return $pdf->download($filename);
+            }
+
+            abort(501, 'La generación de PDF en servidor no está disponible. Instala barryvdh/laravel-dompdf: composer require barryvdh/laravel-dompdf');
+        })->name('prestamos.print.download');
+
         Route::get('/prestamos/{id}', \App\Livewire\Prestamos\Show::class)->name('prestamos.show');
         Route::get('/prestamos/{prestamo}/editar', \App\Livewire\Prestamos\Edit::class)->middleware('permission:editar prestamos')->name('prestamos.edit');
     });

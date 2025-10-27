@@ -9,12 +9,40 @@
         .container { max-width: 800px; margin: 0 auto; }
         .center { text-align: center; }
         .small { font-size: 0.9rem; }
+        @media print {
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+@php
+    $forPdf = $forPdf ?? false;
+    if ($forPdf) {
+        $logoPath = public_path('img/logo.JPG');
+        if (file_exists($logoPath) && is_readable($logoPath)) {
+            $type = @mime_content_type($logoPath) ?: 'image/jpeg';
+            $data = base64_encode(file_get_contents($logoPath));
+            $logoSrc = 'data:' . $type . ';base64,' . $data;
+        } else {
+            $pub = str_replace('\\', '/', public_path('img/logo.JPG'));
+            $logoSrc = 'file:///' . ltrim($pub, '/');
+        }
+    } else {
+        $logoSrc = asset('img/logo.JPG');
+    }
+@endphp
+
+        <img src="{{ $logoSrc }}" alt="Logo" style="max-height:80px;display:block;margin:0 auto 8px">
         <h1 class="center">Pagaré</h1>
         <p class="center">Préstamo ID: <strong>{{ $prestamo->id }}</strong></p>
+
+        @unless($forPdf)
+        <div class="no-print" style="display:flex;gap:8px;margin-bottom:12px;justify-content:flex-end;">
+            <button onclick="window.print()" style="padding:8px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer">Imprimir</button>
+            <a href="{{ route('prestamos.print.download', ['prestamo' => $prestamo->id, 'type' => 'pagare']) }}" style="padding:8px 12px;border-radius:6px;border:1px solid #2563eb;background:#2563eb;color:#fff;text-decoration:none;display:inline-block">Descargar PDF</a>
+        </div>
+        @endunless
 
         <p class="small">En la ciudad y fecha actual, el/los suscrito(s) se obligan a pagar a la orden la cantidad de <strong>${{ number_format($prestamo->monto_total ?? 0, 2) }}</strong> correspondiente al crédito otorgado bajo las condiciones pactadas en este documento.</p>
 

@@ -11,14 +11,43 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 8px 6px; border: 1px solid #ddd; }
         .right { text-align: right; }
+        /* ocultar elementos con clase .no-print en la impresión del navegador */
+        @media print {
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body>
-    <div class="header">
+@php
+    $forPdf = $forPdf ?? false;
+    if ($forPdf) {
+        $logoPath = public_path('img/logo.JPG');
+        if (file_exists($logoPath) && is_readable($logoPath)) {
+            $type = @mime_content_type($logoPath) ?: 'image/jpeg';
+            $data = base64_encode(file_get_contents($logoPath));
+            $logoSrc = 'data:' . $type . ';base64,' . $data;
+        } else {
+            // fallback a file:// si no se puede leer
+            $pub = str_replace('\\', '/', public_path('img/logo.JPG'));
+            $logoSrc = 'file:///' . ltrim($pub, '/');
+        }
+    } else {
+        $logoSrc = asset('img/logo.JPG');
+    }
+@endphp
+
+    <div class="header" style="text-align:center;">
+        <img src="{{ $logoSrc }}" alt="Logo" style="max-height:80px;display:block;margin:0 auto 8px">
         <h1>Detalle de Préstamo</h1>
         <p>Préstamo ID: <strong>{{ $prestamo->id }}</strong></p>
     </div>
 
+    @unless($forPdf)
+    <div class="no-print" style="display:flex;gap:8px;margin-bottom:12px;justify-content:flex-end;">
+        <button onclick="window.print()" style="padding:8px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer">Imprimir</button>
+        <a href="{{ route('prestamos.print.download', ['prestamo' => $prestamo->id, 'type' => 'detalle']) }}" style="padding:8px 12px;border-radius:6px;border:1px solid #2563eb;background:#2563eb;color:#fff;text-decoration:none;display:inline-block">Descargar PDF</a>
+    </div>
+    @endunless
     <div class="section">
         <h3>Resumen</h3>
         <table>
