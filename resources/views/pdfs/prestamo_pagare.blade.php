@@ -33,9 +33,16 @@
     }
 @endphp
 
-        <img src="{{ $logoSrc }}" alt="Logo" style="max-height:80px;display:block;margin:0 auto 8px">
-        <h1 class="center">Pagaré</h1>
-        <p class="center">Préstamo ID: <strong>{{ $prestamo->id }}</strong></p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;">
+            <div style="width:120px;flex:0 0 120px;">
+                <img src="{{ $logoSrc }}" alt="Logo" style="max-height:80px;display:block;margin:0">
+            </div>
+            <div style="flex:1;text-align:center;">
+                <h1 style="margin:0;font-size:20px;letter-spacing:2px">PAGARE</h1>
+                <div style="margin-top:6px;font-size:12px">Motul, Yucatán a {{ now()->format('d/m/Y') }}</div>
+            </div>
+            <div style="width:120px;flex:0 0 120px;"></div>
+        </div>
 
         @unless($forPdf)
         <div class="no-print" style="display:flex;gap:8px;margin-bottom:12px;justify-content:flex-end;">
@@ -44,26 +51,44 @@
         </div>
         @endunless
 
-        <p class="small">En la ciudad y fecha actual, el/los suscrito(s) se obligan a pagar a la orden la cantidad de <strong>${{ number_format($prestamo->monto_total ?? 0, 2) }}</strong> correspondiente al crédito otorgado bajo las condiciones pactadas en este documento.</p>
+        <div style="margin-top:8px;">
+            <p style="text-align:justify;line-height:1.5;font-size:13px;margin:0 0 8px 0">Por este pagare me obligo a pagar incondicionalmente a Diner contigo, representado por sus funcionarios, la cantidad que en la parte inferior de este documento se señala, en las fechas establecidas y por los montos señalados.</p>
 
-        <h3>Datos del representante / solicitante</h3>
-        @if($prestamo->producto === 'grupal')
-            <ul>
-                @foreach($prestamo->clientes as $cliente)
-                    <li>{{ trim(($cliente->nombres ?? $cliente->nombre ?? '') . ' ' . ($cliente->apellido_paterno ?? '') ) }}</li>
-                @endforeach
-            </ul>
-        @else
-            @if($prestamo->cliente)
-                <p>{{ trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '')) }}</p>
-            @endif
-        @endif
+            <p style="text-align:justify;line-height:1.5;font-size:13px;margin:0 0 8px 0">De igual manera me obligo a pagar los intereses mensuales pactados con los funcionarios y que se encuentran plasmados en el calendario de pagos que me ha sido entregado, al momento de firmar este documento.</p>
 
-        <p class="small">Plazo: {{ $prestamo->plazo }} meses. Tasa de interés: {{ $prestamo->tasa_interes ?? '0' }}%.</p>
+            <p style="text-align:justify;line-height:1.5;font-size:13px;margin:0 0 8px 0">En caso de incumplir con algunas de las fechas establecidas en este pagare, se suma a su adeudo un 5% por concepto de multa por atraso.</p>
 
-        <div style="margin-top: 40px;">
-            <p>______________________________</p>
-            <p>Firma</p>
+            <p style="text-align:justify;line-height:1.5;font-size:13px;margin:0 0 8px 0">En caso de que el adeudo exceda a la última fecha de pago, sin que se haya liquidado su totalidad, este saldo vencido generará una multa por morosidad equivalente al 10% mensual, considerando únicamente los días transcurridos.</p>
+
+            <p style="text-align:justify;line-height:1.5;font-size:13px;margin:0 0 8px 0">Para la interpretación de este pagare, nos sujetamos a las leyes vigentes en la ciudad de Mérida, Yucatán, México, al día de la firma del presente documento.</p>
+        </div>
+
+        <div style="margin-top:24px;font-size:13px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div><strong>Deudores:</strong></div>
+                <div><strong>firma</strong></div>
+            </div>
+
+            <table style="width:100%;margin-top:12px;font-size:13px;">
+                <tr>
+                    <td style="vertical-align:top;">
+                        @php
+                            $nombre = '';
+                            if ($prestamo->producto === 'grupal' && $prestamo->clientes && $prestamo->clientes->count() > 0) {
+                                $nombre = trim(($prestamo->clientes->first()->nombres ?? $prestamo->clientes->first()->nombre ?? '') . ' ' . ($prestamo->clientes->first()->apellido_paterno ?? ''));
+                            } elseif ($prestamo->cliente) {
+                                $nombre = trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? ''));
+                            }
+                        @endphp
+                        {{ $nombre }}
+                        <div style="margin-top:6px">{{ $prestamo->cliente->direccion ?? '' }}</div>
+                        <div>{{ $prestamo->cliente->telefono ?? $prestamo->cliente->cel ?? '' }}</div>
+                    </td>
+                    <td style="width:220px;text-align:right;vertical-align:top;">
+                        <div>${{ number_format($prestamo->monto_total ?? 0, 2) }}&nbsp;__________________</div>
+                    </td>
+                </tr>
+            </table>
         </div>
 
         <footer style="margin-top: 30px; font-size: 12px; color: #666; text-align: center;">
