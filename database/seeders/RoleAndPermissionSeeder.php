@@ -93,6 +93,18 @@ class RoleAndPermissionSeeder extends Seeder
         );
         $cashierRole->givePermissionTo($cashierPerms);
 
+        // Crear rol de Asesor (rol para gestión comercial / préstamos)
+        // Se crea solo si no existe, y se le asignan permisos básicos relacionados con clientes y préstamos.
+        $advisorRole = Role::firstOrCreate(['name' => 'Asesor']);
+        $advisorPerms = [
+            'ver clientes',
+            'crear clientes',
+            'ver prestamos',
+            'crear prestamos',
+            'ver informes',
+        ];
+        $advisorRole->givePermissionTo($advisorPerms);
+
         // Crear un usuario administrador por defecto
         $admin = User::where('email', 'admin@diner.com')->first();
 
