@@ -16,6 +16,17 @@ class Autorizados extends Component
     public $fechaDesde = '';
     public $fechaHasta = '';
     public $perPage = 10;
+    // Nuevos: ver anteriores y búsqueda por grupo
+    public $verAnteriores = false;
+    public $grupo = '';
+
+    public function mount(): void
+    {
+        // Inicializar fechas a hoy si no fueron provistas
+        $today = now()->toDateString();
+        $this->fechaDesde = $this->fechaDesde ?: $today;
+        $this->fechaHasta = $this->fechaHasta ?: $today;
+    }
 
     public function updatingSearch(): void
     {
@@ -34,6 +45,39 @@ class Autorizados extends Component
 
     public function updatingFechaHasta(): void
     {
+        $this->resetPage();
+    }
+
+    public function updatedVerAnteriores(): void
+    {
+        // al cambiar el checkbox, resetear paginación y búsquedas previas
+        $this->resetPage();
+        if (! $this->verAnteriores) {
+            // si desactivó ver anteriores, limpiar grupo
+            $this->grupo = '';
+        }
+    }
+
+    public function updatingGrupo(): void
+    {
+        // cuando el usuario escribe el grupo en tiempo real, resetear paginación
+        $this->resetPage();
+    }
+
+    public function buscarPorGrupo(): void
+    {
+        // Forzar modo "ver anteriores" y recargar
+        $this->verAnteriores = true;
+        $this->resetPage();
+    }
+
+    public function resetToToday(): void
+    {
+        $today = now()->toDateString();
+        $this->fechaDesde = $today;
+        $this->fechaHasta = $today;
+        $this->verAnteriores = false;
+        $this->grupo = '';
         $this->resetPage();
     }
 
@@ -60,14 +104,25 @@ class Autorizados extends Component
             $query->where('producto', $this->producto);
         }
 
-        // Filtro por fecha desde
-        if (!empty($this->fechaDesde)) {
-            $query->whereDate('created_at', '>=', $this->fechaDesde);
-        }
+        // Si está activado ver anteriores, omitimos filtro por fecha_entrega
+        if ($this->verAnteriores) {
+            // Si ingresaron un grupo, buscar por id (grupo) o folio
+            if (!empty($this->grupo)) {
+                $query->where(function ($q) {
+                    $q->where('id', $this->grupo)
+                        ->orWhere('folio', $this->grupo);
+                });
+            }
+            // si verAnteriores está activo y no hay grupo, no aplicamos filtro por fecha
+        } else {
+            // Filtro por fecha de entrega: por defecto ambas fechas serán hoy
+            if (!empty($this->fechaDesde)) {
+                $query->whereDate('fecha_entrega', '>=', $this->fechaDesde);
+            }
 
-        // Filtro por fecha hasta
-        if (!empty($this->fechaHasta)) {
-            $query->whereDate('created_at', '<=', $this->fechaHasta);
+            if (!empty($this->fechaHasta)) {
+                $query->whereDate('fecha_entrega', '<=', $this->fechaHasta);
+            }
         }
 
         $prestamos = $query->orderByDesc('updated_at')->paginate($this->perPage);

@@ -1,4 +1,4 @@
-<div class="p-4 max-w-full mx-auto">
+<div class="p-4 max-w-full mx-auto" wire:poll.visible.10s>
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-semibold">Préstamos Autorizados</h1>
         <div class="flex gap-2 flex-wrap">
@@ -10,6 +10,19 @@
                 Total: {{ $prestamos->total() }} préstamo{{ $prestamos->total() !== 1 ? 's' : '' }}
             </div>
         </div>
+
+    <div class="mb-4 flex items-center gap-2">
+        <button wire:click="resetToToday" class="btn-outline">Créditos del día</button>
+        <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" wire:model="verAnteriores" class="form-checkbox" />
+            <span>Ver créditos anteriores</span>
+        </label>
+        @if($verAnteriores)
+            <div class="ml-4 flex items-center gap-2">
+                <input wire:model.live.debounce.500ms="grupo" type="text" placeholder="Número de grupo" class="input-project" />
+            </div>
+        @endif
+    </div>
     </div>
 
     <div class="bg-white shadow rounded-lg p-4 mb-4">
@@ -54,13 +67,13 @@
             <!-- Fecha desde -->
             <div>
                 <label for="fechaDesde" class="block text-sm font-medium text-gray-700 mb-1">Fecha desde</label>
-                <input wire:model.live="fechaDesde" type="date" id="fechaDesde" class="input-project">
+                <input wire:model.live="fechaDesde" type="date" id="fechaDesde" class="input-project" @if($verAnteriores) disabled @endif>
             </div>
 
             <!-- Fecha hasta -->
             <div>
                 <label for="fechaHasta" class="block text-sm font-medium text-gray-700 mb-1">Fecha hasta</label>
-                <input wire:model.live="fechaHasta" type="date" id="fechaHasta" class="input-project">
+                <input wire:model.live="fechaHasta" type="date" id="fechaHasta" class="input-project" @if($verAnteriores) disabled @endif>
             </div>
         </div>
     </div>

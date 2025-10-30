@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Pagaré préstamo #{{ $prestamo->id }}</title>
     <style>
-        body { font-family: Arial, Helvetica, sans-serif; color: #222; }
-        .container { max-width: 800px; margin: 0 auto; }
+        @page { margin: 18mm; }
+        body { font-family: Arial, Helvetica, sans-serif; color: #222; font-size:14px; }
+        .container { max-width: 720px; margin: 0 auto; padding: 0 8px; }
         .center { text-align: center; }
-        .small { font-size: 0.9rem; }
+        .small { font-size: 0.95rem; }
+        h1 { font-size: 22px; margin:0; }
+        p { font-size: 14px; }
+        .logo-left { max-height:72px; display:block; }
         @media print {
             .no-print { display: none !important; }
+            /* asegurar márgenes en impresión */
+            html, body { margin: 0; padding: 0; }
         }
     </style>
 </head>
@@ -18,18 +24,36 @@
     <div class="container">
 @php
     $forPdf = $forPdf ?? false;
+    // Prefer a pre-optimized logo for printing (smaller file), fallback to default
+    $optimizedRelative = 'img/logo-print.jpg';
+    $defaultRelative = 'img/logo.JPG';
+
     if ($forPdf) {
-        $logoPath = public_path('img/logo.JPG');
-        if (file_exists($logoPath) && is_readable($logoPath)) {
-            $type = @mime_content_type($logoPath) ?: 'image/jpeg';
-            $data = base64_encode(file_get_contents($logoPath));
+        // Try optimized logo first
+        $optPath = public_path($optimizedRelative);
+        if (file_exists($optPath) && is_readable($optPath)) {
+            $type = @mime_content_type($optPath) ?: 'image/jpeg';
+            $data = base64_encode(file_get_contents($optPath));
             $logoSrc = 'data:' . $type . ';base64,' . $data;
         } else {
-            $pub = str_replace('\\', '/', public_path('img/logo.JPG'));
-            $logoSrc = 'file:///' . ltrim($pub, '/');
+            $logoPath = public_path($defaultRelative);
+            if (file_exists($logoPath) && is_readable($logoPath)) {
+                $type = @mime_content_type($logoPath) ?: 'image/jpeg';
+                $data = base64_encode(file_get_contents($logoPath));
+                $logoSrc = 'data:' . $type . ';base64,' . $data;
+            } else {
+                // fallback to file path
+                $pub = str_replace('\\', '/', public_path($defaultRelative));
+                $logoSrc = 'file:///' . ltrim($pub, '/');
+            }
         }
     } else {
-        $logoSrc = asset('img/logo.JPG');
+        // web view uses asset URLs
+        if (file_exists(public_path($optimizedRelative))) {
+            $logoSrc = asset($optimizedRelative);
+        } else {
+            $logoSrc = asset($defaultRelative);
+        }
     }
 @endphp
 
