@@ -130,5 +130,17 @@ class RoleAndPermissionSeeder extends Seeder
         }
 
         $cashier->assignRole('Cajero');
+
+        // crear un usuario asesor por defecto
+        $asesor = User::where('email', 'asesor@diner.com')->first();
+        if (! $asesor) {
+            $asesor = User::factory()->create([
+                'name' => 'Asesor',
+                'email' => 'asesor@diner.com',
+                'password' => bcrypt('password')
+            ]);
+        }
+
+        $asesor->assignRole('Asesor');
     }
 }
