@@ -140,8 +140,11 @@
                         <div><span class="text-gray-500">Garantía:</span> <span class="font-medium">{{ number_format((float) $garantia, 2) }}%</span></div>
                         <div><span class="text-gray-500">Día de pago:</span> <span class="font-medium">{{ ucfirst($dia_pago) }}</span></div>
                         <div><span class="text-gray-500">Asesor:</span> <span class="font-medium">
-                            @if($asesor_id)
-                                {{ $asesores->firstWhere('id', $asesor_id)->name ?? '—' }}
+                            @if($asesor_id && !empty($asesores))
+                                @php
+                                    $asesor = collect($asesores)->firstWhere('id', $asesor_id);
+                                @endphp
+                                {{ $asesor['name'] ?? '—' }}
                             @else
                                 —
                             @endif
