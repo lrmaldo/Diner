@@ -521,6 +521,7 @@
                             @endif
                     </div>
                 @endif
+                </div>
 
                 {{-- Card 3: Comentarios y Envío --}}
                 <div class="bg-white shadow-md rounded-lg border border-gray-200 p-5">
@@ -543,8 +544,10 @@
                 </div>
             </div>
         @endif
-        {{-- Modales: Buscar cliente / Buscar grupo --}}
-        @if($showClienteModal)
+    </div>
+
+    {{-- Modales: Buscar cliente / Buscar grupo --}}
+    @if($showClienteModal)
             <div class="fixed inset-0 z-50 flex items-start justify-center p-4">
                 <div class="fixed inset-0 bg-black/50" wire:click="$set('showClienteModal', false)"></div>
                 <div class="relative bg-white rounded-lg shadow-lg w-full max-w-2xl p-4 z-10">
@@ -580,14 +583,20 @@
             </div>
         @endif
 
-        {{-- Panel inline: Editar cliente seleccionado --}}
-        @if($showEditClienteModal)
-            <div class="mt-4 p-4 border rounded bg-gray-50">
-                <div class="flex items-center justify-between">
+    {{-- Modal: Editar cliente seleccionado --}}
+    @if($showEditClienteModal)
+        <div class="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
+            <div class="fixed inset-0 bg-black/50" wire:click="$set('showEditClienteModal', false)"></div>
+            <div class="relative bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 z-10 my-8">
+                <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold">Editar cliente</h3>
-                    <button type="button" wire:click="$set('showEditClienteModal', false)" class="text-gray-600">Cerrar</button>
+                    <button type="button" wire:click="$set('showEditClienteModal', false)" class="text-gray-600 hover:text-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
-                <div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="field-label">Apellido paterno *</label>
                         <input wire:model.defer="edit_apellido_paterno" class="input-project" />
@@ -680,13 +689,15 @@
                         <input wire:model.defer="edit_codigo_postal" class="input-project" />
                     </div>
                 </div>
-                <div class="mt-3 flex justify-end gap-2">
+                <div class="mt-4 flex justify-end gap-2">
+                    <button type="button" wire:click="$set('showEditClienteModal', false)" class="btn-outline">Cancelar</button>
                     <button type="button" wire:click.prevent="saveEditedCliente" class="btn-primary">Guardar y aplicar</button>
                 </div>
             </div>
-        @endif
+        </div>
+    @endif
 
-        @if($showGrupoModal)
+    @if($showGrupoModal)
             <div class="fixed inset-0 z-50 flex items-start justify-center p-4">
                 <div class="fixed inset-0 bg-black/50" wire:click="$set('showGrupoModal', false)"></div>
                 <div class="relative bg-white rounded-lg shadow-lg w-full max-w-2xl p-4 z-10">
