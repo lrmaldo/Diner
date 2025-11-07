@@ -15,6 +15,9 @@ class Show extends Component
     public $comentarios = '';
     public $motivoRechazo = '';
 
+    // Array para almacenar montos autorizados temporalmente
+    public $montosAutorizados = [];
+
     // Simplificación temporal: desactivar historial y estadísticas
     // Mantener propiedades comentadas para evitar referencias en vistas futuras
     // public $historialPrestamos;
@@ -36,8 +39,15 @@ class Show extends Component
 
     public function loadPrestamo()
     {
-    $this->prestamo = Prestamo::with(['clientes', 'cliente', 'representante'])
+        $this->prestamo = Prestamo::with(['clientes', 'cliente', 'representante'])
             ->findOrFail($this->prestamoId);
+
+        // Cargar montos autorizados de la tabla pivot para préstamos grupales
+        if ($this->prestamo->producto === 'grupal' && $this->prestamo->clientes) {
+            foreach ($this->prestamo->clientes as $cliente) {
+                $this->montosAutorizados[$cliente->id] = $cliente->pivot->monto_autorizado ?? null;
+            }
+        }
     }
 
     // Historial temporalmente deshabilitado para evitar sobrecarga
@@ -150,6 +160,65 @@ class Show extends Component
         $this->dispatch('alert', [
             'type' => 'success',
             'message' => 'Préstamo rechazado exitosamente.',
+        ]);
+    }
+
+    /**
+     * Actualizar el monto autorizado para un cliente específico en préstamos grupales
+     */
+    public function updateMontoAutorizado(int $clienteId, ?float $monto): void
+    {
+        // Verificar permisos
+        if (! auth()->check() || (! auth()->user()->hasRole('Administrador') && auth()->id() !== $this->prestamo->asesor_id)) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => 'No tienes permiso para modificar montos autorizados.',
+            ]);
+
+            return;
+        }
+
+        // Actualizar en la tabla pivot
+        $this->prestamo->clientes()->updateExistingPivot($clienteId, [
+            'monto_autorizado' => $monto,
+        ]);
+
+        // Actualizar el array local
+        $this->montosAutorizados[$clienteId] = $monto;
+
+        $this->dispatch('alert', [
+            'type' => 'success',
+            'message' => 'Monto autorizado actualizado correctamente.',
+        ]);
+    }
+
+    /**
+     * Actualizar el monto autorizado para préstamos individuales
+     */
+    public function updateMontoAutorizadoIndividual(?float $monto): void
+    {
+        // Verificar permisos
+        if (! auth()->check() || (! auth()->user()->hasRole('Administrador') && auth()->id() !== $this->prestamo->asesor_id)) {
+            $this->dispatch('alert', [
+                'type' => 'error',
+                'message' => 'No tienes permiso para modificar montos autorizados.',
+            ]);
+
+            return;
+        }
+
+        // Para préstamos individuales, guardamos en la tabla pivot también
+        if ($this->prestamo->cliente_id) {
+            $this->prestamo->clientes()->syncWithoutDetaching([
+                $this->prestamo->cliente_id => ['monto_autorizado' => $monto],
+            ]);
+        }
+
+        $this->loadPrestamo();
+
+        $this->dispatch('alert', [
+            'type' => 'success',
+            'message' => 'Monto autorizado actualizado correctamente.',
         ]);
     }
 

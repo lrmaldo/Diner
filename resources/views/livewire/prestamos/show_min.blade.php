@@ -76,15 +76,17 @@
             <div class="mt-6 pt-6 border-t border-gray-200">
                 <div class="flex items-end justify-between">
                     <div>
-                        <p class="text-sm text-gray-500 mb-1">Monto del préstamo:</p>
+                        <p class="text-sm text-gray-500 mb-1">Monto del préstamo solicitado:</p>
                         <p class="text-3xl font-bold text-green-600">${{ number_format($prestamo->monto_total ?? 0, 2) }}</p>
                     </div>
-                    <div>
-                        <a href="{{ route('prestamos.edit', $prestamo->id) }}"
-                           class="inline-flex items-center px-4 py-2 bg-white border border-red-300 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium">
-                            Editar préstamo
-                        </a>
-                    </div>
+                    @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->id() === $prestamo->asesor_id) && $prestamo->estado === 'en_comite')
+                        <div>
+                            <a href="{{ route('prestamos.edit', $prestamo->id) }}"
+                               class="inline-flex items-center px-4 py-2 bg-white border border-red-300 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium">
+                                Editar préstamo
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
         @endif
@@ -115,6 +117,9 @@
                             <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nombre</th>
                             <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">Historial</th>
                             <th class="px-4 py-3 text-right text-sm font-medium text-gray-700">Solicitado</th>
+                            @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->id() === $prestamo->asesor_id))
+                                <th class="px-4 py-3 text-right text-sm font-medium text-gray-700">Autorizado</th>
+                            @endif
                             <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">C.P</th>
                         </tr>
                     </thead>
@@ -157,6 +162,26 @@
                                     ${{ number_format($prestamo->monto_total ?? 0, 2) }}
                                 </span>
                             </td>
+                            @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->id() === $prestamo->asesor_id))
+                                <td class="px-4 py-3 text-right">
+                                    @php
+                                        $montoAutorizado = null;
+                                        if ($prestamo->cliente_id) {
+                                            $clienteEnPivot = $prestamo->clientes->firstWhere('id', $prestamo->cliente_id);
+                                            $montoAutorizado = $clienteEnPivot->pivot->monto_autorizado ?? null;
+                                        }
+                                    @endphp
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value="{{ $montoAutorizado }}"
+                                        wire:change="updateMontoAutorizadoIndividual($event.target.value)"
+                                        wire:blur="updateMontoAutorizadoIndividual($event.target.value)"
+                                        class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+                                        placeholder="0.00"
+                                    />
+                                </td>
+                            @endif
                             <td class="px-4 py-3 text-center">
                                 @if($prestamo->cliente->capacidad_pago)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -166,14 +191,14 @@
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                         No
                                     </span>
-                                    @endif
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+                                @endif
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-        @endif    {{-- Tabla de solicitantes para préstamos grupales --}}
+        </div>
+    @endif    {{-- Tabla de solicitantes para préstamos grupales --}}
     @if($prestamo && $prestamo->producto === 'grupal' && $prestamo->clientes && $prestamo->clientes->count())
         <div class="bg-white shadow rounded-lg p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Solicitantes</h3>
@@ -185,6 +210,9 @@
                             <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">Historial</th>
                             <th class="px-4 py-3 text-right text-sm font-medium text-gray-700">Sugerido</th>
                             <th class="px-4 py-3 text-right text-sm font-medium text-gray-700">Solicitado</th>
+                            @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->id() === $prestamo->asesor_id))
+                                <th class="px-4 py-3 text-right text-sm font-medium text-gray-700">Autorizado</th>
+                            @endif
                             <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">C.P</th>
                         </tr>
                     </thead>
@@ -243,6 +271,20 @@
                                         ${{ number_format($cliente->pivot->monto_solicitado ?? 0, 2) }}
                                     </span>
                                 </td>
+                                @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->id() === $prestamo->asesor_id))
+                                    <td class="px-4 py-3 text-right">
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            wire:model.lazy="montosAutorizados.{{ $cliente->id }}"
+                                            wire:change="updateMontoAutorizado({{ $cliente->id }}, $event.target.value)"
+                                            wire:blur="updateMontoAutorizado({{ $cliente->id }}, $event.target.value)"
+                                            value="{{ $cliente->pivot->monto_autorizado ?? '' }}"
+                                            class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+                                            placeholder="0.00"
+                                        />
+                                    </td>
+                                @endif
                                 <td class="px-4 py-3 text-center">
                                     @if($cliente->capacidad_pago)
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
