@@ -310,15 +310,15 @@
                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                         <div>
                                             <label class="field-label">Dependientes económicos</label>
-                                            <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" />
+                                            <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" autocomplete="off" name="dependientes_economicos_individual" />
                                         </div>
                                         <div>
                                             <label class="field-label">Actividad productiva</label>
-                                            <input wire:model.defer="new_actividad_productiva" class="input-project" />
+                                            <input wire:model.defer="new_actividad_productiva" class="input-project" autocomplete="off" name="actividad_productiva_individual" />
                                         </div>
                                         <div>
                                             <label class="field-label">Años de experiencia</label>
-                                            <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" />
+                                            <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" autocomplete="off" name="anios_experiencia_individual" />
                                         </div>
                                         <div>
                                             <label class="field-label">Ingreso mensual</label>
@@ -440,15 +440,15 @@
                                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                             <div>
                                                 <label class="field-label">Dependientes económicos</label>
-                                                <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" />
+                                                <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" autocomplete="off" name="dependientes_economicos_grupal" />
                                             </div>
                                             <div>
                                                 <label class="field-label">Actividad productiva</label>
-                                                <input wire:model.defer="new_actividad_productiva" class="input-project" />
+                                                <input wire:model.defer="new_actividad_productiva" class="input-project" autocomplete="off" name="actividad_productiva_grupal" />
                                             </div>
                                             <div>
                                                 <label class="field-label">Años de experiencia</label>
-                                                <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" />
+                                                <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" autocomplete="off" name="anios_experiencia_grupal" />
                                             </div>
                                             <div>
                                                 <label class="field-label">Ingreso mensual</label>
