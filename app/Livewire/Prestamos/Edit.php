@@ -139,6 +139,9 @@ class Edit extends Component
     // Compatibilidad con vista compartida (botón individual usa $monto)
     public $monto = null;
 
+    // Comentarios para el comité
+    public $comentarios_comite = '';
+
     public function mount(Prestamo $prestamo): void
     {
         $this->isAdmin = auth()->check() && auth()->user()->hasRole('Administrador');
@@ -153,6 +156,7 @@ class Edit extends Component
         $this->dia_pago = $prestamo->dia_pago;
         $this->tasa_interes = $prestamo->tasa_interes;
         $this->garantia = $prestamo->garantia ?? $this->garantia;
+        $this->comentarios_comite = $prestamo->comentarios_comite ?? '';
 
         // Cargar lista de asesores disponibles
         $this->asesores = User::whereHas('roles', function($query) {
@@ -281,6 +285,7 @@ class Edit extends Component
             'fecha_primer_pago' => ['nullable', 'date'],
             'garantia' => ['required', 'numeric', 'min:0', 'max:100'],
             'asesor_id' => ['nullable', 'exists:users,id'],
+            'comentarios_comite' => ['nullable', 'string', 'max:1000'],
         ];
 
         if ($isAdmin) {
@@ -294,7 +299,7 @@ class Edit extends Component
 
     protected function validateFirstStep(): array
     {
-        $fields = ['producto', 'plazo', 'periodicidad', 'fecha_entrega', 'fecha_primer_pago', 'dia_pago', 'garantia', 'asesor_id'];
+        $fields = ['producto', 'plazo', 'periodicidad', 'fecha_entrega', 'fecha_primer_pago', 'dia_pago', 'garantia', 'asesor_id', 'comentarios_comite'];
         $allRules = method_exists($this, 'rules') ? $this->rules() : (property_exists($this, 'rules') ? $this->rules : []);
 
         $rulesSubset = [];
@@ -365,6 +370,7 @@ class Edit extends Component
         $prestamo->dia_pago = $this->dia_pago;
         $prestamo->garantia = $this->garantia;
         $prestamo->asesor_id = $this->asesor_id;
+        $prestamo->comentarios_comite = $this->comentarios_comite;
 
         if ($this->isAdmin) {
             $prestamo->tasa_interes = $this->tasa_interes;
@@ -659,10 +665,21 @@ class Edit extends Component
             }
         }
 
+        // Guardar comentarios del comité (usar trim para limpiar espacios, y null si está vacío)
+        $comentario = trim($this->comentarios_comite ?? '');
+        $prestamo->comentarios_comite = ! empty($comentario) ? $comentario : null;
         $prestamo->estado = 'en_comite';
         $prestamo->save();
 
-        $this->showMessage('success', 'Préstamo enviado a comité.');
+        // Recargar para confirmar que se guardó
+        $prestamo->refresh();
+
+        $mensaje = 'Préstamo enviado a comité.';
+        if (! empty($prestamo->comentarios_comite)) {
+            $mensaje .= ' Comentario guardado correctamente.';
+        }
+
+        $this->showMessage('success', $mensaje);
         redirect()->route('prestamos.index');
     }
 

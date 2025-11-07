@@ -756,10 +756,21 @@ class Create extends Component
             }
         }
 
+        // Guardar comentarios del comité (usar trim para limpiar espacios, y null si está vacío)
+        $comentario = trim($this->comentarios_comite ?? '');
+        $prestamo->comentarios_comite = ! empty($comentario) ? $comentario : null;
         $prestamo->estado = 'en_comite';
         $prestamo->save();
 
-        session()->flash('success', 'Préstamo enviado a comité.');
+        // Recargar para confirmar que se guardó
+        $prestamo->refresh();
+
+        $mensaje = 'Préstamo enviado a comité.';
+        if (! empty($prestamo->comentarios_comite)) {
+            $mensaje .= ' Comentario guardado correctamente.';
+        }
+
+        session()->flash('success', $mensaje);
         redirect()->route('prestamos.index');
     }
 

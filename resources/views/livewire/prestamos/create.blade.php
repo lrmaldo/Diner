@@ -527,15 +527,25 @@
                 <div class="bg-white shadow-md rounded-lg border border-gray-200 p-5">
                     <h3 class="text-md font-semibold text-gray-700 mb-4">Comentarios para el Comité</h3>
 
+                    {{-- Debug: mostrar valor actual --}}
+                    {{-- @if(config('app.debug'))
+                        <div class="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                            <strong>Debug:</strong> comentarios_comite = "{{ $comentarios_comite }}" (length: {{ strlen($comentarios_comite ?? '') }})
+                        </div>
+                    @endif --}}
+
                     <div>
                         <label class="field-label">Comentarios</label>
                         <textarea
-                            wire:model="comentarios_comite"
+                            wire:model.defer="comentarios_comite"
                             class="input-project w-full resize-none"
                             rows="4"
                             placeholder="Escribe aquí cualquier información adicional o comentarios que el comité deba conocer sobre este préstamo..."
                         ></textarea>
                         <div class="text-xs text-gray-500 mt-1">Este comentario será visible para el comité al revisar el préstamo</div>
+                        @if($comentarios_comite)
+                            <div class="text-xs text-green-600 mt-1">✓ Comentario guardado</div>
+                        @endif
                     </div>
 
                     <div class="mt-4 flex justify-end">
