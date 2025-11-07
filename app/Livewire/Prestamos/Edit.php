@@ -154,6 +154,11 @@ class Edit extends Component
         $this->tasa_interes = $prestamo->tasa_interes;
         $this->garantia = $prestamo->garantia ?? $this->garantia;
 
+        // Cargar lista de asesores disponibles
+        $this->asesores = User::whereHas('roles', function($query) {
+            $query->where('name', 'Asesor');
+        })->get();
+
         // Cargar datos del asesor si está asignado
         if ($prestamo->asesor_id) {
             $this->asesor_id = $prestamo->asesor_id;
@@ -215,6 +220,9 @@ class Edit extends Component
 
     public function render()
     {
+        // Los asesores ya se cargan en mount() y se actualizan con searchAsesores()
+        $asesores = $this->asesores;
+
         $clientesQuery = Cliente::query();
         if ($this->clienteSearch) {
             $term = $this->clienteSearch;
@@ -257,7 +265,7 @@ class Edit extends Component
 
         $prestamo = Prestamo::find($this->prestamo_id);
 
-        return view('livewire.prestamos.create', compact('clientes', 'grupos', 'prestamo'));
+        return view('livewire.prestamos.create', compact('clientes', 'grupos', 'prestamo', 'asesores'));
     }
 
     protected function rules(): array
@@ -364,7 +372,9 @@ class Edit extends Component
 
         $prestamo->save();
 
-        $this->showMessage('success', 'Préstamo actualizado correctamente.');
+        // Avanzar al paso 2 después de actualizar
+        $this->step = 2;
+        $this->showMessage('success', 'Préstamo actualizado correctamente. Continuando a agregar clientes.');
     }
 
     /**

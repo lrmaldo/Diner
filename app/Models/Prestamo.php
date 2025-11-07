@@ -65,7 +65,7 @@ class Prestamo extends Model
     public function clientes()
     {
         return $this->belongsToMany(Cliente::class, 'cliente_prestamo', 'prestamo_id', 'cliente_id')
-            ->withPivot('monto_solicitado', 'monto_sugerido')
+            ->withPivot('monto_solicitado')
             ->withTimestamps();
     }
 
