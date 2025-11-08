@@ -75,10 +75,31 @@
             {{-- Monto del préstamo destacado --}}
             <div class="mt-6 pt-6 border-t border-gray-200">
                 <div class="flex items-end justify-between">
-                    <div>
-                        <p class="text-sm text-gray-500 mb-1">Monto del préstamo solicitado:</p>
-                        <p class="text-3xl font-bold text-green-600">${{ number_format($prestamo->monto_total ?? 0, 2) }}</p>
+                    <div class="flex items-end gap-8">
+                        <div>
+                            <p class="text-sm text-gray-500 mb-1">Monto solicitado:</p>
+                            <p class="text-3xl font-bold text-green-600">${{ number_format($prestamo->monto_total ?? 0, 2) }}</p>
+                        </div>
+
+                        @if($prestamo->estado === 'autorizado')
+                            @php
+                                $montoTotalAutorizado = 0;
+                                if ($prestamo->clientes && $prestamo->clientes->count() > 0) {
+                                    foreach ($prestamo->clientes as $cliente) {
+                                        $montoTotalAutorizado += $cliente->pivot->monto_autorizado ?? 0;
+                                    }
+                                }
+                            @endphp
+
+                            @if($montoTotalAutorizado > 0)
+                                <div class="pl-8 border-l-2 border-gray-300">
+                                    <p class="text-sm text-gray-500 mb-1">Monto autorizado:</p>
+                                    <p class="text-3xl font-bold text-blue-600">${{ number_format($montoTotalAutorizado, 2) }}</p>
+                                </div>
+                            @endif
+                        @endif
                     </div>
+
                     @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->id() === $prestamo->asesor_id) && $prestamo->estado === 'en_comite')
                         <div>
                             <a href="{{ route('prestamos.edit', $prestamo->id) }}"
@@ -177,8 +198,9 @@
                                         value="{{ $montoAutorizado }}"
                                         wire:change="updateMontoAutorizadoIndividual($event.target.value)"
                                         wire:blur="updateMontoAutorizadoIndividual($event.target.value)"
-                                        class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+                                        class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors {{ $prestamo->estado === 'autorizado' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                                         placeholder="0.00"
+                                        @if($prestamo->estado === 'autorizado') disabled @endif
                                     />
                                 </td>
                             @endif
@@ -280,8 +302,9 @@
                                             wire:change="updateMontoAutorizado({{ $cliente->id }}, $event.target.value)"
                                             wire:blur="updateMontoAutorizado({{ $cliente->id }}, $event.target.value)"
                                             value="{{ $cliente->pivot->monto_autorizado ?? '' }}"
-                                            class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors"
+                                            class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors {{ $prestamo->estado === 'autorizado' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                                             placeholder="0.00"
+                                            @if($prestamo->estado === 'autorizado') disabled @endif
                                         />
                                     </td>
                                 @endif
