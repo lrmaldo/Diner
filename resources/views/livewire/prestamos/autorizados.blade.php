@@ -157,6 +157,15 @@
                                             </svg>
                                             Pagaré (PDF)
                                         </a>
+
+                                        <!-- Calendario (PDF) -->
+                                                     <a href="{{ route('prestamos.print', ['prestamo' => $p->id, 'type' => 'calendario']) }}" target="_blank" rel="noopener"
+                                           class="inline-flex items-center px-3 py-1 border border-green-300 shadow-sm text-xs font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            Calendario
+                                        </a>
                                     </div>
                                 </td>
                             </tr>

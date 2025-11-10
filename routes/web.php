@@ -45,9 +45,9 @@ Route::middleware(['auth'])->group(function () {
         // Permitir acceso a Administrador y Asesor
         Route::get('/prestamos/en-comite', \App\Livewire\Prestamos\EnComite::class)->middleware('role:Administrador|Asesor')->name('prestamos.en-comite');
         Route::get('/prestamos', \App\Livewire\Prestamos\Index::class)->name('prestamos.index');
-        // Rutas para vistas imprimibles (detalle / pagaré)
+        // Rutas para vistas imprimibles (detalle / pagaré / calendario)
         Route::get('/prestamos/{prestamo}/print/{type}', function (\App\Models\Prestamo $prestamo, $type) {
-            if (! in_array($type, ['detalle', 'pagare'])) {
+            if (! in_array($type, ['detalle', 'pagare', 'calendario'])) {
                 abort(404);
             }
 
@@ -55,20 +55,29 @@ Route::middleware(['auth'])->group(function () {
                 return view('pdfs.prestamo_detalle', ['prestamo' => $prestamo]);
             }
 
+            if ($type === 'calendario') {
+                return view('pdfs.prestamo_calendario', ['prestamo' => $prestamo]);
+            }
+
             return view('pdfs.prestamo_pagare', ['prestamo' => $prestamo]);
         })->name('prestamos.print');
 
         // Ruta para descarga en PDF (usa barryvdh/laravel-dompdf si está instalado)
         Route::get('/prestamos/{prestamo}/print/{type}/download', function (\App\Models\Prestamo $prestamo, $type) {
-            if (! in_array($type, ['detalle', 'pagare'])) {
+            if (! in_array($type, ['detalle', 'pagare', 'calendario'])) {
                 abort(404);
             }
 
             // Intentar generar PDF con la librería barryvdh/laravel-dompdf
             if (class_exists(\Barryvdh\DomPDF\Facade\Pdf::class)) {
-                $view = $type === 'detalle' ? 'pdfs.prestamo_detalle' : 'pdfs.prestamo_pagare';
+                $view = match ($type) {
+                    'detalle' => 'pdfs.prestamo_detalle',
+                    'calendario' => 'pdfs.prestamo_calendario',
+                    'pagare' => 'pdfs.prestamo_pagare',
+                };
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($view, ['prestamo' => $prestamo, 'forPdf' => true])->setPaper('a4');
                 $filename = "prestamo-{$prestamo->id}-{$type}.pdf";
+
                 return $pdf->download($filename);
             }
 

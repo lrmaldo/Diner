@@ -479,13 +479,40 @@
 
         @if($prestamo && $prestamo->estado === 'autorizado')
             <div class="bg-white shadow rounded-lg p-6">
-                <p class="text-center text-sm text-gray-600">
+                <p class="text-center text-sm text-gray-600 mb-4">
                     <i class="fas fa-check-circle mr-1 text-green-500"></i>
                     Este préstamo ha sido autorizado
                     @if($prestamo->autorizador)
                         por {{ $prestamo->autorizador->name }}
                     @endif
                 </p>
+
+                {{-- Botones para documentos PDF --}}
+                <div class="flex flex-wrap justify-center gap-3 mt-4">
+                    <a href="{{ route('prestamos.print', ['prestamo' => $prestamo->id, 'type' => 'detalle']) }}" target="_blank" rel="noopener"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Ver Detalle
+                    </a>
+
+                    <a href="{{ route('prestamos.print', ['prestamo' => $prestamo->id, 'type' => 'pagare']) }}" target="_blank" rel="noopener"
+                       class="inline-flex items-center px-4 py-2 border border-blue-300 shadow-sm text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h10M7 16h10" />
+                        </svg>
+                        Ver Pagaré
+                    </a>
+
+                    <a href="{{ route('prestamos.print', ['prestamo' => $prestamo->id, 'type' => 'calendario']) }}" target="_blank" rel="noopener"
+                       class="inline-flex items-center px-4 py-2 border border-green-300 shadow-sm text-sm font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Ver Calendario de Pagos
+                    </a>
+                </div>
             </div>
         @endif
 
