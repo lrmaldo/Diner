@@ -877,7 +877,11 @@ class Create extends Component
         ]);
 
         $this->cliente_id = $cliente->id;
+
+        // Cerrar el modal
         $this->showNewClienteForm = false;
+
+        // Limpiar campos del formulario
         $this->new_apellido_paterno = $this->new_apellido_materno = $this->new_nombres = $this->new_curp = null;
         $this->new_email = $this->new_pais_nacimiento = $this->new_nombre_conyuge = null;
         $this->new_calle_numero = $this->new_referencia_domiciliaria = null;

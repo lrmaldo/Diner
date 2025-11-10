@@ -224,8 +224,19 @@
                         </div>
 
                         @if($showNewClienteForm)
-                            <div class="mt-4 p-4 border-2 border-gray-300 rounded-lg bg-white w-full" x-data="{ datosPersonales: true, datosDomiciliarios: false, datosEconomicos: false }">
-                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Nuevo Cliente</h3>
+                            {{-- Modal de Nuevo Cliente --}}
+                            <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                <div class="fixed inset-0 bg-black/50" wire:click="$set('showNewClienteForm', false)"></div>
+                                <div class="relative bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 z-10" x-data="{ datosPersonales: true, datosDomiciliarios: false, datosEconomicos: false }"  @click.away="">
+                                    {{-- Header del modal --}}
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-xl font-bold text-gray-900">Nuevo Cliente</h3>
+                                        <button type="button" wire:click="$set('showNewClienteForm', false)" class="text-gray-400 hover:text-gray-600">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
 
                                 {{-- Campo destacado: Crédito solicitado --}}
                                 <div class="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
@@ -364,8 +375,10 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-4 flex justify-end gap-2">
-                                    <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear y seleccionar</button>
+                                    <div class="mt-6 flex justify-end gap-2">
+                                        <button type="button" wire:click="$set('showNewClienteForm', false)" class="btn-outline">Cancelar</button>
+                                        <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear y seleccionar</button>
+                                    </div>
                                 </div>
                             </div>
                         @endif
@@ -380,14 +393,25 @@
                             <button type="button" wire:click.prevent="$toggle('showNewClienteForm')" class="btn-outline">Crear cliente nuevo</button>
                         </div>
                         @if($showNewClienteForm)
-                            <div class="mt-3 p-4 border rounded bg-gray-50" x-data="{ datosPersonales: true, datosDomiciliarios: false, datosEconomicos: false }">
-                                <h3 class="text-lg font-bold text-gray-900 mb-4">Nuevo Cliente</h3>
+                            {{-- Modal de Nuevo Cliente Grupal --}}
+                            <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                <div class="fixed inset-0 bg-black/50" wire:click="$set('showNewClienteForm', false)"></div>
+                                <div class="relative bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 z-10" x-data="{ datosPersonales: true, datosDomiciliarios: false, datosEconomicos: false }"  @click.away="">
+                                    {{-- Header del modal --}}
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="text-xl font-bold text-gray-900">Nuevo Cliente</h3>
+                                        <button type="button" wire:click="$set('showNewClienteForm', false)" class="text-gray-400 hover:text-gray-600">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
 
-                                {{-- Crédito solicitado destacado --}}
-                                <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                    <label class="field-label text-blue-900">Crédito solicitado *</label>
-                                    <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="input-project" />
-                                </div>
+                                    {{-- Crédito solicitado destacado --}}
+                                    <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <label class="field-label text-blue-900">Crédito solicitado *</label>
+                                        <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="input-project" />
+                                    </div>
 
                                 {{-- Sección: Datos Personales --}}
                                 <div class="mb-4 border border-gray-200 rounded-lg overflow-hidden">
@@ -520,8 +544,10 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-4 flex justify-end gap-2">
-                                    <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear y seleccionar</button>
+                                    <div class="mt-6 flex justify-end gap-2">
+                                        <button type="button" wire:click="$set('showNewClienteForm', false)" class="btn-outline">Cancelar</button>
+                                        <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear y seleccionar</button>
+                                    </div>
                                 </div>
                             </div>
                         @endif
