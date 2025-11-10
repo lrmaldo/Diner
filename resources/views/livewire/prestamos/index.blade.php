@@ -83,7 +83,7 @@
         <table class="w-full table-auto min-w-max">
             <thead>
                 <tr class="text-left border-b">
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Folio</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Grupo</th>
                     <th class="px-3 py-3 text-sm font-medium text-gray-700">Fecha de entrega</th>
                     <th class="px-3 py-3 text-sm font-medium text-gray-700">Tipo de Producto</th>
                     <th class="px-3 py-3 text-sm font-medium text-gray-700">Integrantes</th>

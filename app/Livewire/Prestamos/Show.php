@@ -166,7 +166,7 @@ class Show extends Component
     /**
      * Actualizar el monto autorizado para un cliente específico en préstamos grupales
      */
-    public function updateMontoAutorizado(int $clienteId, ?float $monto): void
+    public function updateMontoAutorizado(int $clienteId, $monto): void
     {
         // Verificar permisos
         if (! auth()->check() || (! auth()->user()->hasRole('Administrador') && auth()->id() !== $this->prestamo->asesor_id)) {
@@ -178,13 +178,19 @@ class Show extends Component
             return;
         }
 
+        // Convertir a float o null, manejando strings vacíos
+        $montoAutorizado = null;
+        if ($monto !== null && $monto !== '') {
+            $montoAutorizado = (float) $monto;
+        }
+
         // Actualizar en la tabla pivot
         $this->prestamo->clientes()->updateExistingPivot($clienteId, [
-            'monto_autorizado' => $monto,
+            'monto_autorizado' => $montoAutorizado,
         ]);
 
         // Actualizar el array local
-        $this->montosAutorizados[$clienteId] = $monto;
+        $this->montosAutorizados[$clienteId] = $montoAutorizado;
 
         $this->dispatch('alert', [
             'type' => 'success',
@@ -195,7 +201,7 @@ class Show extends Component
     /**
      * Actualizar el monto autorizado para préstamos individuales
      */
-    public function updateMontoAutorizadoIndividual(?float $monto): void
+    public function updateMontoAutorizadoIndividual($monto): void
     {
         // Verificar permisos
         if (! auth()->check() || (! auth()->user()->hasRole('Administrador') && auth()->id() !== $this->prestamo->asesor_id)) {
@@ -207,10 +213,16 @@ class Show extends Component
             return;
         }
 
+        // Convertir a float o null, manejando strings vacíos
+        $montoAutorizado = null;
+        if ($monto !== null && $monto !== '') {
+            $montoAutorizado = (float) $monto;
+        }
+
         // Para préstamos individuales, guardamos en la tabla pivot también
         if ($this->prestamo->cliente_id) {
             $this->prestamo->clientes()->syncWithoutDetaching([
-                $this->prestamo->cliente_id => ['monto_autorizado' => $monto],
+                $this->prestamo->cliente_id => ['monto_autorizado' => $montoAutorizado],
             ]);
         }
 

@@ -74,7 +74,7 @@
                 <table class="min-w-full table-auto">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Folio</th>
+                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Grupo</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Fecha de solicitud</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Tipo de Producto</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Integrantes</th>
