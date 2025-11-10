@@ -1,7 +1,7 @@
 <div class="p-4 max-w-full mx-auto" wire:poll.visible.10s>
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-semibold">Préstamos Autorizados</h1>
-        <div class="flex gap-2 flex-wrap">
+        <div class="flex gap-2 flex-wrap items-center">
             @if(auth()->user()->hasRole('Administrador'))
                 <a href="{{ route('prestamos.en-comite') }}" class="btn-outline text-center">En comité</a>
             @endif
@@ -10,71 +10,52 @@
                 Total: {{ $prestamos->total() }} préstamo{{ $prestamos->total() !== 1 ? 's' : '' }}
             </div>
         </div>
-
-    <div class="mb-4 flex items-center gap-2">
-        <button wire:click="resetToToday" class="btn-outline">Créditos del día</button>
-        <label class="flex items-center gap-2 text-sm">
-            <input type="checkbox" wire:model="verAnteriores" class="form-checkbox" />
-            <span>Ver créditos anteriores</span>
-        </label>
-        @if($verAnteriores)
-            <div class="ml-4 flex items-center gap-2">
-                <input wire:model.live.debounce.500ms="grupo" type="text" placeholder="Número de grupo" class="input-project" />
-            </div>
-        @endif
-    </div>
     </div>
 
+    {{-- Controles de filtrado --}}
     <div class="bg-white shadow rounded-lg p-4 mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <!-- Búsqueda general -->
-            <div class="lg:col-span-2">
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+        <div class="flex flex-col md:flex-row md:items-center gap-4">
+            {{-- Botón Créditos del día --}}
+            <button
+                wire:click="resetToToday"
+                class="inline-flex items-center justify-center px-4 py-2 border border-blue-300 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Créditos del día
+            </button>
+
+            {{-- Checkbox Ver créditos anteriores --}}
+            <label class="inline-flex items-center cursor-pointer group">
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                        </svg>
-                    </span>
-                    <input wire:model.live.debounce.300ms="search" type="text" id="search" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Folio, cliente o representante">
+                    <input
+                        type="checkbox"
+                        wire:model.live="verAnteriores"
+                        class="sr-only peer" />
+                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </div>
-            </div>
+                <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                    Ver créditos anteriores
+                </span>
+            </label>
 
-            <!-- Filtro por producto -->
-            <div>
-                <label for="producto" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                <select wire:model.live="producto" id="producto" class="input-project">
-                    <option value="">Todos</option>
-                    <option value="individual">Individual</option>
-                    <option value="grupal">Grupal</option>
-                </select>
-            </div>
-
-            <!-- Registros por página -->
-            <div>
-                <label for="perPage" class="block text-sm font-medium text-gray-700 mb-1">Mostrar</label>
-                <select wire:model.live="perPage" id="perPage" class="input-project">
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Filtros de fecha -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Fecha desde -->
-            <div>
-                <label for="fechaDesde" class="block text-sm font-medium text-gray-700 mb-1">Fecha desde</label>
-                <input wire:model.live="fechaDesde" type="date" id="fechaDesde" class="input-project" @if($verAnteriores) disabled @endif>
-            </div>
-
-            <!-- Fecha hasta -->
-            <div>
-                <label for="fechaHasta" class="block text-sm font-medium text-gray-700 mb-1">Fecha hasta</label>
-                <input wire:model.live="fechaHasta" type="date" id="fechaHasta" class="input-project" @if($verAnteriores) disabled @endif>
-            </div>
+            {{-- Input de número de grupo (solo visible cuando verAnteriores está activo) --}}
+            @if($verAnteriores)
+                <div class="flex-1 md:max-w-xs transition-all duration-300 ease-in-out">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input
+                            wire:model.live.debounce.500ms="grupo"
+                            type="text"
+                            placeholder="Número de grupo"
+                            class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" />
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
