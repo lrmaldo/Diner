@@ -224,121 +224,147 @@
                         </div>
 
                         @if($showNewClienteForm)
-                            <div class="mt-2 p-3 border rounded bg-gray-50 w-full">
-                                {{-- Datos Personales --}}
-                                <div class="mb-4">
-                                    <h3 class="text-md font-semibold text-gray-700 mb-3 border-b pb-2">Datos Personales</h3>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        <div>
-                                            <label class="field-label">Apellido paterno *</label>
-                                            <input wire:model.defer="new_apellido_paterno" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Apellido materno</label>
-                                            <input wire:model.defer="new_apellido_materno" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Nombres *</label>
-                                            <input wire:model.defer="new_nombres" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">CURP *</label>
-                                            <input wire:model.defer="new_curp" class="input-project" maxlength="18" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Email</label>
-                                            <input wire:model.defer="new_email" type="email" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">País de nacimiento</label>
-                                            <input wire:model.defer="new_pais_nacimiento" class="input-project" value="México" placeholder="México" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Estado civil</label>
-                                            <select wire:model.live="new_estado_civil" class="input-project">
-                                                <option value="">-- Seleccionar --</option>
-                                                <option value="soltero">Soltero/a</option>
-                                                <option value="casado">Casado/a</option>
-                                                <option value="divorciado">Divorciado/a</option>
-                                                <option value="viudo">Viudo/a</option>
-                                                <option value="union_libre">Unión libre</option>
-                                            </select>
-                                        </div>
-                                        @if(in_array($new_estado_civil, ['casado', 'union_libre']))
-                                            <div class="sm:col-span-2">
-                                                <label class="field-label">Nombre del cónyuge</label>
-                                                <input wire:model.defer="new_nombre_conyuge" class="input-project" />
+                            <div class="mt-4 p-4 border-2 border-gray-300 rounded-lg bg-white w-full" x-data="{ datosPersonales: true, datosDomiciliarios: false, datosEconomicos: false }">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Nuevo Cliente</h3>
+
+                                {{-- Campo destacado: Crédito solicitado --}}
+                                <div class="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                                    <label class="block text-base font-semibold text-blue-900 mb-2">Crédito solicitado *</label>
+                                    <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
+                                </div>
+
+                                {{-- Sección: Datos Personales --}}
+                                <div class="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button type="button" @click="datosPersonales = !datosPersonales" class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <span class="font-semibold text-gray-900">Datos Personales</span>
+                                        <svg class="w-5 h-5 text-gray-600 transition-transform duration-200" :class="{'rotate-180': datosPersonales}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="datosPersonales" x-collapse class="p-4 bg-white">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="field-label">Apellido paterno *</label>
+                                                <input wire:model.defer="new_apellido_paterno" class="input-project" />
                                             </div>
-                                        @endif
+                                            <div>
+                                                <label class="field-label">Apellido materno</label>
+                                                <input wire:model.defer="new_apellido_materno" class="input-project" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Nombres *</label>
+                                                <input wire:model.defer="new_nombres" class="input-project" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">CURP *</label>
+                                                <input wire:model.defer="new_curp" class="input-project" maxlength="18" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Email</label>
+                                                <input wire:model.defer="new_email" type="email" class="input-project" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">País de nacimiento</label>
+                                                <input wire:model.defer="new_pais_nacimiento" class="input-project" value="México" placeholder="México" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Estado civil</label>
+                                                <select wire:model.live="new_estado_civil" class="input-project">
+                                                    <option value="">-- Seleccionar --</option>
+                                                    <option value="soltero">Soltero/a</option>
+                                                    <option value="casado">Casado/a</option>
+                                                    <option value="divorciado">Divorciado/a</option>
+                                                    <option value="viudo">Viudo/a</option>
+                                                    <option value="union_libre">Unión libre</option>
+                                                </select>
+                                            </div>
+                                            @if(in_array($new_estado_civil, ['casado', 'union_libre']))
+                                                <div class="sm:col-span-2">
+                                                    <label class="field-label">Nombre del cónyuge</label>
+                                                    <input wire:model.defer="new_nombre_conyuge" class="input-project" />
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <label class="field-label">Dependientes económicos</label>
+                                                <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" placeholder="Ej: 3 (hijos, padres, etc.)" autocomplete="off" name="dependientes_economicos_individual" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {{-- Datos Domiciliarios --}}
-                                <div class="mb-4">
-                                    <h3 class="text-md font-semibold text-gray-700 mb-3 border-b pb-2">Datos Domiciliarios</h3>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        <div class="sm:col-span-3">
-                                            <label class="field-label">Calle y número *</label>
-                                            <input wire:model.defer="new_calle_numero" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Colonia</label>
-                                            <input wire:model.defer="new_colonia" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Municipio</label>
-                                            <input wire:model.defer="new_municipio" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Estado</label>
-                                            <input wire:model.defer="new_estado" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Código Postal</label>
-                                            <input wire:model.defer="new_codigo_postal" class="input-project" />
-                                        </div>
-                                        <div class="sm:col-span-2">
-                                            <label class="field-label">Referencia domiciliaria</label>
-                                            <textarea wire:model.defer="new_referencia_domiciliaria" class="input-project" rows="2"></textarea>
+                                {{-- Sección: Datos Domiciliarios --}}
+                                <div class="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button type="button" @click="datosDomiciliarios = !datosDomiciliarios" class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <span class="font-semibold text-gray-900">Datos Domiciliarios</span>
+                                        <svg class="w-5 h-5 text-gray-600 transition-transform duration-200" :class="{'rotate-180': datosDomiciliarios}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="datosDomiciliarios" x-collapse class="p-4 bg-white">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div class="sm:col-span-3">
+                                                <label class="field-label">Calle y número *</label>
+                                                <input wire:model.defer="new_calle_numero" class="input-project" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Colonia</label>
+                                                <input wire:model.defer="new_colonia" class="input-project" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Municipio</label>
+                                                <input wire:model.defer="new_municipio" class="input-project" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Estado</label>
+                                                <input wire:model.defer="new_estado" class="input-project" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Código Postal</label>
+                                                <input wire:model.defer="new_codigo_postal" class="input-project" />
+                                            </div>
+                                            <div class="sm:col-span-2">
+                                                <label class="field-label">Referencia domiciliaria</label>
+                                                <textarea wire:model.defer="new_referencia_domiciliaria" class="input-project" rows="2"></textarea>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {{-- Datos Económicos --}}
-                                <div class="mb-4">
-                                    <h3 class="text-md font-semibold text-gray-700 mb-3 border-b pb-2">Datos Económicos</h3>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                        <div>
-                                            <label class="field-label">Dependientes económicos</label>
-                                            <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" autocomplete="off" name="dependientes_economicos_individual" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Actividad productiva</label>
-                                            <input wire:model.defer="new_actividad_productiva" class="input-project" autocomplete="off" name="actividad_productiva_individual" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Años de experiencia</label>
-                                            <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" autocomplete="off" name="anios_experiencia_individual" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Ingreso mensual</label>
-                                            <input wire:model.defer="new_ingreso_mensual" type="number" step="0.01" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Gasto mensual familiar</label>
-                                            <input wire:model.defer="new_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Crédito solicitado</label>
-                                            <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="input-project" />
-                                        </div>
-                                        <div>
-                                            <label class="field-label">Nombre de aval</label>
-                                            <input wire:model.defer="new_nombre_aval" class="input-project" />
+                                {{-- Sección: Datos Económicos --}}
+                                <div class="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button type="button" @click="datosEconomicos = !datosEconomicos" class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <span class="font-semibold text-gray-900">Datos Económicos</span>
+                                        <svg class="w-5 h-5 text-gray-600 transition-transform duration-200" :class="{'rotate-180': datosEconomicos}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="datosEconomicos" x-collapse class="p-4 bg-white">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                            <div>
+                                                <label class="field-label">Actividad productiva</label>
+                                                <input wire:model.defer="new_actividad_productiva" class="input-project" autocomplete="off" name="actividad_productiva_individual" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Años de experiencia</label>
+                                                <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" autocomplete="off" name="anios_experiencia_individual" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Ingreso mensual</label>
+                                                <input wire:model.defer="new_ingreso_mensual" type="number" step="0.01" class="input-project" />
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Gasto mensual familiar</label>
+                                                <input wire:model.defer="new_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
+                                            </div>
+                                            <div class="sm:col-span-2">
+                                                <label class="field-label">Nombre de aval</label>
+                                                <input wire:model.defer="new_nombre_aval" class="input-project" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="mt-2 flex justify-end gap-2">
+
+                                <div class="mt-4 flex justify-end gap-2">
                                     <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear y seleccionar</button>
                                 </div>
                             </div>
@@ -354,10 +380,24 @@
                             <button type="button" wire:click.prevent="$toggle('showNewClienteForm')" class="btn-outline">Crear cliente nuevo</button>
                         </div>
                         @if($showNewClienteForm)
-                                <div class="mt-3 p-4 border rounded bg-gray-50">
-                                    {{-- Datos Personales --}}
-                                    <div class="mb-4">
-                                        <h3 class="text-md font-semibold text-gray-700 mb-3 border-b pb-2">Datos Personales</h3>
+                            <div class="mt-3 p-4 border rounded bg-gray-50" x-data="{ datosPersonales: true, datosDomiciliarios: false, datosEconomicos: false }">
+                                <h3 class="text-lg font-bold text-gray-900 mb-4">Nuevo Cliente</h3>
+
+                                {{-- Crédito solicitado destacado --}}
+                                <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <label class="field-label text-blue-900">Crédito solicitado *</label>
+                                    <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="input-project" />
+                                </div>
+
+                                {{-- Sección: Datos Personales --}}
+                                <div class="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button type="button" @click="datosPersonales = !datosPersonales" class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <span class="font-semibold text-gray-900">Datos Personales</span>
+                                        <svg class="w-5 h-5 text-gray-600 transition-transform duration-200" :class="{'rotate-180': datosPersonales}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="datosPersonales" x-collapse class="p-4 bg-white">
                                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                             <div>
                                                 <label class="field-label">Apellido paterno *</label>
@@ -400,13 +440,24 @@
                                                     <input wire:model.defer="new_nombre_conyuge" class="input-project" />
                                                 </div>
                                             @endif
+                                            <div>
+                                                <label class="field-label">Dependientes económicos</label>
+                                                <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" placeholder="Ej: 3 (hijos, padres, etc.)" autocomplete="off" name="dependientes_economicos_grupal" />
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {{-- Datos Domiciliarios --}}
-                                    <div class="mb-4">
-                                        <h3 class="text-md font-semibold text-gray-700 mb-3 border-b pb-2">Datos Domiciliarios</h3>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {{-- Sección: Datos Domiciliarios --}}
+                                <div class="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button type="button" @click="datosDomiciliarios = !datosDomiciliarios" class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <span class="font-semibold text-gray-900">Datos Domiciliarios</span>
+                                        <svg class="w-5 h-5 text-gray-600 transition-transform duration-200" :class="{'rotate-180': datosDomiciliarios}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="datosDomiciliarios" x-collapse class="p-4 bg-white">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <div class="sm:col-span-3">
                                                 <label class="field-label">Calle y número *</label>
                                                 <input wire:model.defer="new_calle_numero" class="input-project" />
@@ -433,15 +484,18 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {{-- Datos Económicos --}}
-                                    <div class="mb-4">
-                                        <h3 class="text-md font-semibold text-gray-700 mb-3 border-b pb-2">Datos Económicos</h3>
+                                {{-- Sección: Datos Económicos --}}
+                                <div class="mb-4 border border-gray-200 rounded-lg overflow-hidden">
+                                    <button type="button" @click="datosEconomicos = !datosEconomicos" class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <span class="font-semibold text-gray-900">Datos Económicos</span>
+                                        <svg class="w-5 h-5 text-gray-600 transition-transform duration-200" :class="{'rotate-180': datosEconomicos}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="datosEconomicos" x-collapse class="p-4 bg-white">
                                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                                            <div>
-                                                <label class="field-label">Dependientes económicos</label>
-                                                <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" autocomplete="off" name="dependientes_economicos_grupal" />
-                                            </div>
                                             <div>
                                                 <label class="field-label">Actividad productiva</label>
                                                 <input wire:model.defer="new_actividad_productiva" class="input-project" autocomplete="off" name="actividad_productiva_grupal" />
@@ -458,21 +512,19 @@
                                                 <label class="field-label">Gasto mensual familiar</label>
                                                 <input wire:model.defer="new_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
                                             </div>
-                                            <div>
-                                                <label class="field-label">Crédito solicitado</label>
-                                                <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="input-project" />
-                                            </div>
-                                            <div>
+                                            <div class="sm:col-span-2">
                                                 <label class="field-label">Nombre de aval</label>
                                                 <input wire:model.defer="new_nombre_aval" class="input-project" />
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="mt-2 flex justify-end gap-2">
-                                        <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear y seleccionar</button>
-                                    </div>
                                 </div>
-                            @endif
+
+                                <div class="mt-4 flex justify-end gap-2">
+                                    <button type="button" wire:click.prevent="addNewClient" class="btn-primary">Crear y seleccionar</button>
+                                </div>
+                            </div>
+                        @endif
 
                             <div class="mt-4">
                                 <table class="w-full table-auto border">
@@ -664,6 +716,10 @@
                                     <input wire:model.defer="edit_nombre_conyuge" class="input-project" />
                                 </div>
                             @endif
+                            <div>
+                                <label class="field-label">Dependientes económicos</label>
+                                <input wire:model.defer="edit_dependientes_economicos" type="number" min="0" class="input-project" placeholder="Ej: 3 (hijos, padres, etc.)" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -733,13 +789,23 @@
                                 <input wire:model.defer="edit_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
                             </div>
                             <div>
-                                <label class="field-label">Dependientes económicos</label>
-                                <input wire:model.defer="edit_dependientes_economicos" type="number" min="0" class="input-project" />
-                            </div>
-                            <div>
                                 <label class="field-label">Nombre de aval</label>
                                 <input wire:model.defer="edit_nombre_aval" class="input-project" />
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-2">
+                    <button type="button" wire:click="$set('showEditClienteModal', false)" class="btn-outline">Cancelar</button>
+                    <button type="button" wire:click.prevent="saveEditedCliente" class="btn-primary">Guardar y aplicar</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if($showGrupoModal)
+            <div class="fixed inset-0 z-50 flex items-start justify-center p-4">
                         </div>
                     </div>
                 </div>
