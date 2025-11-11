@@ -6,61 +6,62 @@
     <title>Detalle préstamo #{{ $prestamo->id }}</title>
     <style>
         @page {
-            size: landscape;
-            margin: 12mm;
+            size: A4 landscape;
+            margin: 8mm;
         }
         body {
             font-family: Arial, Helvetica, sans-serif;
             color: #222;
             margin: 0;
             padding: 0;
-            font-size: 10px;
+            font-size: 9px;
+            background-color: white;
+        }
+        .container {
+            background-color: white;
+            padding: 10px;
+            box-shadow: none;
+            border-radius: 0;
         }
         .logo {
-            max-height: 55px;
+            max-height: 40px;
             vertical-align: middle;
         }
         .title-large {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             margin: 0;
             padding: 0;
+            color: #333;
         }
         .subtitle-text {
-            font-size: 10px;
+            font-size: 9px;
             color: #666;
-            margin: 0;
-            padding: 2px 0 0 0;
+            margin: 2px 0 0 0;
+            padding: 0;
         }
         table {
             width: 100%;
             border-collapse: collapse;
         }
         .header-table {
-            margin-bottom: 15px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #e02424;
+            padding-bottom: 8px;
         }
         .header-table td {
             border: none;
             padding: 5px;
             vertical-align: middle;
         }
-        .info-table {
-            margin-bottom: 15px;
-        }
-        .info-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            background-color: #f9f9f9;
-            vertical-align: top;
-        }
         .info-label {
             font-size: 8px;
-            color: #666;
+            color: #888;
             text-transform: uppercase;
             display: block;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
         .info-value {
             font-size: 11px;
@@ -68,49 +69,159 @@
             color: #000;
             display: block;
         }
+        .info-box {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 6px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .info-item {
+            padding: 6px;
+        }
+        .divider-vertical {
+            border-right: 2px solid #e5e7eb;
+        }
+        .summary-table {
+            width: 100%;
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        .summary-table td {
+            border-right: 1px solid #d1d5db;
+        }
+        .summary-table td:last-child {
+            border-right: none;
+        }
         .section-title {
-            font-size: 13px;
+            font-size: 10px;
             font-weight: bold;
-            margin: 15px 0 8px 0;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #ddd;
+            margin: 6px 0 4px 0;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
         }
         .data-table {
-            font-size: 9px;
-            margin-bottom: 15px;
+            font-size: 8px;
+            margin-bottom: 6px;
+            border: 1px solid #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
         }
         .data-table th {
-            padding: 7px 5px;
-            border: 1px solid #ddd;
-            background-color: #e5e5e5;
-            font-weight: bold;
-            text-align: left;
+            padding: 4px 3px;
+            border: none;
+            background: linear-gradient(to bottom, #f9fafb, #f3f4f6);
+            font-weight: 600;
+            text-align: center;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
         }
         .data-table td {
-            padding: 5px;
-            border: 1px solid #ddd;
-        }
-        .right { text-align: right; }
-        .center { text-align: center; }
-        .comments-box {
-            border: 1px solid #ddd;
-            padding: 10px;
-            background-color: #f9f9f9;
-            min-height: 50px;
-            white-space: pre-wrap;
-            font-size: 10px;
-        }
-        .footer-text {
-            margin-top: 15px;
-            padding-top: 8px;
-            border-top: 1px solid #ddd;
-            font-size: 8px;
-            color: #666;
+            padding: 4px 3px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
             text-align: center;
         }
-        /* ocultar elementos con clase .no-print en la impresión del navegador */
+        .data-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .total-row {
+            background: linear-gradient(to right, #1f2937, #374151) !important;
+            color: white !important;
+            font-weight: bold;
+        }
+        .total-row td {
+            padding: 6px 5px !important;
+            border: none !important;
+            vertical-align: middle !important;
+        }
+        .right { text-align: right !important; }
+        .center { text-align: center !important; }
+        .left { text-align: left !important; }
+        .comments-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 3px;
+            padding: 6px;
+            background-color: #f9fafb;
+            min-height: 30px;
+            white-space: pre-wrap;
+            font-size: 8px;
+            color: #4b5563;
+            line-height: 1.3;
+        }
+        .footer-text {
+            margin-top: 6px;
+            padding-top: 5px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 7px;
+            color: #9ca3af;
+            text-align: center;
+        }
+        .btn-group {
+            margin-bottom: 20px;
+            text-align: right;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+        .btn-secondary:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+        }
+        /* Estilos para impresión */
         @media print {
-            .no-print { display: none !important; }
+            body {
+                background-color: white;
+                padding: 0;
+                margin: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 10px;
+                margin: 0;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .btn-group {
+                display: none !important;
+            }
         }
     </style>
 </head>
@@ -133,74 +244,125 @@
     }
 @endphp
 
+    @unless($forPdf)
+    <div class="btn-group no-print">
+        <button onclick="window.print()" class="btn btn-secondary">
+            <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 5px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Imprimir
+        </button>
+        <a href="{{ route('prestamos.print.download', ['prestamo' => $prestamo->id, 'type' => 'detalle']) }}" class="btn btn-primary">
+            <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 5px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Descargar PDF
+        </a>
+    </div>
+    @endunless
+
+    <div class="container">
     {{-- Encabezado --}}
     <table class="header-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="width: 60px;">
+            <td style="width: 80px; text-align: center;">
                 <img src="{{ $logoSrc }}" alt="Logo" class="logo">
             </td>
-            <td style="width: 60%;">
-                <div class="title-large">DETALLES DEL CRÉDITO</div>
-                <div class="subtitle-text">Folio: {{ str_pad($prestamo->id, 4, '0', STR_PAD_LEFT) }} | Grupo: {{ $prestamo->producto === 'grupal' ? ($prestamo->representante ? $prestamo->representante->nombres : 'Sin nombre') : 'Individual' }}</div>
-            </td>
-            <td style="text-align: right; width: 30%;">
-                <div style="font-size: 13px; font-weight: bold;">{{ now()->format('d/m/Y') }}</div>
-                <div class="subtitle-text">FECHA DE IMPRESIÓN</div>
+            <td style="width: 70%;">
+                <div class="title-large">Grupo {{ str_pad($prestamo->id, 4, '0', STR_PAD_LEFT) }}</div>
+                <div class="subtitle-text">
+                    Representante: {{ $prestamo->representante ? trim($prestamo->representante->nombres . ' ' . $prestamo->representante->apellido_paterno . ' ' . $prestamo->representante->apellido_materno) : 'Sin representante' }}
+                </div>
             </td>
         </tr>
     </table>
 
-    @unless($forPdf)
-    <div class="no-print" style="margin-bottom:12px;text-align:right;">
-        <button onclick="window.print()" style="padding:8px 12px;border-radius:6px;border:1px solid #ccc;background:#fff;cursor:pointer;margin-right:5px;">Imprimir</button>
-        <a href="{{ route('prestamos.print.download', ['prestamo' => $prestamo->id, 'type' => 'detalle']) }}" style="padding:8px 12px;border-radius:6px;border:1px solid #2563eb;background:#2563eb;color:#fff;text-decoration:none;display:inline-block">Descargar PDF</a>
+    {{-- Información resumida del préstamo --}}
+    <div class="info-box">
+        <div class="info-grid">
+            <div class="info-item divider-vertical">
+                <span class="info-label">Representante</span>
+                <span class="info-value" style="font-size: 10px;">{{ $prestamo->representante ? strtoupper(trim($prestamo->representante->nombres . ' ' . $prestamo->representante->apellido_paterno . ' ' . $prestamo->representante->apellido_materno)) : 'SIN REPRESENTANTE' }}</span>
+            </div>
+            <div>
+                <div class="info-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="info-item">
+                        <span class="info-label">Crédito Total</span>
+                        <span class="info-value" style="color: #10b981; font-size: 16px;">${{ number_format($prestamo->monto_total ?? 0, 2) }}</span>
+                    </div>
+                    <div class="info-item">
+                        @php
+                            $garantia = ($prestamo->monto_total ?? 0) * (($prestamo->garantia ?? 0) / 100);
+                            $comision = ($prestamo->monto_total ?? 0) * 0.02;
+                            $deducciones = $garantia + $comision;
+                        @endphp
+                        <span class="info-label">Deducciones</span>
+                        <span class="info-value" style="color: #ef4444;">${{ number_format($deducciones, 2) }}</span>
+                    </div>
+                </div>
+                <div class="info-grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
+                    <div class="info-item">
+                        <span class="info-label">Garantía ({{ $prestamo->garantia ?? 0 }}%)</span>
+                        <span class="info-value">${{ number_format($garantia, 2) }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Comisión (2%)</span>
+                        <span class="info-value">${{ number_format($comision, 2) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    @endunless
 
-    {{-- Información del préstamo --}}
-    <table class="info-table" cellpadding="0" cellspacing="0">
+    {{-- Totales principales destacados --}}
+    @php
+        $garantia = ($prestamo->monto_total ?? 0) * (($prestamo->garantia ?? 0) / 100);
+        $comision = ($prestamo->monto_total ?? 0) * 0.02;
+        $efectivo = ($prestamo->monto_total ?? 0) - $garantia - $comision;
+
+        // Calcular el total con intereses
+        $tasaDecimal = ($prestamo->tasa_interes ?? 0) / 100;
+        $montoPorPago = 0;
+        $numeroPagos = 0;
+
+        // Determinar número de pagos según plazo
+        $plazoTexto = $prestamo->plazo ?? '4meses';
+        if (str_contains($plazoTexto, '4meses')) {
+            $numeroPagos = 16; // 4 meses semanales
+        } elseif (str_contains($plazoTexto, '6meses')) {
+            $numeroPagos = 24; // 6 meses semanales
+        } elseif (str_contains($plazoTexto, '1ano')) {
+            $numeroPagos = 48; // 1 año semanales
+        } else {
+            $numeroPagos = 16; // default
+        }
+
+        if ($prestamo->clientes->count() > 0) {
+            foreach($prestamo->clientes as $cliente) {
+                $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
+                $interes = $montoCliente * $tasaDecimal;
+                $montoPorPago += $montoCliente + $interes;
+            }
+            $montoPorPago = $montoPorPago / $numeroPagos;
+        }
+    @endphp
+    <table class="summary-table" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="width: 33.33%;">
-                <span class="info-label">MONTO SOLICITADO</span>
-                <span class="info-value" style="color: #16a34a;">${{ number_format($prestamo->monto_total ?? 0, 2) }}</span>
+            <td style="text-align: center; padding: 5px;">
+                <div style="font-size: 8px; color: #6b7280; margin-bottom: 2px;">CRÉDITO TOTAL</div>
+                <div style="font-size: 11px; font-weight: bold; color: #000;">${{ number_format($prestamo->monto_total ?? 0, 0) }}</div>
             </td>
-            <td style="width: 33.33%;">
-                <span class="info-label">PRODUCTO</span>
-                <span class="info-value">{{ ucfirst($prestamo->producto ?? 'N/A') }}</span>
+            <td style="text-align: center; padding: 5px;">
+                <div style="font-size: 8px; color: #6b7280; margin-bottom: 2px;">GARANTÍA ({{ $prestamo->garantia ?? 0 }}%)</div>
+                <div style="font-size: 11px; font-weight: bold; color: #000;">${{ number_format($garantia, 0) }}</div>
             </td>
-            <td style="width: 33.33%;">
-                <span class="info-label">PLAZO</span>
-                <span class="info-value">{{ $prestamo->plazo }} meses</span>
+            <td style="text-align: center; padding: 5px;">
+                <div style="font-size: 8px; color: #6b7280; margin-bottom: 2px;">EFECTIVO A ENTREGAR</div>
+                <div style="font-size: 11px; font-weight: bold; color: #10b981;">${{ number_format($efectivo, 0) }}</div>
             </td>
-        </tr>
-        <tr>
-            <td>
-                <span class="info-label">PERIODICIDAD</span>
-                <span class="info-value">{{ ucfirst($prestamo->periodicidad ?? '—') }}</span>
-            </td>
-            <td>
-                <span class="info-label">TASA DE INTERÉS</span>
-                <span class="info-value">{{ $prestamo->tasa_interes ?? '0' }}%</span>
-            </td>
-            <td>
-                <span class="info-label">GARANTÍA</span>
-                <span class="info-value">{{ $prestamo->garantia ?? '—' }}%</span>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <span class="info-label">FECHA DE ENTREGA</span>
-                <span class="info-value">{{ $prestamo->fecha_entrega ? $prestamo->fecha_entrega->format('d/m/Y') : '—' }}</span>
-            </td>
-            <td>
-                <span class="info-label">DÍA DE PAGO</span>
-                <span class="info-value">{{ ucfirst($prestamo->dia_pago ?? '—') }}</span>
-            </td>
-            <td>
-                <span class="info-label">ESTADO</span>
-                <span class="info-value" style="color: {{ $prestamo->estado === 'autorizado' ? '#16a34a' : ($prestamo->estado === 'rechazado' ? '#dc2626' : '#ca8a04') }};">
-                    {{ ucfirst($prestamo->estado === 'en_comite' ? 'En Comité' : ($prestamo->estado === 'en_curso' ? 'En Curso' : $prestamo->estado)) }}
-                </span>
+            <td style="text-align: center; padding: 5px;">
+                <div style="font-size: 8px; color: #6b7280; margin-bottom: 2px;">PAGO ({{ $numeroPagos }} PAGOS)</div>
+                <div style="font-size: 11px; font-weight: bold; color: #000;">${{ number_format($montoPorPago, 0) }}</div>
             </td>
         </tr>
     </table>
@@ -210,50 +372,112 @@
     <table class="data-table" cellpadding="0" cellspacing="0">
             <thead>
                 <tr>
-                    <th style="width: 5%;" class="center">#</th>
-                    <th style="width: 40%;">Nombre Completo</th>
-                    <th style="width: 20%;">CURP</th>
-                    <th style="width: 15%;" class="right">Solicitado</th>
-                    <th style="width: 15%;" class="right">Sugerido</th>
-                    <th style="width: 15%;" class="right">Autorizado</th>
-                    @if($prestamo->producto === 'grupal')
-                        <th style="width: 10%;" class="center">Rol</th>
-                    @endif
+                    <th rowspan="2" style="width: 30%; vertical-align: middle; text-align: left;">Nombre</th>
+                    <th colspan="3" style="background: #1f2937; color: white; text-align: center;">Deducciones</th>
+                    <th colspan="3" style="background: #1f2937; color: white; text-align: center;">
+                        @php
+                            // Determinar número de pagos según plazo
+                            $plazoTexto = $prestamo->plazo ?? '4meses';
+                            if (str_contains($plazoTexto, '4meses')) {
+                                $numeroPagos = 16;
+                            } elseif (str_contains($plazoTexto, '6meses')) {
+                                $numeroPagos = 24;
+                            } elseif (str_contains($plazoTexto, '1ano')) {
+                                $numeroPagos = 48;
+                            } else {
+                                $numeroPagos = 16;
+                            }
+                        @endphp
+                        Amortización ({{ $numeroPagos }} Pagos)
+                    </th>
+                </tr>
+                <tr>
+                    <th style="width: 11%;">Crédito</th>
+                    <th style="width: 11%;">Garantía</th>
+                    <th style="width: 11%;">Comisión</th>
+                    <th style="width: 12%;">Efectivo</th>
+                    <th style="width: 12%;">Pagos</th>
+                    <th style="width: 13%;">Último Pago</th>
                 </tr>
             </thead>
             <tbody>
                 @if($prestamo->producto === 'grupal')
+                    @php
+                        $totalCredito = 0;
+                        $totalGarantia = 0;
+                        $totalComision = 0;
+                        $totalEfectivo = 0;
+                        $totalPagos = 0;
+                        $totalUltimoPago = 0;
+
+                        $tasaDecimal = ($prestamo->tasa_interes ?? 0) / 100;
+                    @endphp
                     @foreach($prestamo->clientes as $index => $cliente)
+                        @php
+                            $credito = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
+                            $garantiaPercent = $prestamo->garantia ?? 0;
+                            $garantiaMonto = $credito * ($garantiaPercent / 100);
+                            $comisionMonto = $credito * 0.02; // 2% de comisión
+                            $efectivo = $credito - $garantiaMonto - $comisionMonto;
+
+                            // Calcular pagos con interés
+                            $interes = $credito * $tasaDecimal;
+                            $totalConInteres = $credito + $interes;
+                            $montoPorPago = $numeroPagos > 0 ? $totalConInteres / $numeroPagos : 0;
+
+                            // Último pago (simulado - en producción vendría de la BD)
+                            $ultimoPago = $montoPorPago;
+
+                            $totalCredito += $credito;
+                            $totalGarantia += $garantiaMonto;
+                            $totalComision += $comisionMonto;
+                            $totalEfectivo += $efectivo;
+                            $totalPagos += $montoPorPago;
+                            $totalUltimoPago += $ultimoPago;
+                        @endphp
                         <tr>
-                            <td class="center">{{ $index + 1 }}</td>
-                            <td>{{ trim(($cliente->nombres ?? $cliente->nombre ?? '') . ' ' . ($cliente->apellido_paterno ?? '') . ' ' . ($cliente->apellido_materno ?? '')) }}</td>
-                            <td>{{ $cliente->curp ?? '—' }}</td>
-                            <td class="right">${{ number_format($cliente->pivot->monto_solicitado ?? 0, 2) }}</td>
-                            <td class="right">{{ $cliente->pivot->monto_sugerido ? '$' . number_format($cliente->pivot->monto_sugerido, 2) : '—' }}</td>
-                            <td class="right" style="font-weight: bold; color: #2563eb;">{{ $cliente->pivot->monto_autorizado ? '$' . number_format($cliente->pivot->monto_autorizado, 2) : '—' }}</td>
-                            <td class="center">{{ $prestamo->representante_id == $cliente->id ? 'Representante' : 'Integrante' }}</td>
+                            <td class="left">{{ strtoupper(trim(($cliente->nombres ?? '') . ' ' . ($cliente->apellido_paterno ?? '') . ' ' . ($cliente->apellido_materno ?? ''))) }}</td>
+                            <td>{{ number_format($credito, 0) }}</td>
+                            <td>{{ number_format($garantiaMonto, 0) }}</td>
+                            <td>{{ number_format($comisionMonto, 0) }}</td>
+                            <td style="font-weight: bold;">{{ number_format($efectivo, 0) }}</td>
+                            <td>{{ number_format($montoPorPago, 0) }}</td>
+                            <td>{{ number_format($ultimoPago, 0) }}</td>
                         </tr>
                     @endforeach
-                    <tr style="background-color: #f0f0f0; font-weight: bold;">
-                        <td colspan="3" class="right">TOTAL:</td>
-                        <td class="right">${{ number_format($prestamo->clientes->sum(fn($c) => $c->pivot->monto_solicitado ?? 0), 2) }}</td>
-                        <td class="right">{{ $prestamo->clientes->sum(fn($c) => $c->pivot->monto_sugerido ?? 0) > 0 ? '$' . number_format($prestamo->clientes->sum(fn($c) => $c->pivot->monto_sugerido ?? 0), 2) : '—' }}</td>
-                        <td class="right" style="color: #2563eb;">{{ $prestamo->clientes->sum(fn($c) => $c->pivot->monto_autorizado ?? 0) > 0 ? '$' . number_format($prestamo->clientes->sum(fn($c) => $c->pivot->monto_autorizado ?? 0), 2) : '—' }}</td>
-                        <td></td>
+                        <tr class="total-row">
+                        <td class="right">TOTAL:</td>
+                        <td>{{ number_format($totalCredito, 0) }}</td>
+                        <td>{{ number_format($totalGarantia, 0) }}</td>
+                        <td>{{ number_format($totalComision, 0) }}</td>
+                        <td style="color: #4ade80;">{{ number_format($totalEfectivo, 0) }}</td>
+                        <td>{{ number_format($totalPagos, 0) }}</td>
+                        <td>{{ number_format($totalUltimoPago, 0) }}</td>
                     </tr>
                 @else
                     @if($prestamo->cliente)
                         @php
-                            $clienteEnPivot = $prestamo->clientes->firstWhere('id', $prestamo->cliente_id);
-                            $montoAutorizado = $clienteEnPivot->pivot->monto_autorizado ?? null;
+                            $credito = $prestamo->monto_total ?? 0;
+                            $garantiaPercent = $prestamo->garantia ?? 0;
+                            $garantiaMonto = $credito * ($garantiaPercent / 100);
+                            $comisionMonto = $credito * 0.02;
+                            $efectivo = $credito - $garantiaMonto - $comisionMonto;
+
+                            // Calcular pagos con interés
+                            $tasaDecimal = ($prestamo->tasa_interes ?? 0) / 100;
+                            $interes = $credito * $tasaDecimal;
+                            $totalConInteres = $credito + $interes;
+                            $montoPorPago = $numeroPagos > 0 ? $totalConInteres / $numeroPagos : 0;
+                            $ultimoPago = $montoPorPago;
                         @endphp
                         <tr>
-                            <td class="center">1</td>
-                            <td>{{ trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? '')) }}</td>
-                            <td>{{ $prestamo->cliente->curp ?? '—' }}</td>
-                            <td class="right">${{ number_format($prestamo->monto_total ?? 0, 2) }}</td>
-                            <td class="right">—</td>
-                            <td class="right" style="font-weight: bold; color: #2563eb;">{{ $montoAutorizado ? '$' . number_format($montoAutorizado, 2) : '—' }}</td>
+                            <td class="left">{{ strtoupper(trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? ''))) }}</td>
+                            <td>{{ number_format($credito, 0) }}</td>
+                            <td>{{ number_format($garantiaMonto, 0) }}</td>
+                            <td>{{ number_format($comisionMonto, 0) }}</td>
+                            <td style="font-weight: bold;">{{ number_format($efectivo, 0) }}</td>
+                            <td>{{ number_format($montoPorPago, 0) }}</td>
+                            <td>{{ number_format($ultimoPago, 0) }}</td>
                         </tr>
                     @endif
                 @endif
@@ -266,8 +490,9 @@
 
     {{-- Footer --}}
     <div class="footer-text">
-        <div>Generado el {{ now()->format('d/m/Y') }} a las {{ now()->format('h:i a') }}</div>
+        <div style="margin-bottom: 5px;">Generado el {{ now()->format('d/m/Y') }} a las {{ now()->format('h:i a') }}</div>
         <div>Sistema de Gestión de Préstamos - Diner</div>
     </div>
+    </div> {{-- Cierre del contenedor --}}
 </body>
 </html>

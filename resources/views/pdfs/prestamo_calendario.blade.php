@@ -298,9 +298,7 @@
             </tbody>
         </table>
 
-        {{-- Firma --}}
-        <div class="signature-line"></div>
-        <div class="signature-text"><strong>FIRMA</strong></div>
+
 
         {{-- Footer con notas --}}
         <div class="footer-notes">
