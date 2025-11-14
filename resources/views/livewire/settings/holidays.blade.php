@@ -13,7 +13,8 @@
                 Crear Festivos {{ $filterYear }}
             </button>
             <button
-                wire:click="showCreateModal"
+                type="button"
+                wire:click.prevent="openCreateModal"
                 class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
             >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -560,7 +561,8 @@
                 <p class="mt-1 text-sm text-gray-500">Comience agregando un día festivo.</p>
                 <div class="mt-6">
                     <button
-                        wire:click="showCreateModal"
+                        type="button"
+                        wire:click.prevent="openCreateModal"
                         class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
                     >
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

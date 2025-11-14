@@ -82,7 +82,7 @@ class Holidays extends Component
         ]);
     }
 
-    public function showCreateModal(): void
+    public function openCreateModal(): void
     {
         $this->reset(['name', 'date', 'description', 'type', 'isRecurring', 'isActive']);
         $this->type = 'national';
