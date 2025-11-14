@@ -93,26 +93,61 @@
                 <div><strong>firma</strong></div>
             </div>
 
-            <table style="width:100%;margin-top:12px;font-size:13px;">
-                <tr>
-                    <td style="vertical-align:top;">
-                        @php
-                            $nombre = '';
-                            if ($prestamo->producto === 'grupal' && $prestamo->clientes && $prestamo->clientes->count() > 0) {
-                                $nombre = trim(($prestamo->clientes->first()->nombres ?? $prestamo->clientes->first()->nombre ?? '') . ' ' . ($prestamo->clientes->first()->apellido_paterno ?? ''));
-                            } elseif ($prestamo->cliente) {
-                                $nombre = trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? ''));
-                            }
-                        @endphp
-                        {{ $nombre }}
-                        <div style="margin-top:6px">{{ $prestamo->cliente->direccion ?? '' }}</div>
-                        <div>{{ $prestamo->cliente->telefono ?? $prestamo->cliente->cel ?? '' }}</div>
-                    </td>
-                    <td style="width:220px;text-align:right;vertical-align:top;">
-                        <div>${{ number_format($prestamo->monto_total ?? 0, 2) }}&nbsp;__________________</div>
-                    </td>
-                </tr>
-            </table>
+            @if($prestamo->producto === 'grupal')
+                {{-- Préstamo grupal: Representante primero, luego integrantes --}}
+                @if($prestamo->representante)
+                    <table style="width:100%;margin-top:12px;font-size:13px;">
+                        <tr>
+                            <td style="vertical-align:top;">
+                                {{ strtoupper(trim(($prestamo->representante->nombres ?? '') . ' ' . ($prestamo->representante->apellido_paterno ?? '') . ' ' . ($prestamo->representante->apellido_materno ?? ''))) }} (REPRESENTANTE)
+                                <div style="margin-top:6px">{{ $prestamo->representante->direccion ?? '' }}</div>
+                                <div>{{ $prestamo->representante->telefono ?? $prestamo->representante->cel ?? '' }}</div>
+                            </td>
+                            <td style="width:220px;text-align:right;vertical-align:top;">
+                                <div>${{ number_format($prestamo->representante->pivot->monto_autorizado ?? $prestamo->representante->pivot->monto_solicitado ?? 0, 0) }}&nbsp;__________________</div>
+                            </td>
+                        </tr>
+                    </table>
+                @endif
+
+                {{-- Integrantes del grupo --}}
+                @foreach($prestamo->clientes as $cliente)
+                    @if(!$prestamo->representante || $cliente->id !== $prestamo->representante->id)
+                        <table style="width:100%;margin-top:8px;font-size:13px;">
+                            <tr>
+                                <td style="vertical-align:top;">
+                                    {{ strtoupper(trim(($cliente->nombres ?? '') . ' ' . ($cliente->apellido_paterno ?? '') . ' ' . ($cliente->apellido_materno ?? ''))) }}
+                                    <div style="margin-top:6px">{{ $cliente->direccion ?? '' }}</div>
+                                    <div>{{ $cliente->telefono ?? $cliente->cel ?? '' }}</div>
+                                </td>
+                                <td style="width:220px;text-align:right;vertical-align:top;">
+                                    <div>${{ number_format($cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0, 0) }}&nbsp;__________________</div>
+                                </td>
+                            </tr>
+                        </table>
+                    @endif
+                @endforeach
+            @else
+                {{-- Préstamo individual --}}
+                <table style="width:100%;margin-top:12px;font-size:13px;">
+                    <tr>
+                        <td style="vertical-align:top;">
+                            @php
+                                $nombre = '';
+                                if ($prestamo->cliente) {
+                                    $nombre = strtoupper(trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? '')));
+                                }
+                            @endphp
+                            {{ $nombre }}
+                            <div style="margin-top:6px">{{ $prestamo->cliente->direccion ?? '' }}</div>
+                            <div>{{ $prestamo->cliente->telefono ?? $prestamo->cliente->cel ?? '' }}</div>
+                        </td>
+                        <td style="width:220px;text-align:right;vertical-align:top;">
+                            <div>${{ number_format($prestamo->monto_total ?? 0, 0) }}&nbsp;__________________</div>
+                        </td>
+                    </tr>
+                </table>
+            @endif
         </div>
 
         <footer style="margin-top: 30px; font-size: 12px; color: #666; text-align: center;">

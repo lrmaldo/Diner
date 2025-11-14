@@ -17,6 +17,23 @@
             font-size: 9px;
             background-color: white;
         }
+        /* Estilos para vista HTML (pantalla) */
+        @media screen {
+            body {
+                background-color: #f3f4f6;
+                padding: 20px;
+                min-height: 100vh;
+            }
+            .page-wrapper {
+                max-width: 210mm;
+                min-height: 297mm;
+                margin: 0 auto;
+                background-color: white;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+        }
         .container {
             background-color: white;
             padding: 8px;
@@ -204,12 +221,19 @@
             background-color: #f9fafb;
             border-color: #d1d5db;
         }
-        /* Estilos para impresión */
+        /* Estilos para impresión y PDF */
         @media print {
             body {
-                background-color: white;
-                padding: 0;
-                margin: 0;
+                background-color: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .page-wrapper {
+                max-width: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
             .container {
                 box-shadow: none;
@@ -259,6 +283,10 @@
             Descargar PDF
         </a>
     </div>
+    @endunless
+
+    @unless($forPdf)
+    <div class="page-wrapper">
     @endunless
 
     <div class="container">
@@ -470,5 +498,9 @@
         <div>Sistema de Gestión de Préstamos - Diner</div>
     </div>
     </div> {{-- Cierre del contenedor --}}
+
+    @unless($forPdf)
+    </div> {{-- Cierre del page-wrapper --}}
+    @endunless
 </body>
 </html>
