@@ -6,7 +6,7 @@
     <title>Detalle préstamo #{{ $prestamo->id }}</title>
     <style>
         @page {
-            size: A4 landscape;
+            size: A4 portrait;
             margin: 8mm;
         }
         body {
@@ -19,7 +19,7 @@
         }
         .container {
             background-color: white;
-            padding: 10px;
+            padding: 8px;
             box-shadow: none;
             border-radius: 0;
         }
@@ -45,9 +45,9 @@
             border-collapse: collapse;
         }
         .header-table {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border-bottom: 2px solid #e02424;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
         }
         .header-table td {
             border: none;
@@ -73,12 +73,12 @@
             background-color: #f9fafb;
             border: 1px solid #e5e7eb;
             border-radius: 4px;
-            padding: 8px;
-            margin-bottom: 6px;
+            padding: 6px;
+            margin-bottom: 4px;
         }
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 8px;
         }
         .info-item {
@@ -285,31 +285,7 @@
                 <span class="info-value" style="font-size: 10px;">{{ $prestamo->representante ? strtoupper(trim($prestamo->representante->nombres . ' ' . $prestamo->representante->apellido_paterno . ' ' . $prestamo->representante->apellido_materno)) : 'SIN REPRESENTANTE' }}</span>
             </div>
             <div>
-                <div class="info-grid" style="grid-template-columns: 1fr 1fr;">
-                    <div class="info-item">
-                        <span class="info-label">Crédito Total</span>
-                        <span class="info-value" style="color: #10b981; font-size: 16px;">${{ number_format($prestamo->monto_total ?? 0, 2) }}</span>
-                    </div>
-                    <div class="info-item">
-                        @php
-                            $garantia = ($prestamo->monto_total ?? 0) * (($prestamo->garantia ?? 0) / 100);
-                            $comision = ($prestamo->monto_total ?? 0) * 0.02;
-                            $deducciones = $garantia + $comision;
-                        @endphp
-                        <span class="info-label">Deducciones</span>
-                        <span class="info-value" style="color: #ef4444;">${{ number_format($deducciones, 2) }}</span>
-                    </div>
-                </div>
-                <div class="info-grid" style="grid-template-columns: 1fr 1fr; margin-top: 10px;">
-                    <div class="info-item">
-                        <span class="info-label">Garantía ({{ $prestamo->garantia ?? 0 }}%)</span>
-                        <span class="info-value">${{ number_format($garantia, 2) }}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Comisión (2%)</span>
-                        <span class="info-value">${{ number_format($comision, 2) }}</span>
-                    </div>
-                </div>
+
             </div>
         </div>
     </div>
@@ -346,7 +322,7 @@
             $montoPorPago = $montoPorPago / $numeroPagos;
         }
     @endphp
-    <table class="summary-table" cellpadding="0" cellspacing="0">
+    {{-- <table class="summary-table" cellpadding="0" cellspacing="0">
         <tr>
             <td style="text-align: center; padding: 5px;">
                 <div style="font-size: 8px; color: #6b7280; margin-bottom: 2px;">CRÉDITO TOTAL</div>
@@ -365,14 +341,14 @@
                 <div style="font-size: 11px; font-weight: bold; color: #000;">${{ number_format($montoPorPago, 0) }}</div>
             </td>
         </tr>
-    </table>
+    </table> --}}
 
     {{-- Tabla de solicitantes --}}
     <div class="section-title">{{ $prestamo->producto === 'grupal' ? 'Integrantes del Grupo' : 'Solicitante' }}</div>
     <table class="data-table" cellpadding="0" cellspacing="0">
             <thead>
                 <tr>
-                    <th rowspan="2" style="width: 30%; vertical-align: middle; text-align: left;">Nombre</th>
+                    <th rowspan="2" style="width: 20%; vertical-align: middle; text-align: left;">Nombre</th>
                     <th colspan="3" style="background: #1f2937; color: white; text-align: center;">Deducciones</th>
                     <th colspan="3" style="background: #1f2937; color: white; text-align: center;">
                         @php
@@ -392,11 +368,11 @@
                     </th>
                 </tr>
                 <tr>
-                    <th style="width: 11%;">Crédito</th>
-                    <th style="width: 11%;">Garantía</th>
-                    <th style="width: 11%;">Comisión</th>
-                    <th style="width: 12%;">Efectivo</th>
-                    <th style="width: 12%;">Pagos</th>
+                    <th style="width: 13%;">Crédito</th>
+                    <th style="width: 13%;">Garantía</th>
+                    <th style="width: 13%;">Comisión</th>
+                    <th style="width: 14%;">Efectivo</th>
+                    <th style="width: 14%;">Pagos</th>
                     <th style="width: 13%;">Último Pago</th>
                 </tr>
             </thead>
@@ -485,9 +461,9 @@
     </table>
 
     {{-- Comentarios del comité --}}
-    <div class="section-title">Comentarios del Comité</div>
+    {{-- <div class="section-title">Comentarios del Comité</div>
     <div class="comments-box">{{ $prestamo->comentarios_comite ?? 'No hay comentarios del comité.' }}</div>
-
+ --}}
     {{-- Footer --}}
     <div class="footer-text">
         <div style="margin-bottom: 5px;">Generado el {{ now()->format('d/m/Y') }} a las {{ now()->format('h:i a') }}</div>
