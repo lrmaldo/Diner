@@ -17,9 +17,9 @@
             font-size: 9px;
             background-color: white;
         }
-        /* Estilos para vista HTML (pantalla) */
-        @media screen {
-            body {
+        /* Estilos para vista HTML (pantalla) - NO para PDF */
+        @media screen and (min-width: 1px) {
+            body:not(.pdf-mode) {
                 background-color: #f3f4f6;
                 padding: 20px;
                 min-height: 100vh;
@@ -230,15 +230,18 @@
             }
             .page-wrapper {
                 max-width: none !important;
+                min-height: auto !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                background-color: white !important;
             }
             .container {
-                box-shadow: none;
-                padding: 10px;
-                margin: 0;
+                box-shadow: none !important;
+                padding: 10px !important;
+                margin: 0 !important;
+                background-color: white !important;
             }
             .no-print {
                 display: none !important;
@@ -247,9 +250,23 @@
                 display: none !important;
             }
         }
+        /* Estilos específicos cuando se genera PDF */
+        .pdf-mode {
+            background-color: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .pdf-mode .page-wrapper {
+            max-width: none !important;
+            min-height: auto !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background-color: white !important;
+        }
     </style>
 </head>
-<body>
 @php
     $forPdf = $forPdf ?? false;
     if ($forPdf) {
@@ -267,6 +284,7 @@
         $logoSrc = asset('img/logo.JPG');
     }
 @endphp
+<body{{ $forPdf ? ' class="pdf-mode"' : '' }}>
 
     @unless($forPdf)
     <div class="btn-group no-print">
