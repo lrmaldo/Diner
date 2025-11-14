@@ -23,6 +23,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/password', Password::class)->name('settings.password');
     Route::get('settings/appearance', Appearance::class)->name('settings.appearance');
 
+    // Configuraciones del sistema - Solo administradores
+    Route::middleware(['permission:administrar sistema'])->group(function () {
+        Route::get('settings/configurations', \App\Livewire\Settings\Configurations::class)->name('settings.configurations');
+        Route::get('settings/holidays', \App\Livewire\Settings\Holidays::class)->name('settings.holidays');
+    });
+
     // Rutas para gestión de usuarios
     Route::middleware(['permission:ver usuarios'])->group(function () {
         Route::get('/users', Index::class)->name('users.index');

@@ -149,7 +149,7 @@
                 <div class="border-t border-gray-200 dark:border-gray-700"></div>
             </div>
 
-            <!-- Desktop User Menu -->
+                <!-- Desktop User Menu -->
             <flux:dropdown class="hidden lg:block" position="bottom" align="start">
                 <flux:profile
                     :name="auth()->user()->name"
@@ -181,6 +181,11 @@
 
                     <flux:menu.radio.group>
                         <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+
+                        @can('administrar sistema')
+                        <flux:menu.item :href="route('settings.configurations')" icon="adjustments-horizontal" wire:navigate>Configuraciones</flux:menu.item>
+                        <flux:menu.item :href="route('settings.holidays')" icon="calendar" wire:navigate>Días Festivos</flux:menu.item>
+                        @endcan
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
@@ -231,6 +236,11 @@
 
                     <flux:menu.radio.group>
                         <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+
+                        @can('administrar sistema')
+                        <flux:menu.item :href="route('settings.configurations')" icon="adjustments-horizontal" wire:navigate>Configuraciones</flux:menu.item>
+                        <flux:menu.item :href="route('settings.holidays')" icon="calendar" wire:navigate>Días Festivos</flux:menu.item>
+                        @endcan
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
