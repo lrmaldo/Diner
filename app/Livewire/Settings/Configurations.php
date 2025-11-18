@@ -26,7 +26,7 @@ class Configurations extends Component
             'key' => 'tasa_interes_default',
             'value' => '4.5',
             'type' => 'decimal',
-            'description' => 'Tasa de interés por defecto (porcentaje mensual)',
+            'description' => 'Tasa de interés por defecto',
             'category' => 'financial',
             'editable' => true,
         ],

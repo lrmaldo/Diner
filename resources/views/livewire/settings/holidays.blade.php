@@ -476,7 +476,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ $holiday->date->format('d/m/Y') }}
-                                    <span class="text-gray-500">({{ $holiday->date->translatedFormat('l') }})</span>
+                                    <span class="text-gray-500">({{ $holiday->date->locale('es')->translatedFormat('l') }})</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
