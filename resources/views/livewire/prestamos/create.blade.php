@@ -20,7 +20,7 @@
                 <x-status-alert :type="$status_type" :message="$status_message" :timeout="0" />
             </div>
         @endif
-        
+
         {{-- Mostrar errores de validación si existen --}}
         @if($errors->any())
             <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
@@ -64,7 +64,7 @@
                             <option value="{{ $asesor->id }}">{{ $asesor->name }}</option>
                         @endforeach
                     </select>
-                    @error('asesor_id') 
+                    @error('asesor_id')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
                 </div>
@@ -88,7 +88,7 @@
                         <option value="6meses">6 meses</option>
                         <option value="1ano">1 año</option>
                     </select>
-                    @error('plazo') 
+                    @error('plazo')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
                 </div>
@@ -100,7 +100,7 @@
                         <option value="catorcenal">Catorcenal</option>
                         <option value="quincenal">Quincenal</option>
                     </select>
-                    @error('periodicidad') 
+                    @error('periodicidad')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
                 </div>
@@ -109,7 +109,7 @@
                 <div>
                     <label class="field-label">Fecha de entrega</label>
                     <input wire:model="fecha_entrega" type="date" class="input-project" />
-                    @error('fecha_entrega') 
+                    @error('fecha_entrega')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
                 </div>
@@ -117,7 +117,7 @@
                 <div>
                     <label class="field-label">Fecha primer pago</label>
                     <input wire:model="fecha_primer_pago" type="date" class="input-project" />
-                    @error('fecha_primer_pago') 
+                    @error('fecha_primer_pago')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
                     @if($fecha_entrega && $fecha_primer_pago && $fecha_primer_pago < $fecha_entrega)
@@ -135,7 +135,7 @@
                         <option value="jueves">Jueves</option>
                         <option value="viernes">Viernes</option>
                     </select>
-                    @error('dia_pago') 
+                    @error('dia_pago')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
                 </div>

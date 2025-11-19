@@ -121,18 +121,24 @@ class Prestamo extends Model
         $this->estado = 'autorizado';
         $this->autorizado_por = $user->id;
 
-        // Calcular el monto total autorizado usando el nuevo método
-        $totalAutorizado = $this->calcularTotalAutorizado();
-
-        // Si no hay montos autorizados en pivot, usar los solicitados como fallback
-        if ($totalAutorizado <= 0) {
-            foreach ($this->clientes as $cliente) {
-                $monto = $cliente->pivot->monto_solicitado ?? 0;
-                $totalAutorizado += (float) $monto;
+        // Primero, asegurar que todos los clientes tengan monto_autorizado
+        // Si es null, usar el monto_solicitado como autorizado
+        foreach ($this->clientes as $cliente) {
+            if ($cliente->pivot->monto_autorizado === null) {
+                $montoSolicitado = $cliente->pivot->monto_solicitado ?? 0;
+                $this->clientes()->updateExistingPivot($cliente->id, [
+                    'monto_autorizado' => $montoSolicitado
+                ]);
             }
         }
 
-        // Si se obtuvo un total autorizado válido (> 0), actualizar monto_total
+        // Recargar la relación para obtener los datos actualizados
+        $this->load('clientes');
+
+        // Calcular el monto total autorizado después de la actualización
+        $totalAutorizado = $this->calcularTotalAutorizado();
+
+        // Actualizar monto_total del préstamo
         if ($totalAutorizado > 0) {
             $this->monto_total = $totalAutorizado;
         }

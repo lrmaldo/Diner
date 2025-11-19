@@ -81,22 +81,15 @@
                             <p class="text-3xl font-bold text-green-600">${{ number_format($prestamo->calcularTotalSolicitado(), 2) }}</p>
                         </div>
 
-                        @if($prestamo->estado === 'autorizado')
-                            @php
-                                $montoTotalAutorizado = $prestamo->calcularTotalAutorizado();
+                        @php
+                            $montoTotalAutorizado = $prestamo->calcularTotalAutorizado();
+                        @endphp
 
-                                // Si no hay montos en el pivot, usar el monto_total del préstamo como fallback
-                                if ($montoTotalAutorizado <= 0 && !empty($prestamo->monto_total)) {
-                                    $montoTotalAutorizado = $prestamo->monto_total;
-                                }
-                            @endphp
-
-                            @if($montoTotalAutorizado > 0)
-                                <div class="pl-8 border-l-2 border-gray-300">
-                                    <p class="text-sm text-gray-500 mb-1">Monto autorizado:</p>
-                                    <p class="text-3xl font-bold text-blue-600">${{ number_format($montoTotalAutorizado, 2) }}</p>
-                                </div>
-                            @endif
+                        @if($montoTotalAutorizado > 0)
+                            <div class="pl-8 border-l-2 border-gray-300">
+                                <p class="text-sm text-gray-500 mb-1">Monto autorizado:</p>
+                                <p class="text-3xl font-bold text-blue-600">${{ number_format($montoTotalAutorizado, 2) }}</p>
+                            </div>
                         @endif
                     </div>
 

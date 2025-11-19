@@ -362,10 +362,10 @@ class Create extends Component
             'fecha_primer_pago' => $this->fecha_primer_pago,
             'asesor_id' => $this->asesor_id,
         ]);
-        
+
         // Limpiar errores previos
         $this->resetErrorBag();
-        
+
         // validar primer paso
         try {
             $this->validateFirstStep();
@@ -430,7 +430,7 @@ class Create extends Component
         $this->prestamo_id = $prestamo->id;
         $this->step = 2;
         $this->showMessage('success', 'Préstamo creado con #: '.$prestamo->id);
-        
+
         \Log::debug('crearPrestamo: Préstamo creado exitosamente', [
             'prestamo_id' => $prestamo->id,
             'step' => $this->step
