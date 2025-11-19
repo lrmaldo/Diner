@@ -78,16 +78,16 @@
                     <div class="flex items-end gap-8">
                         <div>
                             <p class="text-sm text-gray-500 mb-1">Monto solicitado:</p>
-                            <p class="text-3xl font-bold text-green-600">${{ number_format($prestamo->monto_total ?? 0, 2) }}</p>
+                            <p class="text-3xl font-bold text-green-600">${{ number_format($prestamo->calcularTotalSolicitado(), 2) }}</p>
                         </div>
 
                         @if($prestamo->estado === 'autorizado')
                             @php
-                                $montoTotalAutorizado = 0;
-                                if ($prestamo->clientes && $prestamo->clientes->count() > 0) {
-                                    foreach ($prestamo->clientes as $cliente) {
-                                        $montoTotalAutorizado += $cliente->pivot->monto_autorizado ?? 0;
-                                    }
+                                $montoTotalAutorizado = $prestamo->calcularTotalAutorizado();
+                                
+                                // Si no hay montos en el pivot, usar el monto_total del préstamo como fallback
+                                if ($montoTotalAutorizado <= 0 && !empty($prestamo->monto_total)) {
+                                    $montoTotalAutorizado = $prestamo->monto_total;
                                 }
                             @endphp
 
@@ -180,7 +180,16 @@
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <span class="font-medium text-green-600">
-                                    ${{ number_format($prestamo->monto_total ?? 0, 2) }}
+                                    @php
+                                        $montoSolicitadoIndividual = 0;
+                                        if ($prestamo->cliente_id) {
+                                            $clienteEnPivot = $prestamo->clientes->firstWhere('id', $prestamo->cliente_id);
+                                            $montoSolicitadoIndividual = $clienteEnPivot->pivot->monto_solicitado ?? $prestamo->monto_total ?? 0;
+                                        } else {
+                                            $montoSolicitadoIndividual = $prestamo->monto_total ?? 0;
+                                        }
+                                    @endphp
+                                    ${{ number_format($montoSolicitadoIndividual, 2) }}
                                 </span>
                             </td>
                             @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->id() === $prestamo->asesor_id))
@@ -189,7 +198,7 @@
                                         $montoAutorizado = null;
                                         if ($prestamo->cliente_id) {
                                             $clienteEnPivot = $prestamo->clientes->firstWhere('id', $prestamo->cliente_id);
-                                            $montoAutorizado = $clienteEnPivot->pivot->monto_autorizado ?? null;
+                                            $montoAutorizado = $clienteEnPivot->pivot->monto_autorizado ?? $clienteEnPivot->pivot->monto_solicitado ?? null;
                                         }
                                     @endphp
                                     <input
@@ -301,7 +310,7 @@
                                             wire:model.lazy="montosAutorizados.{{ $cliente->id }}"
                                             wire:change="updateMontoAutorizado({{ $cliente->id }}, $event.target.value)"
                                             wire:blur="updateMontoAutorizado({{ $cliente->id }}, $event.target.value)"
-                                            value="{{ $cliente->pivot->monto_autorizado ?? '' }}"
+                                            value="{{ $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? '' }}"
                                             class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors {{ $prestamo->estado === 'autorizado' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                                             placeholder="0.00"
                                             @if($prestamo->estado === 'autorizado') disabled @endif

@@ -45,7 +45,8 @@ class Show extends Component
         // Cargar montos autorizados de la tabla pivot para préstamos grupales
         if ($this->prestamo->producto === 'grupal' && $this->prestamo->clientes) {
             foreach ($this->prestamo->clientes as $cliente) {
-                $this->montosAutorizados[$cliente->id] = $cliente->pivot->monto_autorizado ?? null;
+                // Por defecto usar el monto solicitado si no hay monto_autorizado aún
+                $this->montosAutorizados[$cliente->id] = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? null;
             }
         }
     }
