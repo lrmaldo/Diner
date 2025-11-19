@@ -20,6 +20,29 @@
                 <x-status-alert :type="$status_type" :message="$status_message" :timeout="0" />
             </div>
         @endif
+        
+        {{-- Mostrar errores de validación si existen --}}
+        @if($errors->any())
+            <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Hay errores en el formulario:</h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            <ul class="list-disc pl-5 space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 
     <div class="bg-white shadow rounded-lg p-6">
@@ -41,6 +64,9 @@
                             <option value="{{ $asesor->id }}">{{ $asesor->name }}</option>
                         @endforeach
                     </select>
+                    @error('asesor_id') 
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 {{-- Segunda fila: Producto --}}
@@ -62,6 +88,9 @@
                         <option value="6meses">6 meses</option>
                         <option value="1ano">1 año</option>
                     </select>
+                    @error('plazo') 
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 <div>
@@ -71,17 +100,29 @@
                         <option value="catorcenal">Catorcenal</option>
                         <option value="quincenal">Quincenal</option>
                     </select>
+                    @error('periodicidad') 
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 {{-- Cuarta fila: Fecha de entrega y Fecha primer pago --}}
                 <div>
                     <label class="field-label">Fecha de entrega</label>
                     <input wire:model="fecha_entrega" type="date" class="input-project" />
+                    @error('fecha_entrega') 
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 <div>
                     <label class="field-label">Fecha primer pago</label>
                     <input wire:model="fecha_primer_pago" type="date" class="input-project" />
+                    @error('fecha_primer_pago') 
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
+                    @if($fecha_entrega && $fecha_primer_pago && $fecha_primer_pago < $fecha_entrega)
+                        <span class="text-red-500 text-sm">La fecha del primer pago no puede ser anterior a la fecha de entrega</span>
+                    @endif
                 </div>
 
                 {{-- Quinta fila: Día de pago --}}
@@ -94,6 +135,9 @@
                         <option value="jueves">Jueves</option>
                         <option value="viernes">Viernes</option>
                     </select>
+                    @error('dia_pago') 
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 <div class="sm:col-span-2 flex justify-end gap-2 mt-2">

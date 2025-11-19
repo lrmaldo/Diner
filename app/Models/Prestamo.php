@@ -92,16 +92,16 @@ class Prestamo extends Model
                 return (float) ($cliente->pivot->monto_solicitado ?? 0);
             });
         }
-        
+
         // Para individuales, usar el monto_total o buscar en pivot
         if ($this->cliente_id && $this->clientes && $this->clientes->count() > 0) {
             $cliente = $this->clientes->first();
             return (float) ($cliente->pivot->monto_solicitado ?? $this->monto_total ?? 0);
         }
-        
+
         return (float) ($this->monto_total ?? 0);
     }
-    
+
     /**
      * Calcular el total autorizado sumando desde la tabla pivot
      */
@@ -112,7 +112,7 @@ class Prestamo extends Model
                 return (float) ($cliente->pivot->monto_autorizado ?? 0);
             });
         }
-        
+
         return 0;
     }
 
@@ -123,7 +123,7 @@ class Prestamo extends Model
 
         // Calcular el monto total autorizado usando el nuevo método
         $totalAutorizado = $this->calcularTotalAutorizado();
-        
+
         // Si no hay montos autorizados en pivot, usar los solicitados como fallback
         if ($totalAutorizado <= 0) {
             foreach ($this->clientes as $cliente) {

@@ -309,13 +309,8 @@ class Create extends Component
 
         $validatedData = $this->validate($rulesSubset);
 
-        // Validación adicional para préstamos grupales
-        if ($this->producto === 'grupal' && $this->step == 2) {
-            // Si estamos en el paso 2 y es un préstamo grupal, validamos que haya un representante
-            if (empty($this->representante_id)) {
-                $this->addError('representante', 'Debe seleccionar un representante del grupo para préstamos grupales.');
-            }
-        }
+        // La validación del representante se hace solo en métodos de finalización
+        // No aquí, para permitir el paso del step 1 al 2
 
         return $validatedData;
     }
@@ -358,11 +353,33 @@ class Create extends Component
 
     public function crearPrestamo()
     {
+        // Debug: Log del inicio del método
+        \Log::debug('crearPrestamo: Iniciando creación', [
+            'producto' => $this->producto,
+            'plazo' => $this->plazo,
+            'periodicidad' => $this->periodicidad,
+            'fecha_entrega' => $this->fecha_entrega,
+            'fecha_primer_pago' => $this->fecha_primer_pago,
+            'asesor_id' => $this->asesor_id,
+        ]);
+        
+        // Limpiar errores previos
+        $this->resetErrorBag();
+        
         // validar primer paso
-        $this->validateFirstStep();
-        $this->validateFechaPrimerPago();
+        try {
+            $this->validateFirstStep();
+            $this->validateFechaPrimerPago();
+            \Log::debug('crearPrestamo: Validación exitosa');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::debug('crearPrestamo: Error de validación', ['errors' => $e->errors()]);
+            $this->showMessage('error', 'Por favor corrige los errores en el formulario antes de continuar.');
+            return;
+        }
 
         if ($this->getErrorBag()->isNotEmpty()) {
+            \Log::debug('crearPrestamo: Errores en errorBag', ['errors' => $this->getErrorBag()->toArray()]);
+            $this->showMessage('error', 'Por favor corrige los errores marcados en el formulario.');
             return;
         }
 
@@ -413,6 +430,11 @@ class Create extends Component
         $this->prestamo_id = $prestamo->id;
         $this->step = 2;
         $this->showMessage('success', 'Préstamo creado con #: '.$prestamo->id);
+        
+        \Log::debug('crearPrestamo: Préstamo creado exitosamente', [
+            'prestamo_id' => $prestamo->id,
+            'step' => $this->step
+        ]);
     }
 
     public function updatePrestamo(): void
@@ -451,15 +473,9 @@ class Create extends Component
             $prestamo->tasa_interes = $this->tasa_interes;
         }
 
-        // Si es grupal, validamos que se haya seleccionado un representante
+        // Si es grupal, solo asignar representante si ya está seleccionado
+        // No validamos que sea obligatorio aquí porque aún estamos en proceso de agregar clientes
         if ($prestamo->producto === 'grupal') {
-            if (empty($this->representante_id) && empty($prestamo->representante_id)) {
-                $this->addError('representante', 'Debe seleccionar un representante del grupo para préstamos grupales.');
-                $this->showMessage('error', 'Debe seleccionar un representante del grupo para préstamos grupales.');
-
-                return;
-            }
-
             // Si hay un representante seleccionado, lo asignamos al préstamo
             if (! empty($this->representante_id)) {
                 $prestamo->representante_id = $this->representante_id;

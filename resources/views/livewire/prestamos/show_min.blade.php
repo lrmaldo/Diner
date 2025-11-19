@@ -84,7 +84,7 @@
                         @if($prestamo->estado === 'autorizado')
                             @php
                                 $montoTotalAutorizado = $prestamo->calcularTotalAutorizado();
-                                
+
                                 // Si no hay montos en el pivot, usar el monto_total del préstamo como fallback
                                 if ($montoTotalAutorizado <= 0 && !empty($prestamo->monto_total)) {
                                     $montoTotalAutorizado = $prestamo->monto_total;
