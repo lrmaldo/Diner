@@ -113,7 +113,26 @@
                                         —
                                     @endif
                                 </td>
-                                <td class="px-3 py-3 text-sm">{{ $p->plazo }} meses</td>
+                                <td class="px-3 py-3 text-sm">
+                                    @php
+                                        $plazoFormateado = $p->plazo;
+                                        if ($plazoFormateado) {
+                                            $plazoNormalizado = strtolower(trim($plazoFormateado));
+                                            $numero = preg_match('/(\d+)/', $plazoFormateado, $matches) ? (int)$matches[1] : 1;
+                                            $tieneD = stripos($plazoNormalizado, 'd') !== false;
+
+                                            if (stripos($plazoNormalizado, 'año') !== false ||
+                                                stripos($plazoNormalizado, '1año') !== false ||
+                                                stripos($plazoNormalizado, 'ano') !== false ||
+                                                stripos($plazoNormalizado, '1ano') !== false) {
+                                                $plazoFormateado = "1 AÑO";
+                                            } else {
+                                                $plazoFormateado = $numero . " MESES" . ($tieneD ? " D" : "");
+                                            }
+                                        }
+                                    @endphp
+                                    {{ $plazoFormateado }}
+                                </td>
                                 {{-- Estado removido en esta vista --}}
                                 <td class="px-3 py-3 text-right">
                                     <div class="flex justify-end gap-2">

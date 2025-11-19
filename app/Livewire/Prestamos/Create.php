@@ -279,7 +279,7 @@ class Create extends Component
             'periodicidad' => ['required', 'in:semanal,catorcenal,quincenal'],
             'dia_pago' => ['required', 'in:lunes,martes,miercoles,jueves,viernes'],
             'fecha_entrega' => ['required', 'date'],
-            'fecha_primer_pago' => ['nullable', 'date'],
+            'fecha_primer_pago' => ['required', 'date'],
             'garantia' => ['required', 'numeric', 'min:0', 'max:100'],
             'asesor_id' => ['nullable', 'exists:users,id'],
             'comentarios_comite' => ['nullable', 'string', 'max:1000'],

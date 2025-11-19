@@ -80,7 +80,7 @@
                 </div>
 
                 <div>
-                    <label class="field-label">Fecha primer pago (opcional)</label>
+                    <label class="field-label">Fecha primer pago</label>
                     <input wire:model="fecha_primer_pago" type="date" class="input-project" />
                 </div>
 
