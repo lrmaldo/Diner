@@ -96,15 +96,19 @@
             @if($prestamo->producto === 'grupal')
                 {{-- Préstamo grupal: Representante primero, luego integrantes --}}
                 @if($prestamo->representante)
+                    @php
+                        // Buscar al representante dentro de los clientes para obtener datos del pivot
+                        $representanteConPivot = $prestamo->clientes->firstWhere('id', $prestamo->representante->id);
+                    @endphp
                     <table style="width:100%;margin-top:12px;font-size:13px;">
                         <tr>
                             <td style="vertical-align:top;">
-                                {{ strtoupper(trim(($prestamo->representante->nombres ?? '') . ' ' . ($prestamo->representante->apellido_paterno ?? '') . ' ' . ($prestamo->representante->apellido_materno ?? ''))) }} (REPRESENTANTE)
+                                {{ mb_strtoupper(trim(($prestamo->representante->nombres ?? '') . ' ' . ($prestamo->representante->apellido_paterno ?? '') . ' ' . ($prestamo->representante->apellido_materno ?? '')), 'UTF-8') }} (REPRESENTANTE)
                                 <div style="margin-top:6px">{{ $prestamo->representante->direccion ?? '' }}</div>
                                 <div>{{ $prestamo->representante->telefono ?? $prestamo->representante->cel ?? '' }}</div>
                             </td>
                             <td style="width:220px;text-align:right;vertical-align:top;">
-                                <div>${{ number_format($prestamo->representante->pivot->monto_autorizado ?? $prestamo->representante->pivot->monto_solicitado ?? 0, 0) }}&nbsp;__________________</div>
+                                <div>${{ number_format($representanteConPivot->pivot->monto_autorizado ?? $representanteConPivot->pivot->monto_solicitado ?? 0, 0) }}&nbsp;__________________</div>
                             </td>
                         </tr>
                     </table>
@@ -116,7 +120,7 @@
                         <table style="width:100%;margin-top:8px;font-size:13px;">
                             <tr>
                                 <td style="vertical-align:top;">
-                                    {{ strtoupper(trim(($cliente->nombres ?? '') . ' ' . ($cliente->apellido_paterno ?? '') . ' ' . ($cliente->apellido_materno ?? ''))) }}
+                                    {{ mb_strtoupper(trim(($cliente->nombres ?? '') . ' ' . ($cliente->apellido_paterno ?? '') . ' ' . ($cliente->apellido_materno ?? '')), 'UTF-8') }}
                                     <div style="margin-top:6px">{{ $cliente->direccion ?? '' }}</div>
                                     <div>{{ $cliente->telefono ?? $cliente->cel ?? '' }}</div>
                                 </td>
@@ -135,7 +139,7 @@
                             @php
                                 $nombre = '';
                                 if ($prestamo->cliente) {
-                                    $nombre = strtoupper(trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? '')));
+                                    $nombre = mb_strtoupper(trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? '')), 'UTF-8');
                                 }
                             @endphp
                             {{ $nombre }}

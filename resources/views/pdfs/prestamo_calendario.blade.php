@@ -455,11 +455,11 @@
             </tr>
             <tr>
                 <td class="info-label">NOMBRE:</td>
-                <td class="info-value" colspan="3">{{ strtoupper($nombreCompleto) }}</td>
+                <td class="info-value" colspan="3">{{ mb_strtoupper($nombreCompleto, 'UTF-8') }}</td>
             </tr>
             <tr>
                 <td class="info-label">ASESOR:</td>
-                <td class="info-value">{{ $prestamo->asesor ? strtoupper($prestamo->asesor->name) : 'N/A' }}</td>
+                <td class="info-value">{{ $prestamo->asesor ? mb_strtoupper($prestamo->asesor->name, 'UTF-8') : 'N/A' }}</td>
                 <td class="info-label">GARANTÍA:</td>
                 <td class="info-value">{{ $prestamo->garantia ?? 0 }}</td>
             </tr>

@@ -328,7 +328,7 @@
         <div class="info-grid">
             <div class="info-item divider-vertical">
                 <span class="info-label">Representante</span>
-                <span class="info-value" style="font-size: 10px;">{{ $prestamo->representante ? strtoupper(trim($prestamo->representante->nombres . ' ' . $prestamo->representante->apellido_paterno . ' ' . $prestamo->representante->apellido_materno)) : 'SIN REPRESENTANTE' }}</span>
+                <span class="info-value" style="font-size: 10px;">{{ $prestamo->representante ? mb_strtoupper(trim($prestamo->representante->nombres . ' ' . $prestamo->representante->apellido_paterno . ' ' . $prestamo->representante->apellido_materno), 'UTF-8') : 'SIN REPRESENTANTE' }}</span>
             </div>
             <div>
 
@@ -458,7 +458,7 @@
                             $totalUltimoPago += $ultimoPago;
                         @endphp
                         <tr>
-                            <td class="left">{{ strtoupper(trim(($cliente->nombres ?? '') . ' ' . ($cliente->apellido_paterno ?? '') . ' ' . ($cliente->apellido_materno ?? ''))) }}</td>
+                            <td class="left">{{ mb_strtoupper(trim(($cliente->nombres ?? '') . ' ' . ($cliente->apellido_paterno ?? '') . ' ' . ($cliente->apellido_materno ?? '')), 'UTF-8') }}</td>
                             <td>{{ number_format($credito, 0) }}</td>
                             <td>{{ number_format($garantiaMonto, 0) }}</td>
                             <td>{{ number_format($comisionMonto, 0) }}</td>
@@ -493,7 +493,7 @@
                             $ultimoPago = $montoPorPago;
                         @endphp
                         <tr>
-                            <td class="left">{{ strtoupper(trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? ''))) }}</td>
+                            <td class="left">{{ mb_strtoupper(trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? '')), 'UTF-8') }}</td>
                             <td>{{ number_format($credito, 0) }}</td>
                             <td>{{ number_format($garantiaMonto, 0) }}</td>
                             <td>{{ number_format($comisionMonto, 0) }}</td>
