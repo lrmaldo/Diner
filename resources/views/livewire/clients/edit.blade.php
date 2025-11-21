@@ -1,25 +1,25 @@
 <div class="p-6 max-w-3xl mx-auto">
     <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-project-700">Editar cliente</h1>
+        <h1 class="text-2xl font-semibold text-project-700 dark:text-project-300">Editar cliente</h1>
         <a href="{{ route('clients.index') }}" class="btn-outline">Volver</a>
     </div>
 
     {{-- Debug: mostrar si el modelo cliente llegó al template --}}
     <div class="mb-4">
         @if(isset($cliente) && $cliente)
-            <div class="text-sm text-gray-600">Editando cliente ID: <strong>{{ $cliente->id }}</strong> — {{ $cliente->nombres ?? '(sin nombre)' }}</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">Editando cliente ID: <strong>{{ $cliente->id }}</strong> — {{ $cliente->nombres ?? '(sin nombre)' }}</div>
         @else
-            <div class="text-sm text-red-600">No se recibió el modelo <code>$cliente</code>. Revisa la ruta y el componente Livewire.</div>
+            <div class="text-sm text-red-600 dark:text-red-400">No se recibió el modelo <code>$cliente</code>. Revisa la ruta y el componente Livewire.</div>
         @endif
 
         @if($errors->any())
-            <div class="mt-2 text-sm text-red-600">Errores: {{ implode(', ', $errors->all()) }}</div>
+            <div class="mt-2 text-sm text-red-600 dark:text-red-400">Errores: {{ implode(', ', $errors->all()) }}</div>
         @endif
     </div>
 
     <x-status-alert :type="session('success') ? 'success' : 'info'" :message="session('success')" :timeout="4000" />
 
-    <div class="bg-white shadow rounded-lg p-6">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <form wire:submit.prevent="save" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="field-label">Apellido paterno <span class="text-red-600">*</span></label>
@@ -197,8 +197,8 @@
                 <div class="modal-backdrop"></div>
                 <div class="fixed inset-0 flex items-center justify-center z-50">
                     <div class="modal-panel max-w-lg w-full p-6">
-                        <h3 class="text-lg font-semibold mb-4">Confirmar eliminación</h3>
-                        <p class="mb-4">¿Deseas eliminar el teléfono <strong>{{ $phones[$phoneToDeleteIndex]['numero'] ?? '' }}</strong>?</p>
+                        <h3 class="text-lg font-semibold mb-4 dark:text-gray-200">Confirmar eliminación</h3>
+                        <p class="mb-4 dark:text-gray-300">¿Deseas eliminar el teléfono <strong>{{ $phones[$phoneToDeleteIndex]['numero'] ?? '' }}</strong>?</p>
                         <div class="flex justify-end gap-2">
                             <button wire:click="cancelRemovePhone" class="btn-outline">Cancelar</button>
                             <button wire:click="confirmRemovePhone" class="btn-danger">Eliminar</button>

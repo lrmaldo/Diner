@@ -1,12 +1,12 @@
 <div class="p-6 max-w-3xl mx-auto">
     <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-2xl font-semibold text-project-700">Crear cliente</h1>
+        <h1 class="text-2xl font-semibold text-project-700 dark:text-project-300">Crear cliente</h1>
         <a href="{{ route('clients.index') }}" class="btn-outline">Volver</a>
     </div>
 
     <x-status-alert :type="session('success') ? 'success' : 'info'" :message="session('success')" :timeout="4000" />
 
-    <div class="bg-white shadow rounded-lg p-6">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
         <form wire:submit.prevent="save" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="field-label">Apellido paterno <span class="text-red-600">*</span></label>
@@ -77,7 +77,7 @@
             <div class="sm:col-span-2">
                 <label class="field-label">Referencia domiciliaria</label>
                 <textarea wire:model.defer="referencia_domiciliaria" class="input-project" rows="2"></textarea>
-                @error('referencia_domiciliaria') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                @error('referencia_domiciliaria') <span class="text-red-600 dark:text-red-400 text-sm">{{ $message }}</span> @enderror
             </div>
 
             {{-- Estado civil manejado más arriba con Alpine/entangle (evitar duplicado) --}}
@@ -184,8 +184,8 @@
                 <div class="modal-backdrop"></div>
                 <div class="fixed inset-0 flex items-center justify-center z-50">
                     <div class="modal-panel max-w-lg w-full p-6">
-                        <h3 class="text-lg font-semibold mb-4">Confirmar eliminación</h3>
-                        <p class="mb-4">¿Deseas eliminar el teléfono <strong>{{ $phones[$phoneToDeleteIndex]['numero'] ?? '' }}</strong>?</p>
+                        <h3 class="text-lg font-semibold mb-4 dark:text-gray-200">Confirmar eliminación</h3>
+                        <p class="mb-4 dark:text-gray-300">¿Deseas eliminar el teléfono <strong>{{ $phones[$phoneToDeleteIndex]['numero'] ?? '' }}</strong>?</p>
                         <div class="flex justify-end gap-2">
                             <button wire:click="cancelRemovePhone" class="btn-outline">Cancelar</button>
                             <button wire:click="confirmRemovePhone" class="btn-danger">Eliminar</button>
