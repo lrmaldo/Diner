@@ -55,13 +55,7 @@
 @endphp
 
 <x-layouts.app :title="__('Dashboard')">
-    <div class="py-8"
-         x-data='dashboardCharts({
-            months: @json($monthsLabels),
-            loansData: @json($loansData),
-            capitalData: @json($capitalData)
-         })'
-         x-init="initCharts()">
+    <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6">
                 Dashboard — Diner (Gestión de préstamos)
@@ -266,105 +260,139 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Definir la función globalmente para que Alpine pueda acceder a ella
-        // independientemente de cuándo se inicialice.
-        window.dashboardCharts = function(data) {
-            return {
-                months: data.months,
-                loansData: data.loansData,
-                capitalData: data.capitalData,
-                loansChartInstance: null,
-                capitalChartInstance: null,
-
-                initCharts() {
-                    // Esperar un tick para asegurar que el DOM está listo
-                    this.$nextTick(() => {
-                        this.renderLoansChart();
-                        this.renderCapitalChart();
-                    });
-                },
-
-                renderLoansChart() {
-                    if (!this.$refs.loansChart) return;
-                    
-                    if (this.loansChartInstance) {
-                        this.loansChartInstance.destroy();
-                    }
-
-                    const ctx = this.$refs.loansChart.getContext('2d');
-                    this.loansChartInstance = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: this.months,
-                            datasets: [{
-                                label: 'Préstamos nuevos',
-                                data: this.loansData,
-                                backgroundColor: 'rgba(255,39,41,0.9)'
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: { 
-                                    beginAtZero: true,
-                                    grid: { color: 'rgba(156, 163, 175, 0.1)' },
-                                    ticks: { color: '#9CA3AF' }
-                                },
-                                x: {
-                                    grid: { display: false },
-                                    ticks: { color: '#9CA3AF' }
-                                }
-                            },
-                            plugins: {
-                                legend: { labels: { color: '#9CA3AF' } }
-                            }
-                        }
-                    });
-                },
-
-                renderCapitalChart() {
-                    if (!this.$refs.capitalChart) return;
-
-                    if (this.capitalChartInstance) {
-                        this.capitalChartInstance.destroy();
-                    }
-
-                    const ctx = this.$refs.capitalChart.getContext('2d');
-                    this.capitalChartInstance = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: this.months,
-                            datasets: [{
-                                label: 'Capital disponible',
-                                data: this.capitalData,
-                                borderColor: 'rgba(255,39,41,1)',
-                                backgroundColor: 'rgba(255,39,41,0.12)',
-                                fill: true,
-                                tension: 0.3,
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: { 
-                                    beginAtZero: false,
-                                    grid: { color: 'rgba(156, 163, 175, 0.1)' },
-                                    ticks: { color: '#9CA3AF' }
-                                },
-                                x: {
-                                    grid: { display: false },
-                                    ticks: { color: '#9CA3AF' }
-                                }
-                            },
-                            plugins: {
-                                legend: { labels: { color: '#9CA3AF' } }
-                            }
-                        }
-                    });
-                }
+        (function() {
+            // Datos del servidor
+            const chartData = {
+                months: @json($monthsLabels),
+                loansData: @json($loansData),
+                capitalData: @json($capitalData)
             };
-        }
+
+            let loansChartInstance = null;
+            let capitalChartInstance = null;
+
+            function createLoansChart() {
+                const canvas = document.querySelector('[x-ref="loansChart"]');
+                if (!canvas) return;
+
+                // Asegurar que el canvas tenga un tamaño antes de crear el gráfico
+                const parent = canvas.parentElement;
+                if (!parent || parent.offsetWidth === 0 || parent.offsetHeight === 0) {
+                    setTimeout(createLoansChart, 100);
+                    return;
+                }
+
+                // Destruir instancia anterior si existe
+                if (loansChartInstance) {
+                    loansChartInstance.destroy();
+                }
+
+                const ctx = canvas.getContext('2d');
+                loansChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.months,
+                        datasets: [{
+                            label: 'Préstamos nuevos',
+                            data: chartData.loansData,
+                            backgroundColor: 'rgba(255,39,41,0.9)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                beginAtZero: true,
+                                grid: { color: 'rgba(156, 163, 175, 0.1)' },
+                                ticks: { color: '#9CA3AF' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#9CA3AF' }
+                            }
+                        },
+                        plugins: {
+                            legend: { labels: { color: '#9CA3AF' } }
+                        }
+                    }
+                });
+            }
+
+            function createCapitalChart() {
+                const canvas = document.querySelector('[x-ref="capitalChart"]');
+                if (!canvas) return;
+
+                // Asegurar que el canvas tenga un tamaño antes de crear el gráfico
+                const parent = canvas.parentElement;
+                if (!parent || parent.offsetWidth === 0 || parent.offsetHeight === 0) {
+                    setTimeout(createCapitalChart, 100);
+                    return;
+                }
+
+                // Destruir instancia anterior si existe
+                if (capitalChartInstance) {
+                    capitalChartInstance.destroy();
+                }
+
+                const ctx = canvas.getContext('2d');
+                capitalChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.months,
+                        datasets: [{
+                            label: 'Capital disponible',
+                            data: chartData.capitalData,
+                            borderColor: 'rgba(255,39,41,1)',
+                            backgroundColor: 'rgba(255,39,41,0.12)',
+                            fill: true,
+                            tension: 0.3,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                beginAtZero: false,
+                                grid: { color: 'rgba(156, 163, 175, 0.1)' },
+                                ticks: { color: '#9CA3AF' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#9CA3AF' }
+                            }
+                        },
+                        plugins: {
+                            legend: { labels: { color: '#9CA3AF' } }
+                        }
+                    }
+                });
+            }
+
+            function initCharts() {
+                if (typeof Chart === 'undefined') {
+                    setTimeout(initCharts, 100);
+                    return;
+                }
+
+                // Esperar a que el DOM esté completamente listo
+                setTimeout(() => {
+                    createLoansChart();
+                    createCapitalChart();
+                }, 200);
+            }
+
+            // Inicializar cuando el DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initCharts);
+            } else {
+                initCharts();
+            }
+
+            // Reinicializar en navegación de Livewire
+            document.addEventListener('livewire:navigated', initCharts);
+        })();
     </script>
 </x-layouts.app>
+```
