@@ -45,8 +45,8 @@ class Show extends Component
         // Cargar montos autorizados de la tabla pivot para préstamos grupales
         if ($this->prestamo->producto === 'grupal' && $this->prestamo->clientes) {
             foreach ($this->prestamo->clientes as $cliente) {
-                // Por defecto usar el monto solicitado si no hay monto_autorizado aún
-                $this->montosAutorizados[$cliente->id] = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? null;
+                // Por defecto usar null si no hay monto_autorizado aún
+                $this->montosAutorizados[$cliente->id] = $cliente->pivot->monto_autorizado ?? null;
             }
         }
     }
@@ -73,8 +73,8 @@ class Show extends Component
 
     public function autorizar()
     {
-        // Verificar que el usuario tenga permiso
-        if (! auth()->user()->can('aprobar prestamos')) {
+        // Verificar que el usuario tenga permiso o sea el asesor asignado
+        if (! auth()->user()->can('aprobar prestamos') && auth()->id() !== $this->prestamo->asesor_id) {
             $this->dispatch('alert', [
                 'type' => 'error',
                 'message' => 'No tienes permiso para autorizar préstamos.',
@@ -116,7 +116,7 @@ class Show extends Component
 
     public function rechazar(): void
     {
-        if (! auth()->user()->can('aprobar prestamos')) {
+        if (! auth()->user()->can('aprobar prestamos') && auth()->id() !== $this->prestamo->asesor_id) {
             $this->dispatch('alert', [
                 'type' => 'error',
                 'message' => 'No tienes permiso para rechazar préstamos.',
@@ -179,9 +179,9 @@ class Show extends Component
             return;
         }
 
-        // Convertir a float o null, manejando strings vacíos
+        // Convertir a float o null, manejando strings vacíos o cero
         $montoAutorizado = null;
-        if ($monto !== null && $monto !== '') {
+        if ($monto !== null && $monto !== '' && (float)$monto > 0) {
             $montoAutorizado = (float) $monto;
         }
 
@@ -214,9 +214,9 @@ class Show extends Component
             return;
         }
 
-        // Convertir a float o null, manejando strings vacíos
+        // Convertir a float o null, manejando strings vacíos o cero
         $montoAutorizado = null;
-        if ($monto !== null && $monto !== '') {
+        if ($monto !== null && $monto !== '' && (float)$monto > 0) {
             $montoAutorizado = (float) $monto;
         }
 

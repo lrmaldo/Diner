@@ -191,7 +191,7 @@
                                         $montoAutorizado = null;
                                         if ($prestamo->cliente_id) {
                                             $clienteEnPivot = $prestamo->clientes->firstWhere('id', $prestamo->cliente_id);
-                                            $montoAutorizado = $clienteEnPivot->pivot->monto_autorizado ?? $clienteEnPivot->pivot->monto_solicitado ?? null;
+                                            $montoAutorizado = $clienteEnPivot->pivot->monto_autorizado ?? null;
                                         }
                                     @endphp
                                     <input
@@ -303,7 +303,7 @@
                                             wire:model.lazy="montosAutorizados.{{ $cliente->id }}"
                                             wire:change="updateMontoAutorizado({{ $cliente->id }}, $event.target.value)"
                                             wire:blur="updateMontoAutorizado({{ $cliente->id }}, $event.target.value)"
-                                            value="{{ $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? '' }}"
+                                            value="{{ $cliente->pivot->monto_autorizado ?? '' }}"
                                             class="w-32 px-3 py-2 text-sm border border-gray-300 rounded-lg text-right focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 transition-colors {{ $prestamo->estado === 'autorizado' ? 'bg-gray-100 cursor-not-allowed' : '' }}"
                                             placeholder="0.00"
                                             @if($prestamo->estado === 'autorizado') disabled @endif
