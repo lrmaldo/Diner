@@ -62,6 +62,11 @@ class RoleAndPermissionSeeder extends Seeder
             'exportar informes',
         ];
 
+        // Crear permisos para administración del sistema
+        $systemPermissions = [
+            'administrar sistema',
+        ];
+
         // Combinar todos los permisos
         $allPermissions = array_merge(
             $userPermissions,
@@ -69,7 +74,8 @@ class RoleAndPermissionSeeder extends Seeder
             $loanPermissions,
             $paymentPermissions,
             $capitalPermissions,
-            $reportPermissions
+            $reportPermissions,
+            $systemPermissions
         );
 
         // Crear todos los permisos en la base de datos
