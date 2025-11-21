@@ -107,13 +107,20 @@ class Prestamo extends Model
      */
     public function calcularTotalAutorizado(): float
     {
+        $total = 0;
+
         if ($this->clientes && $this->clientes->count() > 0) {
-            return $this->clientes->sum(function ($cliente) {
+            $total = $this->clientes->sum(function ($cliente) {
                 return (float) ($cliente->pivot->monto_autorizado ?? 0);
             });
         }
 
-        return 0;
+        // Si está autorizado pero el total es 0, asumir que es el total solicitado (migración/fallback)
+        if ($this->estado === 'autorizado' && $total <= 0) {
+            return $this->calcularTotalSolicitado();
+        }
+
+        return $total;
     }
 
     public function autorizar(User $user): void
@@ -123,6 +130,7 @@ class Prestamo extends Model
 
         // Primero, asegurar que todos los clientes tengan monto_autorizado
         // Si es null, usar el monto_solicitado como autorizado
+        $this->load('clientes'); // Recargar para asegurar datos frescos de la BD
         foreach ($this->clientes as $cliente) {
             if ($cliente->pivot->monto_autorizado === null) {
                 $montoSolicitado = $cliente->pivot->monto_solicitado ?? 0;
