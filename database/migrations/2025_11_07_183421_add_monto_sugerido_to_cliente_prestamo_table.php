@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cliente_prestamo', function (Blueprint $table) {
-            $table->decimal('monto_sugerido', 10, 2)->nullable()->after('monto_solicitado');
+            // Solo agregar la columna si no existe
+            if (!Schema::hasColumn('cliente_prestamo', 'monto_sugerido')) {
+                $table->decimal('monto_sugerido', 10, 2)->nullable()->after('monto_solicitado');
+            }
         });
     }
 
@@ -22,7 +25,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('cliente_prestamo', function (Blueprint $table) {
-            $table->dropColumn('monto_sugerido');
+            if (Schema::hasColumn('cliente_prestamo', 'monto_sugerido')) {
+                $table->dropColumn('monto_sugerido');
+            }
         });
     }
 };
