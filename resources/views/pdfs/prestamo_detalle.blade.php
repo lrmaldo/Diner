@@ -283,6 +283,79 @@
     } else {
         $logoSrc = asset('img/logo.JPG');
     }
+
+    // Función para extraer el número de plazo (e.g., "4meses" => 4)
+    if (!function_exists('extraerPlazoNumerico')) {
+        function extraerPlazoNumerico($plazo) {
+            if (is_numeric($plazo)) {
+                return (int) $plazo;
+            }
+            preg_match('/(\d+)/', $plazo, $matches);
+            return isset($matches[1]) ? (int) $matches[1] : 1;
+        }
+    }
+
+    // Función para determinar la configuración de pago según plazo y periodicidad
+    if (!function_exists('determinarConfiguracionPago')) {
+        function determinarConfiguracionPago($plazo, $periodicidad) {
+            $configuraciones = [
+                // Caso 1: 4 meses
+                '4 meses_semanal' => ['meses_interes' => 4, 'total_pagos' => 16],
+                '4meses_semanal' => ['meses_interes' => 4, 'total_pagos' => 16],
+                '4 meses_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 8],
+                '4meses_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 8],
+                '4 meses_quincenal' => ['meses_interes' => 4, 'total_pagos' => 8],
+                '4meses_quincenal' => ['meses_interes' => 4, 'total_pagos' => 8],
+
+                // Caso 2: 4 meses D
+                '4 meses d_semanal' => ['meses_interes' => 4, 'total_pagos' => 14],
+                '4meses d_semanal' => ['meses_interes' => 4, 'total_pagos' => 14],
+                '4mesesd_semanal' => ['meses_interes' => 4, 'total_pagos' => 14],
+                '4 meses d_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+                '4meses d_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+                '4mesesd_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+                '4 meses d_quincenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+                '4meses d_quincenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+                '4mesesd_quincenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+
+                // Caso 3: 5 meses D
+                '5 meses d_semanal' => ['meses_interes' => 5, 'total_pagos' => 18],
+                '5meses d_semanal' => ['meses_interes' => 5, 'total_pagos' => 18],
+                '5mesesd_semanal' => ['meses_interes' => 5, 'total_pagos' => 18],
+                '5 meses d_catorcenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+                '5meses d_catorcenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+                '5mesesd_catorcenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+                '5 meses d_quincenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+                '5meses d_quincenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+                '5mesesd_quincenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+
+                // Caso 4: 6 meses
+                '6 meses_semanal' => ['meses_interes' => 6, 'total_pagos' => 24],
+                '6meses_semanal' => ['meses_interes' => 6, 'total_pagos' => 24],
+                '6 meses_catorcenal' => ['meses_interes' => 6, 'total_pagos' => 12],
+                '6meses_catorcenal' => ['meses_interes' => 6, 'total_pagos' => 12],
+                '6 meses_quincenal' => ['meses_interes' => 6, 'total_pagos' => 12],
+                '6meses_quincenal' => ['meses_interes' => 6, 'total_pagos' => 12],
+
+                // Caso 5: 1 año
+                '1 año_semanal' => ['meses_interes' => 12, 'total_pagos' => 48],
+                '1año_semanal' => ['meses_interes' => 12, 'total_pagos' => 48],
+                '1 ano_semanal' => ['meses_interes' => 12, 'total_pagos' => 48],
+                '1ano_semanal' => ['meses_interes' => 12, 'total_pagos' => 48],
+                '1 año_catorcenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+                '1año_catorcenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+                '1 ano_catorcenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+                '1ano_catorcenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+                '1 año_quincenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+                '1año_quincenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+                '1 ano_quincenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+                '1ano_quincenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+            ];
+
+            $clave = $plazo . '_' . $periodicidad;
+            return $configuraciones[$clave] ?? null;
+        }
+    }
 @endphp
 <body{{ $forPdf ? ' class="pdf-mode"' : '' }}>
 
@@ -338,9 +411,18 @@
 
     {{-- Totales principales destacados --}}
     @php
-        $garantia = ($prestamo->monto_total ?? 0) * (($prestamo->garantia ?? 0) / 100);
-        $comision = ($prestamo->monto_total ?? 0) * 0.02;
-        $efectivo = ($prestamo->monto_total ?? 0) - $garantia - $comision;
+        $montoTotal = $prestamo->monto_total ?? 0;
+        $garantiaPercent = $prestamo->garantia ?? 10; // Default to 10% if null
+        $garantia = $montoTotal * ($garantiaPercent / 100);
+        
+        // Comisión logic
+        if ($montoTotal < 3000) {
+            $comision = 0;
+        } else {
+            $comision = ceil($montoTotal / 10000) * 50;
+        }
+        
+        $efectivo = $montoTotal - $garantia - $comision;
 
         // Calcular el total con intereses
         $tasaDecimal = ($prestamo->tasa_interes ?? 0) / 100;
@@ -398,16 +480,23 @@
                     <th colspan="3" style="background: #1f2937; color: white; text-align: center;">Deducciones</th>
                     <th colspan="3" style="background: #1f2937; color: white; text-align: center;">
                         @php
-                            // Determinar número de pagos según plazo
-                            $plazoTexto = $prestamo->plazo ?? '4meses';
-                            if (str_contains($plazoTexto, '4meses')) {
-                                $numeroPagos = 16;
-                            } elseif (str_contains($plazoTexto, '6meses')) {
-                                $numeroPagos = 24;
-                            } elseif (str_contains($plazoTexto, '1ano')) {
-                                $numeroPagos = 48;
+                            // Determinar configuración de pagos
+                            $plazoNormalizado = strtolower(trim($prestamo->plazo));
+                            $periodicidadNormalizada = strtolower(trim($prestamo->periodicidad ?? 'semanal'));
+                            $configuracion = determinarConfiguracionPago($plazoNormalizado, $periodicidadNormalizada);
+                            
+                            if ($configuracion) {
+                                $numeroPagos = $configuracion['total_pagos'];
                             } else {
-                                $numeroPagos = 16;
+                                // Fallback logic
+                                $plazoNumerico = extraerPlazoNumerico($prestamo->plazo);
+                                if ($periodicidadNormalizada === 'semanal') {
+                                    $numeroPagos = $plazoNumerico * 4;
+                                } elseif ($periodicidadNormalizada === 'quincenal' || $periodicidadNormalizada === 'catorcenal') {
+                                    $numeroPagos = $plazoNumerico * 2;
+                                } else {
+                                    $numeroPagos = $plazoNumerico;
+                                }
                             }
                         @endphp
                         Amortización ({{ $numeroPagos }} Pagos)
@@ -437,18 +526,39 @@
                     @foreach($prestamo->clientes as $index => $cliente)
                         @php
                             $credito = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
-                            $garantiaPercent = $prestamo->garantia ?? 0;
+                            $garantiaPercent = $prestamo->garantia ?? 10; // Default to 10%
                             $garantiaMonto = $credito * ($garantiaPercent / 100);
-                            $comisionMonto = $credito * 0.02; // 2% de comisión
+                            
+                            // Comisión logic per client
+                            if ($credito < 3000) {
+                                $comisionMonto = 0;
+                            } else {
+                                $comisionMonto = ceil($credito / 10000) * 50;
+                            }
+                            
                             $efectivo = $credito - $garantiaMonto - $comisionMonto;
 
-                            // Calcular pagos con interés
-                            $interes = $credito * $tasaDecimal;
-                            $totalConInteres = $credito + $interes;
-                            $montoPorPago = $numeroPagos > 0 ? $totalConInteres / $numeroPagos : 0;
-
-                            // Último pago (simulado - en producción vendría de la BD)
-                            $ultimoPago = $montoPorPago;
+                            // Calcular pagos con lógica del calendario
+                            if ($configuracion) {
+                                $interes = (($credito / 100) * ($prestamo->tasa_interes ?? 0)) * $configuracion['meses_interes'];
+                                $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
+                                $iva = ($interes / 100) * $ivaPorcentaje;
+                                $montoTotalConInteres = $interes + $iva + $credito;
+                                
+                                $pagoConDecimales = $montoTotalConInteres / $configuracion['total_pagos'];
+                                $montoPorPago = floor($pagoConDecimales); // Parte entera
+                                $decimales = $pagoConDecimales - $montoPorPago;
+                                
+                                $pagosRegulares = $configuracion['total_pagos'] - 1;
+                                $ultimoPago = $montoPorPago + ($decimales * $configuracion['total_pagos']);
+                            } else {
+                                // Fallback logic
+                                $tasaDecimal = ($prestamo->tasa_interes ?? 0) / 100;
+                                $interes = $credito * $tasaDecimal;
+                                $totalConInteres = $credito + $interes;
+                                $montoPorPago = $numeroPagos > 0 ? $totalConInteres / $numeroPagos : 0;
+                                $ultimoPago = $montoPorPago;
+                            }
 
                             $totalCredito += $credito;
                             $totalGarantia += $garantiaMonto;
@@ -480,17 +590,39 @@
                     @if($prestamo->cliente)
                         @php
                             $credito = $prestamo->monto_total ?? 0;
-                            $garantiaPercent = $prestamo->garantia ?? 0;
+                            $garantiaPercent = $prestamo->garantia ?? 10; // Default to 10%
                             $garantiaMonto = $credito * ($garantiaPercent / 100);
-                            $comisionMonto = $credito * 0.02;
+                            
+                            // Comisión logic
+                            if ($credito < 3000) {
+                                $comisionMonto = 0;
+                            } else {
+                                $comisionMonto = ceil($credito / 10000) * 50;
+                            }
+                            
                             $efectivo = $credito - $garantiaMonto - $comisionMonto;
 
-                            // Calcular pagos con interés
-                            $tasaDecimal = ($prestamo->tasa_interes ?? 0) / 100;
-                            $interes = $credito * $tasaDecimal;
-                            $totalConInteres = $credito + $interes;
-                            $montoPorPago = $numeroPagos > 0 ? $totalConInteres / $numeroPagos : 0;
-                            $ultimoPago = $montoPorPago;
+                            // Calcular pagos con lógica del calendario
+                            if ($configuracion) {
+                                $interes = (($credito / 100) * ($prestamo->tasa_interes ?? 0)) * $configuracion['meses_interes'];
+                                $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
+                                $iva = ($interes / 100) * $ivaPorcentaje;
+                                $montoTotalConInteres = $interes + $iva + $credito;
+                                
+                                $pagoConDecimales = $montoTotalConInteres / $configuracion['total_pagos'];
+                                $montoPorPago = floor($pagoConDecimales); // Parte entera
+                                $decimales = $pagoConDecimales - $montoPorPago;
+                                
+                                $pagosRegulares = $configuracion['total_pagos'] - 1;
+                                $ultimoPago = $montoPorPago + ($decimales * $configuracion['total_pagos']);
+                            } else {
+                                // Fallback logic
+                                $tasaDecimal = ($prestamo->tasa_interes ?? 0) / 100;
+                                $interes = $credito * $tasaDecimal;
+                                $totalConInteres = $credito + $interes;
+                                $montoPorPago = $numeroPagos > 0 ? $totalConInteres / $numeroPagos : 0;
+                                $ultimoPago = $montoPorPago;
+                            }
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? '')), 'UTF-8') }}</td>

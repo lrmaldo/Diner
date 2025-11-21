@@ -411,7 +411,7 @@
                 </h3>
 
                 {{-- Notas/Comentarios del comité --}}
-                <div class="mb-6">
+                {{-- <div class="mb-6">
                     <label for="comentarios" class="block text-sm font-medium text-gray-700 mb-2">
                         Comentarios:
                     </label>
@@ -421,7 +421,7 @@
                         rows="4"
                         class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                         placeholder="Agregue comentarios sobre la decisión del comité..."></textarea>
-                </div>
+                </div> --}}
 
                 {{-- Botones de Autorizar y Rechazar --}}
                 <div class="flex flex-col sm:flex-row gap-4">
