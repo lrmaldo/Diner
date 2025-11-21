@@ -1,6 +1,6 @@
 <div class="p-4 max-w-full mx-auto">
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 class="text-2xl font-semibold">Préstamos</h1>
+        <h1 class="text-2xl font-semibold dark:text-white">Préstamos</h1>
         <div class="flex gap-2 flex-wrap">
             @if(auth()->user()->hasRole('Administrador'))
                 <a href="{{ route('prestamos.en-comite') }}" class="btn-outline text-center">En comité</a>
@@ -10,24 +10,24 @@
         </div>
     </div>
 
-    <div class="bg-white shadow rounded-lg p-4 mb-4">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-4">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
             <!-- Búsqueda general -->
             <div class="lg:col-span-2">
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+                <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buscar</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
                         </svg>
                     </span>
-                    <input wire:model.live.debounce.300ms="search" type="text" id="search" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Folio, cliente o representante">
+                    <input wire:model.live.debounce.300ms="search" type="text" id="search" class="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Folio, cliente o representante">
                 </div>
             </div>
 
             <!-- Filtro por estado -->
             <div>
-                <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                <label for="estado" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Estado</label>
                 <select wire:model.live="estado" id="estado" class="input-project">
                     <option value="">Todos</option>
                     <option value="en_curso">En curso</option>
@@ -39,7 +39,7 @@
 
             <!-- Filtro por producto -->
             <div>
-                <label for="producto" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <label for="producto" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
                 <select wire:model.live="producto" id="producto" class="input-project">
                     <option value="">Todos</option>
                     <option value="individual">Individual</option>
@@ -49,7 +49,7 @@
 
             <!-- Registros por página -->
             <div>
-                <label for="perPage" class="block text-sm font-medium text-gray-700 mb-1">Mostrar</label>
+                <label for="perPage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mostrar</label>
                 <select wire:model.live="perPage" id="perPage" class="input-project">
                     <option value="10">10</option>
                     <option value="15">15</option>
@@ -62,12 +62,12 @@
         <!-- Filtros por fecha -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-                <label for="fechaDesde" class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                <label for="fechaDesde" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Desde</label>
                 <input wire:model.live="fechaDesde" type="date" id="fechaDesde" class="input-project">
             </div>
 
             <div>
-                <label for="fechaHasta" class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                <label for="fechaHasta" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Hasta</label>
                 <input wire:model.live="fechaHasta" type="date" id="fechaHasta" class="input-project">
             </div>
 
@@ -79,40 +79,40 @@
         </div>
     </div>
 
-    <div class="bg-white shadow rounded-lg p-4 overflow-x-auto">
+    <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4 overflow-x-auto">
         <table class="w-full table-auto min-w-max">
             <thead>
-                <tr class="text-left border-b">
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Grupo</th>
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Fecha de entrega</th>
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Tipo de Producto</th>
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Integrantes</th>
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Monto</th>
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Representante</th>
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Plazo</th>
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700">Estatus</th>
-                    <th class="px-3 py-3 text-sm font-medium text-gray-700 text-right" style="min-width: 250px;">Acciones</th>
+                <tr class="text-left border-b dark:border-gray-700">
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Grupo</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de entrega</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Producto</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Integrantes</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Monto</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Representante</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Plazo</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300">Estatus</th>
+                    <th class="px-3 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 text-right" style="min-width: 250px;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($prestamos as $p)
-                    <tr class="border-t hover:bg-gray-50 transition-colors">
-                        <td class="px-3 py-3 font-medium text-sm">{{ $p->id }}</td>
-                        <td class="px-3 py-3 text-sm">{{ $p->fecha_entrega ? $p->fecha_entrega->format('d/m/Y') : '—' }}</td>
-                        <td class="px-3 py-3 text-sm">
+                    <tr class="border-t dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        <td class="px-3 py-3 font-medium text-sm dark:text-gray-200">{{ $p->id }}</td>
+                        <td class="px-3 py-3 text-sm dark:text-gray-300">{{ $p->fecha_entrega ? $p->fecha_entrega->format('d/m/Y') : '—' }}</td>
+                        <td class="px-3 py-3 text-sm dark:text-gray-300">
                             <span class="capitalize">{{ $p->producto ?? 'N/A' }}</span>
                         </td>
-                        <td class="px-3 py-3 text-sm text-center">
+                        <td class="px-3 py-3 text-sm text-center dark:text-gray-300">
                             @if($p->producto === 'grupal')
                                 {{ $p->clientes->count() }}
                             @else
                                 1
                             @endif
                         </td>
-                        <td class="px-3 py-3 font-medium text-sm">
+                        <td class="px-3 py-3 font-medium text-sm dark:text-gray-200">
                             ${{ number_format($p->monto_total ?? 0, 2) }}
                         </td>
-                        <td class="px-3 py-3 text-sm">
+                        <td class="px-3 py-3 text-sm dark:text-gray-300">
                             @php
                                 $representante = $p->representante;
                             @endphp
@@ -122,12 +122,12 @@
                                 —
                             @endif
                         </td>
-                        <td class="px-3 py-3 text-sm">
+                        <td class="px-3 py-3 text-sm dark:text-gray-300">
                             @php
                                 $plazoFormateado = $p->plazo;
                                 if ($plazoFormateado) {
                                     $plazoNormalizado = strtolower(trim($plazoFormateado));
-                                    $numero = preg_match('/(\d+)/', $plazoFormateado, $matches) ? (int)$matches[1] : 1;
+                                    $numero = preg_match('/(\\d+)/', $plazoFormateado, $matches) ? (int)$matches[1] : 1;
                                     $tieneD = stripos($plazoNormalizado, 'd') !== false;
 
                                     if (stripos($plazoNormalizado, 'año') !== false ||
@@ -146,12 +146,12 @@
                             @php
                                 $estado = $p->estado;
                                 $map = [
-                                    'en_curso' => 'bg-yellow-100 text-yellow-800',
-                                    'en_comite' => 'bg-blue-100 text-blue-800',
-                                    'autorizado' => 'bg-green-100 text-green-800',
-                                    'rechazado' => 'bg-red-100 text-red-800',
+                                    'en_curso' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                                    'en_comite' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+                                    'autorizado' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                                    'rechazado' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
                                 ];
-                                $cls = $map[$estado] ?? 'bg-gray-100 text-gray-800';
+                                $cls = $map[$estado] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
                             @endphp
                             <span class="inline-block px-2 py-1 rounded text-xs font-medium whitespace-nowrap {{ $cls }}">
                                 {{ str_replace('_', ' ', $estado) }}
@@ -253,8 +253,8 @@
 
         <div class="mt-4">
             @if($prestamos->isEmpty())
-                <div class="text-center py-4 text-gray-500">
-                    <svg class="h-12 w-12 mx-auto text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                    <svg class="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <p class="mt-2">No se encontraron préstamos con los filtros actuales</p>

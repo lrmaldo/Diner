@@ -84,6 +84,14 @@
         padding: .5rem .75rem;
         font-weight: 600;
     }
+    .dark .btn-outline {
+        color: var(--project-300);
+        border-color: var(--project-700);
+    }
+    .dark .btn-outline:hover {
+        background-color: rgba(255,39,41,0.1);
+        border-color: var(--project-500);
+    }
 
     /* Badges / etiquetas de rol */
     .badge-project {
@@ -129,6 +137,7 @@
     padding: .625rem .75rem; /* mayor altura */
     border: 1px solid var(--project-200);
     background-color: #ffffff;
+    color: #171717;
     border-radius: .375rem;
     width: 100%;
     box-sizing: border-box;
@@ -139,6 +148,18 @@
     outline: none;
     box-shadow: 0 0 0 3px rgba(255,39,41,0.12);
     border-color: var(--project-500);
+}
+.dark .input-project {
+    background-color: #1f2937;
+    border-color: #4b5563;
+    color: #f3f4f6;
+}
+.dark .input-project:focus {
+    border-color: var(--project-400);
+    box-shadow: 0 0 0 3px rgba(255,39,41,0.2);
+}
+.dark .input-project::placeholder {
+    color: #9ca3af;
 }
 
 .select-project {
@@ -164,11 +185,18 @@
     background-color: rgba(0,0,0,0.26); /* menos opaco */
     z-index: 40;
 }
+.dark .modal-backdrop {
+    background-color: rgba(0,0,0,0.5); /* más opaco en modo oscuro */
+}
 .modal-panel {
     background-color: #ffffff;
     border-radius: .5rem;
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
     z-index: 50;
+}
+.dark .modal-panel {
+    background-color: #1f2937; /* gray-800 */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
@@ -216,6 +244,9 @@ select:focus[data-flux-control] {
     margin-bottom: .25rem;
     font-weight: 600;
 }
+.dark .field-label {
+    color: var(--color-zinc-300);
+}
 
 .help-text {
     font-size: .8125rem;
@@ -237,4 +268,14 @@ select:focus[data-flux-control] {
 .stat-card .label {
     font-size: .8125rem;
     color: var(--color-zinc-600);
+}
+.dark .stat-card {
+    background-color: #1f2937;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+}
+.dark .stat-card .value {
+    color: var(--project-300);
+}
+.dark .stat-card .label {
+    color: #9ca3af;
 }
