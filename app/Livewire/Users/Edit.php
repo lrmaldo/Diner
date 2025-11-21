@@ -36,6 +36,20 @@ class Edit extends Component
         ];
     }
 
+    protected function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre es obligatorio.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'La confirmación de contraseña no coincide.',
+            'selectedRoles.required' => 'Debe asignar al menos un rol.',
+            'selectedRoles.min' => 'Debe asignar al menos un rol.',
+        ];
+    }
+
     public function save()
     {
         $this->validate();
@@ -60,7 +74,7 @@ class Edit extends Component
             }
         }
 
-        $this->dispatchBrowserEvent('user-updated');
+        $this->dispatch('user-updated');
 
         session()->flash('status', 'Usuario actualizado exitosamente.');
 

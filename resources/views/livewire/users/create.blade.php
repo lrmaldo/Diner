@@ -15,7 +15,10 @@
                         <p class="text-gray-600 mt-1">Complete el formulario para crear un nuevo usuario.</p>
                     </div>
 
-                    <form wire:submit.prevent="save" class="space-y-6">
+                    <form wire:submit.prevent="save" class="space-y-6" autocomplete="off">
+                        <!-- Dummy inputs to trick browser autofill -->
+                        <input type="text" style="display:none">
+                        <input type="password" style="display:none">
                         <!-- Nombre -->
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
@@ -48,6 +51,7 @@
                                 type="password"
                                 id="password"
                                 class="input-project mt-1"
+                                autocomplete="new-password"
                             >
                             @error('password') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
@@ -60,6 +64,7 @@
                                 type="password"
                                 id="password_confirmation"
                                 class="input-project mt-1"
+                                autocomplete="new-password"
                             >
                         </div>
 

@@ -26,6 +26,22 @@ class Create extends Component
         ];
     }
 
+    protected function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre es obligatorio.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser válido.',
+            'email.unique' => 'Este correo electrónico ya está registrado.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'La confirmación de contraseña no coincide.',
+            'password_confirmation.required' => 'La confirmación de contraseña es obligatoria.',
+            'selectedRoles.required' => 'Debe asignar al menos un rol.',
+            'selectedRoles.min' => 'Debe asignar al menos un rol.',
+        ];
+    }
+
     public function save()
     {
         $this->validate();
@@ -43,7 +59,7 @@ class Create extends Component
             }
         }
 
-        $this->dispatchBrowserEvent('user-created');
+        $this->dispatch('user-created');
 
         session()->flash('status', 'Usuario creado exitosamente.');
 
