@@ -93,7 +93,7 @@
                         @endif
                     </div>
 
-                    @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->id() === $prestamo->asesor_id) && $prestamo->estado === 'en_comite')
+                    @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Cajero') || auth()->id() === $prestamo->asesor_id) && in_array($prestamo->estado, ['en_comite', 'rechazado']))
                         <div>
                             <a href="{{ route('prestamos.edit', $prestamo->id) }}"
                                class="inline-flex items-center px-4 py-2 bg-white border border-red-300 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium">
@@ -562,5 +562,62 @@
                 </p>
             </div>
         @endif
+    @endif
+    {{-- Bitácora de Cambios (Timeline) --}}
+    @if($prestamo && $prestamo->bitacora->count() > 0)
+        <div class="bg-white shadow rounded-lg p-6 mt-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                <i class="fas fa-history mr-2"></i>
+                Bitácora del Préstamo
+            </h3>
+            <div class="flow-root">
+                <ul role="list" class="-mb-8">
+                    @foreach($prestamo->bitacora as $entry)
+                        <li>
+                            <div class="relative pb-8">
+                                @if(!$loop->last)
+                                    <span class="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                @endif
+                                <div class="relative flex space-x-3">
+                                    <div>
+                                        <span class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white
+                                            @if($entry->accion === 'autorizado') bg-green-500
+                                            @elseif($entry->accion === 'rechazado') bg-red-500
+                                            @elseif($entry->accion === 'en_comite') bg-yellow-500
+                                            @else bg-gray-500 @endif">
+                                            @if($entry->accion === 'autorizado')
+                                                <i class="fas fa-check text-white text-sm"></i>
+                                            @elseif($entry->accion === 'rechazado')
+                                                <i class="fas fa-times text-white text-sm"></i>
+                                            @elseif($entry->accion === 'en_comite')
+                                                <i class="fas fa-clock text-white text-sm"></i>
+                                            @else
+                                                <i class="fas fa-info text-white text-sm"></i>
+                                            @endif
+                                        </span>
+                                    </div>
+                                    <div class="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                                        <div>
+                                            <p class="text-sm text-gray-500">
+                                                <span class="font-medium text-gray-900">
+                                                    {{ ucfirst(str_replace('_', ' ', $entry->accion)) }}
+                                                </span>
+                                                por <span class="font-medium text-gray-900">{{ $entry->user->name ?? 'Sistema' }}</span>
+                                            </p>
+                                            @if($entry->comentarios)
+                                                <p class="text-sm text-gray-600 mt-1">{{ $entry->comentarios }}</p>
+                                            @endif
+                                        </div>
+                                        <div class="text-right text-sm whitespace-nowrap text-gray-500">
+                                            <time datetime="{{ $entry->created_at }}">{{ $entry->created_at->format('d M Y, H:i') }}</time>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
     @endif
 </div>

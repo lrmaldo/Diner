@@ -104,6 +104,7 @@ class Show extends Component
 
         // Autorizar el préstamo
         $this->prestamo->autorizar(auth()->user());
+        $this->prestamo->registrarBitacora('autorizado', 'Préstamo autorizado por ' . auth()->user()->name);
 
         // Recargar el préstamo
         $this->loadPrestamo();
@@ -154,6 +155,7 @@ class Show extends Component
         }
 
         $this->prestamo->rechazar(auth()->user(), $this->motivoRechazo);
+        $this->prestamo->registrarBitacora('rechazado', 'Motivo: ' . $this->motivoRechazo);
         // limpiar motivo después de rechazar
         $this->motivoRechazo = '';
         $this->loadPrestamo();

@@ -155,4 +155,17 @@ class Prestamo extends Model
         $this->motivo_rechazo = $motivo;
         $this->save();
     }
+    public function bitacora()
+    {
+        return $this->hasMany(PrestamoBitacora::class)->orderByDesc('created_at');
+    }
+
+    public function registrarBitacora(string $accion, ?string $comentarios = null): void
+    {
+        $this->bitacora()->create([
+            'user_id' => auth()->id(),
+            'accion' => $accion,
+            'comentarios' => $comentarios,
+        ]);
+    }
 }

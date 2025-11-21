@@ -671,6 +671,8 @@ class Edit extends Component
         $prestamo->estado = 'en_comite';
         $prestamo->save();
 
+        $prestamo->registrarBitacora('en_comite', 'Enviado a comité. ' . ($prestamo->comentarios_comite ? 'Comentarios: ' . $prestamo->comentarios_comite : ''));
+
         // Recargar para confirmar que se guardó
         $prestamo->refresh();
 
