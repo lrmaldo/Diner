@@ -36,7 +36,7 @@
                     <div>
                         <p class="text-sm text-gray-500">Fecha de entrega:</p>
                         <p class="font-semibold text-gray-900">
-                            {{ $prestamo->fecha_entrega ? $prestamo->fecha_entrega->format('Y-m-d') : '—' }}
+                            {{ $prestamo->fecha_entrega ? $prestamo->fecha_entrega->format('d/m/Y') : '—' }}
                         </p>
                     </div>
                     <div>
@@ -54,7 +54,7 @@
                     <div>
                         <p class="text-sm text-gray-500">Fecha primer pago:</p>
                         <p class="font-semibold text-gray-900">
-                            {{ $prestamo->fecha_primer_pago ? $prestamo->fecha_primer_pago->format('Y-m-d') : '—' }}
+                            {{ $prestamo->fecha_primer_pago ? $prestamo->fecha_primer_pago->format('d/m/Y') : '—' }}
                         </p>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Tasa de interés:</p>
-                        <p class="font-semibold text-gray-900">{{ $prestamo->tasa_interes ?? '0' }}%</p>
+                        <p class="font-semibold text-gray-900">{{ number_format($prestamo->tasa_interes ?? 0, 1) }}%</p>
                     </div>
                 </div>
             </div>
