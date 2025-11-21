@@ -76,4 +76,12 @@ class User extends Authenticatable
     {
         return $this->hasRole('Cajero') || $this->role === 'Cajero';
     }
+
+    /**
+     * Determinar si el usuario es asesor
+     */
+    public function isAsesor(): bool
+    {
+        return $this->hasRole('Asesor') || $this->role === 'Asesor';
+    }
 }
