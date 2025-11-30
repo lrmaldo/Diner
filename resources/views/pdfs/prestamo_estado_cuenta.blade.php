@@ -246,10 +246,15 @@
         }
         /* Estilos para impresión y PDF */
         @media print {
+            * {
+                background: white !important;
+                box-shadow: none !important;
+            }
             body {
                 background-color: white !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                color: black;
             }
             .page-wrapper {
                 max-width: none !important;
@@ -257,11 +262,13 @@
                 border-radius: 0 !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                background: white !important;
             }
             .container {
-                box-shadow: none;
+                box-shadow: none !important;
                 padding: 8px;
-                margin: 0;
+                margin: 0 !important;
+                background: white !important;
             }
             .no-print {
                 display: none !important;
@@ -272,7 +279,7 @@
         }
     </style>
 </head>
-<body>
+<body style="{{ ($forPdf ?? false) ? 'background: white !important; padding: 0; margin: 0;' : '' }}">
 @php
     $forPdf = $forPdf ?? false;
     if ($forPdf) {
@@ -290,18 +297,15 @@
     }
 @endphp
 
-    @unless($forPdf)
+    @if(!$forPdf)
     <div class="btn-group no-print">
         <button onclick="window.print()" class="btn btn-secondary">Imprimir</button>
         <a href="{{ route('prestamos.print.download', ['prestamo' => $prestamo->id, 'type' => 'estado_cuenta']) }}" class="btn btn-primary">Descargar PDF</a>
     </div>
-    @endunless
-
-    @unless($forPdf)
     <div class="page-wrapper">
-    @endunless
+    @endif
 
-    <div class="container">
+    <div class="container" style="{{ $forPdf ? 'background: white; padding: 8px;' : '' }}">
         {{-- Membrete --}}
         <div class="header-logo">
             <div style="width: 80px; flex: 0 0 80px;">
@@ -623,8 +627,8 @@
         </table>
     </div>
 
-    @unless($forPdf)
+    @if(!$forPdf)
     </div> {{-- Cierre del page-wrapper --}}
-    @endunless
+    @endif
 </body>
 </html>
