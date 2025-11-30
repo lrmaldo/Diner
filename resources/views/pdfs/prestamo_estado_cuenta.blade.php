@@ -461,20 +461,17 @@
             <thead>
                 <tr>
                     <th>Vencimiento</th>
-                    <th>Fecha Pago</th>
-                    <th>Exigible</th>
-                    <th>Recuperado</th>
-                    <th>Garantía</th>
-                    <th>Penalización</th>
-                    <th colspan="4">Multas</th>
+                    <th>Fecha de pago</th>
+                    <th colspan="3">Efectivo</th>
+                    <th colspan="5">Multas</th>
                 </tr>
                 <tr>
                     <th></th>
                     <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                    <th></th>
+                    <th>Exigible</th>
+                    <th>Recuperado</th>
+                    <th>Garantía</th>
+                    <th>Penalización</th>
                     <th>Moratorio</th>
                     <th>Condonado</th>
                     <th>Recuperado</th>
@@ -486,7 +483,7 @@
                     <td>15-03-26</td>
                     <td></td>
                     <td>12,288</td>
-                    <td>2,955</td>
+                    <td>2,265</td>
                     <td>0</td>
                     <td>0</td>
                     <td>0</td>
