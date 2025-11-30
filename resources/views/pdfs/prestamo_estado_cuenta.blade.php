@@ -84,29 +84,31 @@
         }
         /* Información del préstamo */
         .info-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 6px;
+            display: table;
+            width: 100%;
             margin-bottom: 6px;
             border: 1px solid #333;
+            border-collapse: collapse;
         }
         .info-header-item {
+            display: table-cell;
+            width: 25%;
             padding: 4px 6px;
             border-right: 1px solid #333;
             font-size: 9px;
+            vertical-align: top;
         }
         .info-header-item:last-child {
             border-right: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
         .info-header-label {
             font-weight: bold;
             margin-bottom: 2px;
+            display: block;
         }
         .info-header-value {
             font-size: 10px;
+            display: block;
         }
         /* Tabla de detalles del crédito */
         .details-table {
