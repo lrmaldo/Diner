@@ -562,18 +562,118 @@
                     <th>Total Interés</th>
                     <th>Tasa Iva</th>
                     <th>Iva</th>
+                    <th>Vencimiento</th>
                 </tr>
             </thead>
             <tbody>
+                @php
+                    // Calcular totales
+                    $totalCredito = 0;
+                    $totalGarantia = 0;
+                    $totalSeguro = 0;
+                    $totalEfectivo = 0;
+                    $totalInteres = 0;
+                    $totalIva = 0;
+                    
+                    if ($prestamo->producto === 'grupal') {
+                        foreach ($prestamo->clientes as $cliente) {
+                            $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
+                            $garantiaCliente = $montoCliente * (($prestamo->garantia ?? 0) / 100);
+                            $seguroCliente = $montoCliente * 0.02;
+                            $efectivoCliente = $montoCliente - $garantiaCliente - $seguroCliente;
+                            
+                            // Calcular interés usando la misma fórmula del calendario
+                            $plazoNormalizado = strtolower(trim($prestamo->plazo ?? '4meses'));
+                            $periodicidadNormalizada = strtolower(trim($prestamo->periodicidad ?? 'semanal'));
+                            $config = determinarConfiguracionPago($plazoNormalizado, $periodicidadNormalizada);
+                            
+                            if ($config) {
+                                $mesesInteres = $config['meses_interes'];
+                            } else {
+                                $mesesInteres = 4; // fallback
+                            }
+                            
+                            $interesCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteres;
+                            $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
+                            $ivaCliente = ($interesCliente / 100) * $ivaPorcentaje;
+                            
+                            $totalCredito += $montoCliente;
+                            $totalGarantia += $garantiaCliente;
+                            $totalSeguro += $seguroCliente;
+                            $totalEfectivo += $efectivoCliente;
+                            $totalInteres += $interesCliente;
+                            $totalIva += $ivaCliente;
+                        }
+                    } else {
+                        $montoCliente = $prestamo->monto_total ?? 0;
+                        $garantiaCliente = $montoCliente * (($prestamo->garantia ?? 0) / 100);
+                        $seguroCliente = $montoCliente * 0.02;
+                        $efectivoCliente = $montoCliente - $garantiaCliente - $seguroCliente;
+                        
+                        // Calcular interés usando la misma fórmula del calendario
+                        $plazoNormalizado = strtolower(trim($prestamo->plazo ?? '4meses'));
+                        $periodicidadNormalizada = strtolower(trim($prestamo->periodicidad ?? 'semanal'));
+                        $config = determinarConfiguracionPago($plazoNormalizado, $periodicidadNormalizada);
+                        
+                        if ($config) {
+                            $mesesInteres = $config['meses_interes'];
+                        } else {
+                            $mesesInteres = 4; // fallback
+                        }
+                        
+                        $interesCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteres;
+                        $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
+                        $ivaCliente = ($interesCliente / 100) * $ivaPorcentaje;
+                        
+                        $totalCredito = $montoCliente;
+                        $totalGarantia = $garantiaCliente;
+                        $totalSeguro = $seguroCliente;
+                        $totalEfectivo = $efectivoCliente;
+                        $totalInteres = $interesCliente;
+                        $totalIva = $ivaCliente;
+                    }
+                    
+                    // Calcular calendario para obtener fecha de vencimiento
+                    $montoBaseCalc = $prestamo->monto_total ?? 0;
+                    $tasaInteresCalc = $prestamo->tasa_interes ?? 0;
+                    $plazoCalc = $prestamo->plazo ?? '4meses';
+                    $periodicidadCalc = $prestamo->periodicidad ?? 'semanal';
+                    $fechaPrimerPagoCalc = $prestamo->fecha_primer_pago ?? $prestamo->fecha_autorizacion ?? now();
+                    
+                    $ultimoPagoCalc = null;
+                    try {
+                        $ultimoPagoCalc = $prestamo->ultimo_pago ?? null;
+                    } catch (\Exception $e) {
+                        $ultimoPagoCalc = null;
+                    }
+                    
+                    $calendarioTemp = calcularCalendarioPagos(
+                        $montoBaseCalc,
+                        $tasaInteresCalc,
+                        $plazoCalc,
+                        $periodicidadCalc,
+                        $fechaPrimerPagoCalc,
+                        $ultimoPagoCalc,
+                        'martes'
+                    );
+                    
+                    // Obtener fecha de vencimiento (último pago del calendario)
+                    $fechaVencimiento = '';
+                    if (!empty($calendarioTemp)) {
+                        $ultimoPagoCalendario = end($calendarioTemp);
+                        $fechaVencimiento = $ultimoPagoCalendario['fecha'];
+                    }
+                @endphp
                 <tr>
-                    <td>${{ number_format($prestamo->monto_total ?? 0, 0) }}</td>
-                    <td>${{ number_format(($prestamo->monto_total ?? 0) * (($prestamo->garantia ?? 0) / 100), 0) }}</td>
-                    <td>$50</td>
-                    <td>${{ number_format(($prestamo->monto_total ?? 0) - (($prestamo->monto_total ?? 0) * (($prestamo->garantia ?? 0) / 100)) - (($prestamo->monto_total ?? 0) * 0.02), 0) }}</td>
+                    <td>${{ number_format($totalCredito, 0) }}</td>
+                    <td>${{ number_format($totalGarantia, 0) }}</td>
+                    <td>${{ number_format($totalSeguro, 0) }}</td>
+                    <td>${{ number_format($totalEfectivo, 0) }}</td>
                     <td>{{ $prestamo->tasa_interes ?? 0 }}%</td>
-                    <td>${{ number_format(($prestamo->monto_total ?? 0) * (($prestamo->tasa_interes ?? 0) / 100), 0) }}</td>
-                    <td>16%</td>
-                    <td>${{ number_format((($prestamo->monto_total ?? 0) * (($prestamo->tasa_interes ?? 0) / 100)) * 0.16, 0) }}</td>
+                    <td>${{ number_format($totalInteres, 0) }}</td>
+                    <td>{{ \App\Models\Configuration::get('iva_percentage', 16) }}%</td>
+                    <td>${{ number_format($totalIva, 0) }}</td>
+                    <td>{{ $fechaVencimiento }}</td>
                 </tr>
              
             </tbody>
@@ -600,21 +700,34 @@
                         @php
                             $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
                             $garantiaCliente = $montoCliente * (($prestamo->garantia ?? 0) / 100);
-                            $comisionCliente = $montoCliente * 0.02;
-                            $efectivoCliente = $montoCliente - $garantiaCliente - $comisionCliente;
+                            $seguroCliente = $montoCliente * 0.02;
+                            $efectivoCliente = $montoCliente - $garantiaCliente - $seguroCliente;
                             $tasaCliente = $prestamo->tasa_interes ?? 0;
-                            $interesCliente = $montoCliente * ($tasaCliente / 100);
-                            $ivaCliente = $interesCliente * 0.16;
+                            
+                            // Calcular interés usando la misma fórmula del calendario
+                            $plazoNorm = strtolower(trim($prestamo->plazo ?? '4meses'));
+                            $periodicidadNorm = strtolower(trim($prestamo->periodicidad ?? 'semanal'));
+                            $configCliente = determinarConfiguracionPago($plazoNorm, $periodicidadNorm);
+                            
+                            if ($configCliente) {
+                                $mesesInteresCliente = $configCliente['meses_interes'];
+                            } else {
+                                $mesesInteresCliente = 4;
+                            }
+                            
+                            $interesCliente = (($montoCliente / 100) * $tasaCliente) * $mesesInteresCliente;
+                            $ivaPorcentajeCliente = \App\Models\Configuration::get('iva_percentage', 16);
+                            $ivaCliente = ($interesCliente / 100) * $ivaPorcentajeCliente;
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($cliente->nombres . ' ' . $cliente->apellido_paterno . ' ' . $cliente->apellido_materno)) }}</td>
                             <td>{{ number_format($montoCliente, 0) }}</td>
                             <td>{{ number_format($garantiaCliente, 0) }}</td>
-                            <td>50</td>
+                            <td>{{ number_format($seguroCliente, 0) }}</td>
                             <td>{{ number_format($efectivoCliente, 0) }}</td>
                             <td>{{ $tasaCliente }}%</td>
                             <td>{{ number_format($interesCliente, 0) }}</td>
-                            <td>16%</td>
+                            <td>{{ $ivaPorcentajeCliente }}%</td>
                             <td>{{ number_format($ivaCliente, 0) }}</td>
                         </tr>
                     @endforeach
@@ -623,21 +736,34 @@
                         @php
                             $montoCliente = $prestamo->monto_total ?? 0;
                             $garantiaCliente = $montoCliente * (($prestamo->garantia ?? 0) / 100);
-                            $comisionCliente = $montoCliente * 0.02;
-                            $efectivoCliente = $montoCliente - $garantiaCliente - $comisionCliente;
+                            $seguroCliente = $montoCliente * 0.02;
+                            $efectivoCliente = $montoCliente - $garantiaCliente - $seguroCliente;
                             $tasaCliente = $prestamo->tasa_interes ?? 0;
-                            $interesCliente = $montoCliente * ($tasaCliente / 100);
-                            $ivaCliente = $interesCliente * 0.16;
+                            
+                            // Calcular interés usando la misma fórmula del calendario
+                            $plazoNorm = strtolower(trim($prestamo->plazo ?? '4meses'));
+                            $periodicidadNorm = strtolower(trim($prestamo->periodicidad ?? 'semanal'));
+                            $configCliente = determinarConfiguracionPago($plazoNorm, $periodicidadNorm);
+                            
+                            if ($configCliente) {
+                                $mesesInteresCliente = $configCliente['meses_interes'];
+                            } else {
+                                $mesesInteresCliente = 4;
+                            }
+                            
+                            $interesCliente = (($montoCliente / 100) * $tasaCliente) * $mesesInteresCliente;
+                            $ivaPorcentajeCliente = \App\Models\Configuration::get('iva_percentage', 16);
+                            $ivaCliente = ($interesCliente / 100) * $ivaPorcentajeCliente;
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($prestamo->cliente->nombres . ' ' . $prestamo->cliente->apellido_paterno . ' ' . $prestamo->cliente->apellido_materno)) }}</td>
                             <td>{{ number_format($montoCliente, 0) }}</td>
                             <td>{{ number_format($garantiaCliente, 0) }}</td>
-                            <td>50</td>
+                            <td>{{ number_format($seguroCliente, 0) }}</td>
                             <td>{{ number_format($efectivoCliente, 0) }}</td>
                             <td>{{ $tasaCliente }}%</td>
                             <td>{{ number_format($interesCliente, 0) }}</td>
-                            <td>16%</td>
+                            <td>{{ $ivaPorcentajeCliente }}%</td>
                             <td>{{ number_format($ivaCliente, 0) }}</td>
                         </tr>
                     @endif
