@@ -283,6 +283,8 @@
 </head>
 <body style="{{ ($forPdf ?? false) ? 'background: white !important; padding: 0; margin: 0;' : '' }}">
 @php
+    use Carbon\Carbon;
+
     $forPdf = $forPdf ?? false;
     if ($forPdf) {
         $logoPath = public_path('img/logo.JPG');
@@ -296,6 +298,188 @@
         }
     } else {
         $logoSrc = asset('img/logo.JPG');
+    }
+
+    // Función para extraer el número de plazo (e.g., "4meses" => 4)
+    function extraerPlazoNumerico($plazo) {
+        if (is_numeric($plazo)) {
+            return (int) $plazo;
+        }
+        preg_match('/(\d+)/', $plazo, $matches);
+        return isset($matches[1]) ? (int) $matches[1] : 1;
+    }
+
+    // Función para calcular el calendario de pagos según las reglas de negocio específicas
+    function calcularCalendarioPagos($monto, $tasaInteres, $plazo, $periodicidad, $fechaPrimerPago, $ultimoPago = null, $diaPago = 'martes') {
+        $plazoNormalizado = strtolower(trim($plazo));
+        $periodicidadNormalizada = strtolower(trim($periodicidad));
+        
+        $config = determinarConfiguracionPago($plazoNormalizado, $periodicidadNormalizada);
+        
+        if (!$config) {
+            return calcularCalendarioBasico($monto, $tasaInteres, $plazo, $periodicidad, $fechaPrimerPago, $diaPago);
+        }
+
+        // Calcular monto total usando la misma lógica que el calendario
+        $interes = (($monto / 100) * $tasaInteres) * $config['meses_interes'];
+        $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
+        $iva = ($interes / 100) * $ivaPorcentaje;
+        $montoTotal = $interes + $iva + $monto;
+        
+        $numeroPagos = $config['total_pagos'];
+        $montoPorPago = $montoTotal / $numeroPagos;
+
+        $calendario = [];
+        $fechaActual = Carbon::parse($fechaPrimerPago);
+
+        $diasFeriados = \App\Models\Holiday::whereYear('date', $fechaActual->year)
+            ->orWhereYear('date', $fechaActual->copy()->addYear()->year)
+            ->pluck('date')
+            ->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))
+            ->toArray();
+
+        // Determinar intervalo en días según periodicidad
+        $intervaloDias = match(strtolower($periodicidadNormalizada)) {
+            'semanal', 'semana', 'weekly' => 7,
+            'catorcenal', 'quincenal', 'quincena', 'biweekly' => 14,
+            'mensual', 'mes', 'monthly' => 30,
+            default => 7
+        };
+
+        // Calcular monto por pago sin redondear
+        $montoPorPagoBase = floor($montoPorPago);
+        $diferencia = $montoTotal - ($montoPorPagoBase * $numeroPagos);
+
+        for ($i = 1; $i <= $numeroPagos; $i++) {
+            if ($i === 1) {
+                $fechaPago = $fechaActual->copy();
+            } else {
+                $fechaPago = $fechaActual->copy()->addDays($intervaloDias);
+                
+                while (in_array($fechaPago->format('Y-m-d'), $diasFeriados) || $fechaPago->dayOfWeek === Carbon::SUNDAY) {
+                    $fechaPago->addDay();
+                }
+            }
+
+            if ($i === $numeroPagos && $ultimoPago) {
+                $fechaPago = Carbon::parse($ultimoPago);
+            }
+
+            // El último pago lleva el monto base más la diferencia acumulada
+            $montoPago = ($i === $numeroPagos) ? ($montoPorPagoBase + $diferencia) : $montoPorPagoBase;
+
+            $calendario[] = [
+                'numero' => $i,
+                'fecha' => $fechaPago->format('d-m-y'),
+                'monto' => $montoPago,
+            ];
+
+            $fechaActual = $fechaPago->copy();
+        }
+
+        return $calendario;
+    }
+
+    // Función para determinar la configuración de pago según plazo y periodicidad
+    function determinarConfiguracionPago($plazo, $periodicidad) {
+        $configuraciones = [
+            // Caso 1: 4 meses
+            '4 meses_semanal' => ['meses_interes' => 4, 'total_pagos' => 16],
+            '4meses_semanal' => ['meses_interes' => 4, 'total_pagos' => 16],
+            '4 meses_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 8],
+            '4meses_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 8],
+            '4 meses_quincenal' => ['meses_interes' => 4, 'total_pagos' => 8],
+            '4meses_quincenal' => ['meses_interes' => 4, 'total_pagos' => 8],
+
+            // Caso 2: 4 meses D
+            '4 meses d_semanal' => ['meses_interes' => 4, 'total_pagos' => 14],
+            '4meses d_semanal' => ['meses_interes' => 4, 'total_pagos' => 14],
+            '4mesesd_semanal' => ['meses_interes' => 4, 'total_pagos' => 14],
+            '4 meses d_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+            '4meses d_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+            '4mesesd_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+            '4 meses d_quincenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+            '4meses d_quincenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+            '4mesesd_quincenal' => ['meses_interes' => 4, 'total_pagos' => 7],
+
+            // Caso 3: 5 meses D
+            '5 meses d_semanal' => ['meses_interes' => 5, 'total_pagos' => 18],
+            '5meses d_semanal' => ['meses_interes' => 5, 'total_pagos' => 18],
+            '5mesesd_semanal' => ['meses_interes' => 5, 'total_pagos' => 18],
+            '5 meses d_catorcenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+            '5meses d_catorcenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+            '5mesesd_catorcenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+            '5 meses d_quincenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+            '5meses d_quincenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+            '5mesesd_quincenal' => ['meses_interes' => 5, 'total_pagos' => 9],
+
+            // Caso 4: 6 meses
+            '6 meses_semanal' => ['meses_interes' => 6, 'total_pagos' => 24],
+            '6meses_semanal' => ['meses_interes' => 6, 'total_pagos' => 24],
+            '6 meses_catorcenal' => ['meses_interes' => 6, 'total_pagos' => 12],
+            '6meses_catorcenal' => ['meses_interes' => 6, 'total_pagos' => 12],
+            '6 meses_quincenal' => ['meses_interes' => 6, 'total_pagos' => 12],
+            '6meses_quincenal' => ['meses_interes' => 6, 'total_pagos' => 12],
+
+            // Caso 5: 1 año
+            '1 año_semanal' => ['meses_interes' => 12, 'total_pagos' => 48],
+            '1año_semanal' => ['meses_interes' => 12, 'total_pagos' => 48],
+            '1 ano_semanal' => ['meses_interes' => 12, 'total_pagos' => 48],
+            '1ano_semanal' => ['meses_interes' => 12, 'total_pagos' => 48],
+            '1 año_catorcenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+            '1año_catorcenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+            '1 ano_catorcenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+            '1ano_catorcenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+            '1 año_quincenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+            '1año_quincenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+            '1 ano_quincenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+            '1ano_quincenal' => ['meses_interes' => 12, 'total_pagos' => 24],
+        ];
+
+        $clave = $plazo . '_' . $periodicidad;
+        return $configuraciones[$clave] ?? null;
+    }
+
+    // Función de fallback para casos no reconocidos
+    function calcularCalendarioBasico($monto, $tasaInteres, $plazo, $periodicidad, $fechaPrimerPago, $diaPago = 'martes') {
+        $plazoNumerico = extraerPlazoNumerico($plazo);
+        $periodicidadNormalizada = strtolower(trim($periodicidad));
+        
+        $esSemanal = in_array($periodicidadNormalizada, ['semanal', 'semana', 'weekly']);
+        $esQuincenal = in_array($periodicidadNormalizada, ['quincenal', 'quincena', 'biweekly']);
+        $esMensual = in_array($periodicidadNormalizada, ['mensual', 'mes', 'monthly']);
+
+        if ($esSemanal) {
+            $numeroPagos = $plazoNumerico * 4;
+            $intervaloDias = 7;
+        } elseif ($esQuincenal) {
+            $numeroPagos = $plazoNumerico * 2;
+            $intervaloDias = 14;
+        } elseif ($esMensual) {
+            $numeroPagos = $plazoNumerico;
+            $intervaloDias = 30;
+        } else {
+            $numeroPagos = $plazoNumerico;
+            $intervaloDias = 30;
+        }
+
+        $montoTotal = $monto + ($monto * ($tasaInteres / 100));
+        $montoTotal = $montoTotal + ($montoTotal * 0.16);
+        $montoPorPago = $montoTotal / $numeroPagos;
+
+        $calendario = [];
+        $fechaActual = Carbon::parse($fechaPrimerPago);
+
+        for ($i = 1; $i <= $numeroPagos; $i++) {
+            $calendario[] = [
+                'numero' => $i,
+                'fecha' => $fechaActual->format('d-m-y'),
+                'monto' => round($montoPorPago, 2),
+            ];
+            $fechaActual->addDays($intervaloDias);
+        }
+
+        return $calendario;
     }
 @endphp
 
@@ -515,17 +699,47 @@
                 </tr>
             </thead>
             <tbody>
-                @for($i = 1; $i <= 16; $i++)
-                    <tr @if($i % 2 == 0) style="background-color: #f3f4f6;" @endif>
-                        <td>{{ $i }}</td>
+                @php
+                    // Calcular calendario de pagos
+                    // Para préstamos grupales, usar el monto total del grupo
+                    // Para individuales, usar el monto del préstamo
+                    $montoBase = $prestamo->monto_total ?? 0;
+                    
+                    $tasaInteres = $prestamo->tasa_interes ?? 0;
+                    $plazo = $prestamo->plazo ?? '4meses';
+                    $periodicidad = $prestamo->periodicidad ?? 'semanal';
+                    $fechaPrimerPago = $prestamo->fecha_primer_pago ?? $prestamo->fecha_autorizacion ?? now();
+                    
+                    // Buscar si existe el campo ultimo_pago en el préstamo
+                    $ultimoPago = null;
+                    try {
+                        $ultimoPago = $prestamo->ultimo_pago ?? null;
+                    } catch (\Exception $e) {
+                        $ultimoPago = null;
+                    }
+                    
+                    $calendarioPagos = calcularCalendarioPagos(
+                        $montoBase,
+                        $tasaInteres,
+                        $plazo,
+                        $periodicidad,
+                        $fechaPrimerPago,
+                        $ultimoPago,
+                        'martes'
+                    );
+                @endphp
+                
+                @foreach($calendarioPagos as $pago)
+                    <tr @if($pago['numero'] % 2 == 0) style="background-color: #f3f4f6;" @endif>
+                        <td>{{ $pago['numero'] }}</td>
+                        <td>{{ $pago['fecha'] }}</td>
                         <td></td>
-                        <td></td>
-                        <td>755</td>
+                        <td>{{ number_format($pago['monto'], 0) }}</td>
                         <td></td>
                         <td></td>
                         <td colspan="4"></td>
                     </tr>
-                @endfor
+                @endforeach
             </tbody>
         </table>
 
