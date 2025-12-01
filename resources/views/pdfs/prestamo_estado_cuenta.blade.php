@@ -481,6 +481,35 @@
 
         return $calendario;
     }
+
+    // Función para calcular la comisión (seguro) según el monto del crédito
+    function calcularComision($monto) {
+        if ($monto < 3000) {
+            return 0;
+        } elseif ($monto >= 3000 && $monto <= 10000) {
+            return 50;
+        } elseif ($monto > 10000 && $monto <= 20000) {
+            return 100;
+        } elseif ($monto > 20000 && $monto <= 30000) {
+            return 150;
+        } elseif ($monto > 30000 && $monto <= 40000) {
+            return 200;
+        } elseif ($monto > 40000 && $monto <= 50000) {
+            return 250;
+        } elseif ($monto > 50000 && $monto <= 60000) {
+            return 300;
+        } elseif ($monto > 60000 && $monto <= 70000) {
+            return 350;
+        } elseif ($monto > 70000 && $monto <= 80000) {
+            return 400;
+        } elseif ($monto > 80000 && $monto <= 90000) {
+            return 450;
+        } elseif ($monto > 90000 && $monto <= 100000) {
+            return 500;
+        } else {
+            return 500; // Para montos mayores a 100,000
+        }
+    }
 @endphp
 
     @if(!$forPdf)
@@ -579,7 +608,7 @@
                         foreach ($prestamo->clientes as $cliente) {
                             $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
                             $garantiaCliente = $montoCliente * (($prestamo->garantia ?? 0) / 100);
-                            $seguroCliente = $montoCliente * 0.02;
+                            $seguroCliente = calcularComision($montoCliente);
                             $efectivoCliente = $montoCliente - $garantiaCliente - $seguroCliente;
                             
                             // Calcular interés usando la misma fórmula del calendario
@@ -607,7 +636,7 @@
                     } else {
                         $montoCliente = $prestamo->monto_total ?? 0;
                         $garantiaCliente = $montoCliente * (($prestamo->garantia ?? 0) / 100);
-                        $seguroCliente = $montoCliente * 0.02;
+                        $seguroCliente = calcularComision($montoCliente);
                         $efectivoCliente = $montoCliente - $garantiaCliente - $seguroCliente;
                         
                         // Calcular interés usando la misma fórmula del calendario
@@ -700,7 +729,7 @@
                         @php
                             $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
                             $garantiaCliente = $montoCliente * (($prestamo->garantia ?? 0) / 100);
-                            $seguroCliente = $montoCliente * 0.02;
+                            $seguroCliente = calcularComision($montoCliente);
                             $efectivoCliente = $montoCliente - $garantiaCliente - $seguroCliente;
                             $tasaCliente = $prestamo->tasa_interes ?? 0;
                             
