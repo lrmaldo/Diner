@@ -669,9 +669,9 @@
                     <td>${{ number_format($totalGarantia, 0) }}</td>
                     <td>${{ number_format($totalSeguro, 0) }}</td>
                     <td>${{ number_format($totalEfectivo, 0) }}</td>
-                    <td>{{ $prestamo->tasa_interes ?? 0 }}%</td>
+                    <td>{{ number_format((float)($prestamo->tasa_interes ?? 0), 1) }}%</td>
                     <td>${{ number_format($totalInteres, 0) }}</td>
-                    <td>{{ \App\Models\Configuration::get('iva_percentage', 16) }}%</td>
+                    <td>{{ number_format((float)\App\Models\Configuration::get('iva_percentage', 16), 1) }}%</td>
                     <td>${{ number_format($totalIva, 0) }}</td>
                     <td>{{ $fechaVencimiento }}</td>
                 </tr>
@@ -725,9 +725,9 @@
                             <td>{{ number_format($garantiaCliente, 0) }}</td>
                             <td>{{ number_format($seguroCliente, 0) }}</td>
                             <td>{{ number_format($efectivoCliente, 0) }}</td>
-                            <td>{{ $tasaCliente }}%</td>
+                            <td>{{ number_format((float)$tasaCliente, 1) }}%</td>
                             <td>{{ number_format($interesCliente, 0) }}</td>
-                            <td>{{ $ivaPorcentajeCliente }}%</td>
+                            <td>{{ number_format((float)$ivaPorcentajeCliente, 1) }}%</td>
                             <td>{{ number_format($ivaCliente, 0) }}</td>
                         </tr>
                     @endforeach
@@ -761,9 +761,9 @@
                             <td>{{ number_format($garantiaCliente, 0) }}</td>
                             <td>{{ number_format($seguroCliente, 0) }}</td>
                             <td>{{ number_format($efectivoCliente, 0) }}</td>
-                            <td>{{ $tasaCliente }}%</td>
+                            <td>{{ number_format((float)$tasaCliente, 1) }}%</td>
                             <td>{{ number_format($interesCliente, 0) }}</td>
-                            <td>{{ $ivaPorcentajeCliente }}%</td>
+                            <td>{{ number_format((float)$ivaPorcentajeCliente, 1) }}%</td>
                             <td>{{ number_format($ivaCliente, 0) }}</td>
                         </tr>
                     @endif
@@ -795,13 +795,28 @@
                 </tr>
             </thead>
             <tbody>
+                @php
+                    // Calcular exigible: capital + interés + iva
+                    $exigibleTotal = $totalCredito + $totalInteres + $totalIva;
+                    
+                    // Calcular recuperado: suma de todos los pagos realizados
+                    // Por ahora esto estará en 0 hasta que se implementen los pagos
+                    $recuperadoTotal = 0;
+                    
+                    // Garantía pendiente para futuro
+                    $garantiaRecuperaciones = 0;
+                    
+                    // Penalización: suma de multas pagadas
+                    // Por ahora en 0 hasta que se implementen las multas
+                    $penalizacionTotal = 0;
+                @endphp
                 <tr>
-                    <td>15-03-26</td>
+                    <td>{{ $fechaVencimiento }}</td>
                     <td></td>
-                    <td>12,288</td>
-                    <td>2,265</td>
-                    <td>0</td>
-                    <td>0</td>
+                    <td>{{ number_format($exigibleTotal, 0) }}</td>
+                    <td>{{ number_format($recuperadoTotal, 0) }}</td>
+                    <td>{{ number_format($garantiaRecuperaciones, 0) }}</td>
+                    <td>{{ number_format($penalizacionTotal, 0) }}</td>
                     <td>0</td>
                     <td>0</td>
                     <td>0</td>
@@ -887,17 +902,90 @@
                 </tr>
             </thead>
             <tbody>
+                @php
+                    // Obtener configuración del préstamo
+                    $plazoNormSaldos = strtolower(trim($prestamo->plazo ?? '4meses'));
+                    $periodicidadNormSaldos = strtolower(trim($prestamo->periodicidad ?? 'semanal'));
+                    $configSaldos = determinarConfiguracionPago($plazoNormSaldos, $periodicidadNormSaldos);
+                    
+                    if ($configSaldos) {
+                        $mesesInteresSaldos = $configSaldos['meses_interes'];
+                        $numeroPagosSaldos = $configSaldos['total_pagos'];
+                    } else {
+                        $mesesInteresSaldos = 4;
+                        $numeroPagosSaldos = 16;
+                    }
+                    
+                    // Monto del crédito
+                    $montoCredito = $totalCredito;
+                    
+                    // Calcular pago por mil (monto de cada pago)
+                    $pagosPorMil = !empty($calendarioPagos) ? $calendarioPagos[0]['monto'] : 0;
+                    
+                    // Sumatoria de pagos realizados (actualmente 0, pendiente sistema de pagos)
+                    $sumatoriaPagos = 0;
+                    
+                    // Monto vencido (actualmente 0, pendiente sistema de pagos)
+                    $montoVencido = 0;
+                    
+                    // Fórmula 1: Capital vigente = monto del crédito - ((sumatoria pagos/pago por mil)/(1000/numero pagos))
+                    $capitalVigente = $montoCredito;
+                    if ($pagosPorMil > 0) {
+                        $capitalVigente = $montoCredito - (($sumatoriaPagos / $pagosPorMil) / (1000 / $numeroPagosSaldos));
+                    }
+                    
+                    // Calcular interés e IVA base
+                    $interesBase = (($montoCredito / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
+                    $ivaPorcentajeSaldos = \App\Models\Configuration::get('iva_percentage', 16);
+                    $ivaBase = ($interesBase / 100) * $ivaPorcentajeSaldos;
+                    
+                    // Fórmula 2: Interés vigente = (((monto/100)*interés)*plazo)-(((sumatoria pagos/pago por mil)/((((monto/100)*interés)*plazo)/numero pagos))
+                    $interesVigente = $interesBase;
+                    if ($pagosPorMil > 0 && $interesBase > 0) {
+                        $interesVigente = $interesBase - (($sumatoriaPagos / $pagosPorMil) / ($interesBase / $numeroPagosSaldos));
+                    }
+                    
+                    // Fórmula 3: IVA vigente = ((((monto/100)*interés)*plazo)*IVA)-((sumatoria pagos/pago por mil)/(((((monto/100)*interés)*plazo)*IVA)/numero pagos))
+                    $ivaVigente = $ivaBase;
+                    if ($pagosPorMil > 0 && $ivaBase > 0) {
+                        $ivaVigente = $ivaBase - (($sumatoriaPagos / $pagosPorMil) / ($ivaBase / $numeroPagosSaldos));
+                    }
+                    
+                    // Fórmula 4: Capital vencido = ((monto_vencido/pago por mil))*(1000/numero pagos)
+                    $capitalVencido = 0;
+                    if ($pagosPorMil > 0) {
+                        $capitalVencido = ($montoVencido / $pagosPorMil) * (1000 / $numeroPagosSaldos);
+                    }
+                    
+                    // Fórmula 5: Interés vencido = (monto_vencido/pago por mil)*((((monto/100)*interés)*plazo)/numero pagos)
+                    $interesVencido = 0;
+                    if ($pagosPorMil > 0 && $interesBase > 0) {
+                        $interesVencido = ($montoVencido / $pagosPorMil) * ($interesBase / $numeroPagosSaldos);
+                    }
+                    
+                    // Fórmula 6: IVA vencido = (monto_vencido/pago por mil)*(((((monto/100))*interés)*plazo)*iva)/numero pagos
+                    $ivaVencido = 0;
+                    if ($pagosPorMil > 0 && $ivaBase > 0) {
+                        $ivaVencido = ($montoVencido / $pagosPorMil) * ($ivaBase / $numeroPagosSaldos);
+                    }
+                    
+                    // Calcular totales
+                    $saldoTotal = $capitalVigente + $interesVigente + $ivaVigente;
+                    $adeudoTotal = $capitalVencido + $interesVencido + $ivaVencido;
+                    $atrasos = 0; // Pendiente: calcular número de pagos atrasados
+                    $garantiaSaldos = $totalGarantia;
+                @endphp
                 <tr>
-                    <td class="label">10,000</td>
-                    <td>1,800</td>
-                    <td>288</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
-                    <td>12,088</td>
-                    <td>0</td>
-                    <td>0</td>
+                    <td class="label">{{ number_format($capitalVigente, 0) }}</td>
+                    <td>{{ number_format($interesVigente, 0) }}</td>
+                    <td>{{ number_format($ivaVigente, 0) }}</td>
+                    <td>{{ number_format($capitalVencido, 0) }}</td>
+                    <td>{{ number_format($interesVencido, 0) }}</td>
+                    <td>{{ number_format($ivaVencido, 0) }}</td>
+                    <td>{{ $atrasos }}</td>
+                    <td>{{ number_format($saldoTotal, 0) }}</td>
+                    <td>{{ number_format($adeudoTotal, 0) }}</td>
+                    <td>{{ number_format($garantiaSaldos, 0) }}</td>
                 </tr>
             </tbody>
         </table>
@@ -924,44 +1012,132 @@
                     @foreach($prestamo->clientes as $cliente)
                         @php
                             $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
-                            $tasaDecimal = ($prestamo->tasa_interes ?? 0) / 100;
-                            $interesCliente = $montoCliente * $tasaDecimal;
-                            $ivaCliente = $interesCliente * 0.16;
-                            $totalCliente = $montoCliente + $interesCliente + $ivaCliente;
+                            
+                            // Sumatoria de pagos del cliente (0 por ahora)
+                            $sumatoriaPagosCliente = 0;
+                            $montoVencidoCliente = 0;
+                            
+                            // Capital vigente del cliente
+                            $capitalVigenteCliente = $montoCliente;
+                            if ($pagosPorMil > 0) {
+                                $capitalVigenteCliente = $montoCliente - (($sumatoriaPagosCliente / $pagosPorMil) / (1000 / $numeroPagosSaldos));
+                            }
+                            
+                            // Interés e IVA base del cliente
+                            $interesBaseCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
+                            $ivaBaseCliente = ($interesBaseCliente / 100) * $ivaPorcentajeSaldos;
+                            
+                            // Interés vigente del cliente
+                            $interesVigenteCliente = $interesBaseCliente;
+                            if ($pagosPorMil > 0 && $interesBaseCliente > 0) {
+                                $interesVigenteCliente = $interesBaseCliente - (($sumatoriaPagosCliente / $pagosPorMil) / ($interesBaseCliente / $numeroPagosSaldos));
+                            }
+                            
+                            // IVA vigente del cliente
+                            $ivaVigenteCliente = $ivaBaseCliente;
+                            if ($pagosPorMil > 0 && $ivaBaseCliente > 0) {
+                                $ivaVigenteCliente = $ivaBaseCliente - (($sumatoriaPagosCliente / $pagosPorMil) / ($ivaBaseCliente / $numeroPagosSaldos));
+                            }
+                            
+                            // Capital vencido del cliente
+                            $capitalVencidoCliente = 0;
+                            if ($pagosPorMil > 0) {
+                                $capitalVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * (1000 / $numeroPagosSaldos);
+                            }
+                            
+                            // Interés vencido del cliente
+                            $interesVencidoCliente = 0;
+                            if ($pagosPorMil > 0 && $interesBaseCliente > 0) {
+                                $interesVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * ($interesBaseCliente / $numeroPagosSaldos);
+                            }
+                            
+                            // IVA vencido del cliente
+                            $ivaVencidoCliente = 0;
+                            if ($pagosPorMil > 0 && $ivaBaseCliente > 0) {
+                                $ivaVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * ($ivaBaseCliente / $numeroPagosSaldos);
+                            }
+                            
+                            $atrasosCliente = 0;
+                            $saldoMoratorioCliente = 0;
+                            $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente;
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($cliente->nombres . ' ' . $cliente->apellido_paterno . ' ' . $cliente->apellido_materno)) }}</td>
-                            <td>{{ number_format($montoCliente, 0) }}</td>
-                            <td>{{ number_format($interesCliente, 0) }}</td>
-                            <td>{{ number_format($ivaCliente, 0) }}</td>
-                            <td>0</td>
-                            <td>0</td>
-                            <td>0</td>
-                            <td>0</td>
-                            <td>0</td>
-                            <td>{{ number_format($totalCliente, 0) }}</td>
+                            <td>{{ number_format($capitalVigenteCliente, 0) }}</td>
+                            <td>{{ number_format($interesVigenteCliente, 0) }}</td>
+                            <td>{{ number_format($ivaVigenteCliente, 0) }}</td>
+                            <td>{{ number_format($capitalVencidoCliente, 0) }}</td>
+                            <td>{{ number_format($interesVencidoCliente, 0) }}</td>
+                            <td>{{ number_format($ivaVencidoCliente, 0) }}</td>
+                            <td>{{ $atrasosCliente }}</td>
+                            <td>{{ number_format($saldoMoratorioCliente, 0) }}</td>
+                            <td>{{ number_format($deudaTotalCliente, 0) }}</td>
                         </tr>
                     @endforeach
                 @else
                     @if($prestamo->cliente)
                         @php
                             $montoCliente = $prestamo->monto_total ?? 0;
-                            $tasaDecimal = ($prestamo->tasa_interes ?? 0) / 100;
-                            $interesCliente = $montoCliente * $tasaDecimal;
-                            $ivaCliente = $interesCliente * 0.16;
-                            $totalCliente = $montoCliente + $interesCliente + $ivaCliente;
+                            
+                            // Sumatoria de pagos del cliente (0 por ahora)
+                            $sumatoriaPagosCliente = 0;
+                            $montoVencidoCliente = 0;
+                            
+                            // Capital vigente del cliente
+                            $capitalVigenteCliente = $montoCliente;
+                            if ($pagosPorMil > 0) {
+                                $capitalVigenteCliente = $montoCliente - (($sumatoriaPagosCliente / $pagosPorMil) / (1000 / $numeroPagosSaldos));
+                            }
+                            
+                            // Interés e IVA base del cliente
+                            $interesBaseCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
+                            $ivaBaseCliente = ($interesBaseCliente / 100) * $ivaPorcentajeSaldos;
+                            
+                            // Interés vigente del cliente
+                            $interesVigenteCliente = $interesBaseCliente;
+                            if ($pagosPorMil > 0 && $interesBaseCliente > 0) {
+                                $interesVigenteCliente = $interesBaseCliente - (($sumatoriaPagosCliente / $pagosPorMil) / ($interesBaseCliente / $numeroPagosSaldos));
+                            }
+                            
+                            // IVA vigente del cliente
+                            $ivaVigenteCliente = $ivaBaseCliente;
+                            if ($pagosPorMil > 0 && $ivaBaseCliente > 0) {
+                                $ivaVigenteCliente = $ivaBaseCliente - (($sumatoriaPagosCliente / $pagosPorMil) / ($ivaBaseCliente / $numeroPagosSaldos));
+                            }
+                            
+                            // Capital vencido del cliente
+                            $capitalVencidoCliente = 0;
+                            if ($pagosPorMil > 0) {
+                                $capitalVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * (1000 / $numeroPagosSaldos);
+                            }
+                            
+                            // Interés vencido del cliente
+                            $interesVencidoCliente = 0;
+                            if ($pagosPorMil > 0 && $interesBaseCliente > 0) {
+                                $interesVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * ($interesBaseCliente / $numeroPagosSaldos);
+                            }
+                            
+                            // IVA vencido del cliente
+                            $ivaVencidoCliente = 0;
+                            if ($pagosPorMil > 0 && $ivaBaseCliente > 0) {
+                                $ivaVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * ($ivaBaseCliente / $numeroPagosSaldos);
+                            }
+                            
+                            $atrasosCliente = 0;
+                            $saldoMoratorioCliente = 0;
+                            $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente;
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($prestamo->cliente->nombres . ' ' . $prestamo->cliente->apellido_paterno . ' ' . $prestamo->cliente->apellido_materno)) }}</td>
-                            <td>{{ number_format($montoCliente, 0) }}</td>
-                            <td>{{ number_format($interesCliente, 0) }}</td>
-                            <td>{{ number_format($ivaCliente, 0) }}</td>
-                            <td>0</td>
-                            <td>0</td>
-                            <td>0</td>
-                            <td>0</td>
-                            <td>0</td>
-                            <td>{{ number_format($totalCliente, 0) }}</td>
+                            <td>{{ number_format($capitalVigenteCliente, 0) }}</td>
+                            <td>{{ number_format($interesVigenteCliente, 0) }}</td>
+                            <td>{{ number_format($ivaVigenteCliente, 0) }}</td>
+                            <td>{{ number_format($capitalVencidoCliente, 0) }}</td>
+                            <td>{{ number_format($interesVencidoCliente, 0) }}</td>
+                            <td>{{ number_format($ivaVencidoCliente, 0) }}</td>
+                            <td>{{ $atrasosCliente }}</td>
+                            <td>{{ number_format($saldoMoratorioCliente, 0) }}</td>
+                            <td>{{ number_format($deudaTotalCliente, 0) }}</td>
                         </tr>
                     @endif
                 @endif
