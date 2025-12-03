@@ -12,19 +12,29 @@ class Holidays extends Component
     use WithPagination;
 
     public string $name = '';
+
     public string $date = '';
+
     public string $description = '';
+
     public string $type = 'national';
+
     public bool $isRecurring = false;
+
     public bool $isActive = true;
 
     public ?Holiday $editingHoliday = null;
+
     public bool $showCreateModal = false;
+
     public bool $showEditModal = false;
+
     public bool $showSuccessMessage = false;
 
     public string $filterYear = '';
+
     public string $filterType = '';
+
     public bool $showActiveOnly = true;
 
     protected array $rules = [
@@ -185,7 +195,7 @@ class Holidays extends Component
 
     public function toggleActive(Holiday $holiday): void
     {
-        $holiday->update(['is_active' => !$holiday->is_active]);
+        $holiday->update(['is_active' => ! $holiday->is_active]);
         $this->showSuccessMessage = true;
 
         // Auto-hide success message after 3 seconds

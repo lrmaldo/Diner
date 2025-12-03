@@ -2,17 +2,21 @@
 
 namespace App\Livewire\Users;
 
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 
 class Create extends Component
 {
     public $name = '';
+
     public $email = '';
+
     public $password = '';
+
     public $password_confirmation = '';
+
     public $selectedRoles = [];
 
     protected function rules(): array

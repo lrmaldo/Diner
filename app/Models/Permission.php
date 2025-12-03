@@ -107,7 +107,7 @@ class Permission extends Model implements PermissionContract
             $permission = static::create([
                 'name' => $name,
                 'guard_name' => $guardName,
-                'slug' => \Str::slug($name)
+                'slug' => \Str::slug($name),
             ]);
         }
 

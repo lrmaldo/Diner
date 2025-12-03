@@ -2,36 +2,58 @@
 
 namespace App\Livewire\Clients;
 
-use Livewire\Component;
 use App\Models\Cliente;
+use Livewire\Component;
 
 class Edit extends Component
 {
     public Cliente $cliente;
+
     public $phones = [];
+
     public $phoneToDeleteIndex = null;
 
     // Campos del cliente (propiedades públicas para enlazado seguro en Livewire)
     public $apellido_paterno;
+
     public $apellido_materno;
+
     public $nombres;
+
     public $curp;
+
     public $email;
+
     public $pais_nacimiento;
+
     public $nombre_conyuge;
+
     public $calle_numero;
+
     public $referencia_domiciliaria;
+
     public $estado_civil;
+
     public $dependientes_economicos;
+
     public $nombre_aval;
+
     public $actividad_productiva;
+
     public $anios_experiencia;
+
     public $ingreso_mensual;
+
     public $gasto_mensual_familiar;
+
     public $credito_solicitado;
+
     public $estado;
+
     public $municipio;
+
     public $colonia;
+
     public $codigo_postal;
 
     protected function rules(): array
@@ -188,7 +210,7 @@ class Edit extends Component
         }
         // Borrar los telefonos que no fueron enviados
         $toDelete = array_diff($existing, $sentIds);
-        if (!empty($toDelete)) {
+        if (! empty($toDelete)) {
             $this->cliente->telefonos()->whereIn('id', $toDelete)->delete();
         }
 

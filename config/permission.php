@@ -2,7 +2,7 @@
 
 return [
 
-        'models' => [
+    'models' => [
 
         /*
          * When using the "HasPermissions" trait from this package, we need to know which

@@ -159,7 +159,7 @@ class Edit extends Component
         $this->comentarios_comite = $prestamo->comentarios_comite ?? '';
 
         // Cargar lista de asesores disponibles
-        $this->asesores = User::whereHas('roles', function($query) {
+        $this->asesores = User::whereHas('roles', function ($query) {
             $query->where('name', 'Asesor');
         })->get();
 
@@ -671,7 +671,7 @@ class Edit extends Component
         $prestamo->estado = 'en_comite';
         $prestamo->save();
 
-        $prestamo->registrarBitacora('en_comite', 'Enviado a comité. ' . ($prestamo->comentarios_comite ? 'Comentarios: ' . $prestamo->comentarios_comite : ''));
+        $prestamo->registrarBitacora('en_comite', 'Enviado a comité. '.($prestamo->comentarios_comite ? 'Comentarios: '.$prestamo->comentarios_comite : ''));
 
         // Recargar para confirmar que se guardó
         $prestamo->refresh();

@@ -2,34 +2,57 @@
 
 namespace App\Livewire\Clients;
 
-use Livewire\Component;
 use App\Models\Cliente;
+use Livewire\Component;
 
 class Create extends Component
 {
     public $apellido_paterno;
+
     public $apellido_materno;
+
     public $nombres;
+
     public $curp;
+
     public $email;
+
     public $pais_nacimiento;
+
     public $nombre_conyuge;
+
     public $calle_numero;
+
     public $referencia_domiciliaria;
+
     public $estado_civil;
+
     public $dependientes_economicos = 0;
+
     public $nombre_aval;
+
     public $actividad_productiva;
+
     public $anios_experiencia;
+
     public $ingreso_mensual = 0;
+
     public $gasto_mensual_familiar = 0;
+
     public $credito_solicitado = 0;
+
     public $estado;
+
     public $municipio;
+
     public $colonia;
+
     public $codigo_postal;
+
     public $telefono;
+
     public $phones = [];
+
     public $phoneToDeleteIndex = null;
 
     protected function rules(): array

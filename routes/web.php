@@ -99,6 +99,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/prestamos/{prestamo}/editar', \App\Livewire\Prestamos\Edit::class)->middleware('permission:editar prestamos')->name('prestamos.edit');
     });
 
+    // Rutas para pagos/cobros
+    Route::middleware(['permission:ver prestamos'])->group(function () {
+        Route::get('/pagos', \App\Livewire\Pagos\Index::class)->name('pagos.index');
+        Route::get('/pagos/cobro-grupal/{prestamoId}', \App\Livewire\Pagos\CobroGrupal::class)->name('pagos.cobro-grupal');
+        Route::get('/pagos/desglose-efectivo/{prestamoId}', \App\Livewire\Pagos\DesgloseEfectivo::class)->name('pagos.desglose-efectivo');
+    });
+
     // Ruta para historial de clientes
     Route::middleware(['permission:ver clientes'])->group(function () {
         Route::get('/clientes/{id}/historial', function ($id) {

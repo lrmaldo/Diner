@@ -61,6 +61,14 @@ class Prestamo extends Model
         return $this->belongsTo(Cliente::class, 'representante_id');
     }
 
+    /**
+     * Grupo al que pertenece el préstamo (solo para préstamos grupales)
+     */
+    public function grupo()
+    {
+        return $this->belongsTo(Grupo::class, 'grupo_id');
+    }
+
     // relación muchos a muchos para prestamos grupales
     public function clientes()
     {
@@ -96,6 +104,7 @@ class Prestamo extends Model
         // Para individuales, usar el monto_total o buscar en pivot
         if ($this->cliente_id && $this->clientes && $this->clientes->count() > 0) {
             $cliente = $this->clientes->first();
+
             return (float) ($cliente->pivot->monto_solicitado ?? $this->monto_total ?? 0);
         }
 
@@ -135,7 +144,7 @@ class Prestamo extends Model
             if ($cliente->pivot->monto_autorizado === null) {
                 $montoSolicitado = $cliente->pivot->monto_solicitado ?? 0;
                 $this->clientes()->updateExistingPivot($cliente->id, [
-                    'monto_autorizado' => $montoSolicitado
+                    'monto_autorizado' => $montoSolicitado,
                 ]);
             }
         }
@@ -163,6 +172,7 @@ class Prestamo extends Model
         $this->motivo_rechazo = $motivo;
         $this->save();
     }
+
     public function bitacora()
     {
         return $this->hasMany(PrestamoBitacora::class)->orderByDesc('created_at');
@@ -175,5 +185,26 @@ class Prestamo extends Model
             'accion' => $accion,
             'comentarios' => $comentarios,
         ]);
+    }
+
+    public function pagos()
+    {
+        return $this->hasMany(Pago::class)->orderBy('fecha_pago');
+    }
+
+    /**
+     * Calcular el total pagado sumando todos los pagos
+     */
+    public function calcularTotalPagado(): float
+    {
+        return $this->pagos()->sum('monto');
+    }
+
+    /**
+     * Calcular el saldo pendiente
+     */
+    public function calcularSaldoPendiente(): float
+    {
+        return $this->monto_total - $this->calcularTotalPagado();
     }
 }

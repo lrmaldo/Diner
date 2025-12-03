@@ -59,4 +59,9 @@ class Cliente extends Model
             ->withPivot('monto_solicitado', 'monto_sugerido', 'monto_autorizado')
             ->withTimestamps();
     }
+
+    public function getNombreCompletoAttribute()
+    {
+        return trim("{$this->nombres} {$this->apellido_paterno} {$this->apellido_materno}");
+    }
 }

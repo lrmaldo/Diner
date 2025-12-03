@@ -8,8 +8,11 @@ use Livewire\Component;
 class Configurations extends Component
 {
     public $configurations = [];
+
     public $editingConfig = null;
+
     public $editValue = '';
+
     public $showSuccessMessage = false;
 
     // Configuraciones por defecto del sistema
@@ -94,8 +97,9 @@ class Configurations extends Component
     {
         $config = Configuration::find($configId);
 
-        if (!$config || !$config->editable) {
+        if (! $config || ! $config->editable) {
             $this->addError('general', 'No se puede editar esta configuración.');
+
             return;
         }
 

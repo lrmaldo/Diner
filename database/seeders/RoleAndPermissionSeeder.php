@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use App\Models\User;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleAndPermissionSeeder extends Seeder
 {
@@ -114,11 +114,11 @@ class RoleAndPermissionSeeder extends Seeder
         // Crear un usuario administrador por defecto
         $admin = User::where('email', 'admin@diner.com')->first();
 
-        if (!$admin) {
+        if (! $admin) {
             $admin = User::factory()->create([
                 'name' => 'Administrador',
                 'email' => 'admin@diner.com',
-                'password' => bcrypt('password')
+                'password' => bcrypt('password'),
             ]);
         }
 
@@ -127,11 +127,11 @@ class RoleAndPermissionSeeder extends Seeder
         // Crear un usuario cajero por defecto
         $cashier = User::where('email', 'cajero@diner.com')->first();
 
-        if (!$cashier) {
+        if (! $cashier) {
             $cashier = User::factory()->create([
                 'name' => 'Cajero',
                 'email' => 'cajero@diner.com',
-                'password' => bcrypt('password')
+                'password' => bcrypt('password'),
             ]);
         }
 
@@ -143,7 +143,7 @@ class RoleAndPermissionSeeder extends Seeder
             $asesor = User::factory()->create([
                 'name' => 'Asesor',
                 'email' => 'asesor@diner.com',
-                'password' => bcrypt('password')
+                'password' => bcrypt('password'),
             ]);
         }
 

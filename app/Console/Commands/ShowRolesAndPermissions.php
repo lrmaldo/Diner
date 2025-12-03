@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\Role;
 use App\Models\Permission;
+use App\Models\Role;
 use App\Models\User;
+use Illuminate\Console\Command;
 
 class ShowRolesAndPermissions extends Command
 {
@@ -36,11 +36,11 @@ class ShowRolesAndPermissions extends Command
         } else {
             foreach ($roles as $role) {
                 $this->line(" - {$role->name}");
-                $this->info("   Permisos:");
+                $this->info('   Permisos:');
 
                 $perms = $role->permissions()->get();
                 if ($perms->isEmpty()) {
-                    $this->warn("     No tiene permisos asignados");
+                    $this->warn('     No tiene permisos asignados');
                 } else {
                     foreach ($perms as $perm) {
                         $this->line("     * {$perm->name}");
@@ -70,11 +70,11 @@ class ShowRolesAndPermissions extends Command
         } else {
             foreach ($users as $user) {
                 $this->line(" - {$user->name} ({$user->email})");
-                $this->info("   Roles:");
+                $this->info('   Roles:');
 
                 $userRoles = $user->roles()->get();
                 if ($userRoles->isEmpty()) {
-                    $this->warn("     No tiene roles asignados");
+                    $this->warn('     No tiene roles asignados');
                 } else {
                     foreach ($userRoles as $role) {
                         $this->line("     * {$role->name}");

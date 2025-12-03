@@ -374,12 +374,14 @@ class Create extends Component
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::debug('crearPrestamo: Error de validación', ['errors' => $e->errors()]);
             $this->showMessage('error', 'Por favor corrige los errores en el formulario antes de continuar.');
+
             return;
         }
 
         if ($this->getErrorBag()->isNotEmpty()) {
             \Log::debug('crearPrestamo: Errores en errorBag', ['errors' => $this->getErrorBag()->toArray()]);
             $this->showMessage('error', 'Por favor corrige los errores marcados en el formulario.');
+
             return;
         }
 
@@ -433,7 +435,7 @@ class Create extends Component
 
         \Log::debug('crearPrestamo: Préstamo creado exitosamente', [
             'prestamo_id' => $prestamo->id,
-            'step' => $this->step
+            'step' => $this->step,
         ]);
     }
 

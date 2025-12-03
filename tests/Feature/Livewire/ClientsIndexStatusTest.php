@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Livewire;
 
-use Tests\TestCase;
-use Livewire\Livewire;
-use App\Models\User;
 use App\Models\Cliente;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
 
 class ClientsIndexStatusTest extends TestCase
 {

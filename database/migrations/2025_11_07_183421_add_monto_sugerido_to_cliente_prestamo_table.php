@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('cliente_prestamo', function (Blueprint $table) {
             // Solo agregar la columna si no existe
-            if (!Schema::hasColumn('cliente_prestamo', 'monto_sugerido')) {
+            if (! Schema::hasColumn('cliente_prestamo', 'monto_sugerido')) {
                 $table->decimal('monto_sugerido', 10, 2)->nullable()->after('monto_solicitado');
             }
         });

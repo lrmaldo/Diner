@@ -829,26 +829,31 @@
                     $exigibleTotal = $totalCredito + $totalInteres + $totalIva;
                     
                     // Calcular recuperado: suma de todos los pagos realizados
-                    // Por ahora esto estará en 0 hasta que se implementen los pagos
-                    $recuperadoTotal = 0;
+                    $recuperadoTotal = $prestamo->pagos()->sum('monto');
+                    
+                    // Calcular moratorio pagado
+                    $moratorioRecuperado = $prestamo->pagos()->sum('moratorio_pagado');
                     
                     // Garantía pendiente para futuro
                     $garantiaRecuperaciones = 0;
                     
-                    // Penalización: suma de multas pagadas
-                    // Por ahora en 0 hasta que se implementen las multas
+                    // Penalización: suma de multas pagadas (futuro)
                     $penalizacionTotal = 0;
+
+                    // Obtener la fecha del último pago si existe
+                    $ultimoPagoRealizado = $prestamo->pagos()->latest('fecha_pago')->first();
+                    $fechaUltimoPago = $ultimoPagoRealizado ? $ultimoPagoRealizado->fecha_pago->format('d-m-y') : '';
                 @endphp
                 <tr>
                     <td>{{ $fechaVencimiento }}</td>
-                    <td></td>
+                    <td>{{ $fechaUltimoPago }}</td>
                     <td>{{ number_format($exigibleTotal, 0) }}</td>
                     <td>{{ number_format($recuperadoTotal, 0) }}</td>
                     <td>{{ number_format($garantiaRecuperaciones, 0) }}</td>
                     <td>{{ number_format($penalizacionTotal, 0) }}</td>
+                    <td>{{ number_format($moratorioRecuperado, 0) }}</td>
                     <td>0</td>
-                    <td>0</td>
-                    <td>0</td>
+                    <td>{{ number_format($moratorioRecuperado, 0) }}</td>
                     <td>0</td>
                 </tr>
             </tbody>
@@ -897,15 +902,34 @@
                         $ultimoPago,
                         'martes'
                     );
+
+                    // Obtener todos los pagos registrados del préstamo
+                    $pagosRegistrados = $prestamo->pagos()
+                        ->whereNotNull('numero_pago')
+                        ->get()
+                        ->groupBy('numero_pago');
                 @endphp
                 
                 @foreach($calendarioPagos as $pago)
+                    @php
+                        // Buscar si existe un pago registrado para este número
+                        $pagoRealizado = $pagosRegistrados->get($pago['numero']);
+                        $fechaPagoReal = '';
+                        $montoPagado = 0;
+                        
+                        if ($pagoRealizado && $pagoRealizado->isNotEmpty()) {
+                            // Si hay múltiples pagos (varios clientes), sumar los montos
+                            $montoPagado = $pagoRealizado->sum('monto');
+                            // Usar la fecha del primer pago registrado
+                            $fechaPagoReal = $pagoRealizado->first()->fecha_pago->format('d-m-y');
+                        }
+                    @endphp
                     <tr @if($pago['numero'] % 2 == 0) style="background-color: #f3f4f6;" @endif>
                         <td>{{ $pago['numero'] }}</td>
                         <td>{{ $pago['fecha'] }}</td>
-                        <td></td>
+                        <td>{{ $fechaPagoReal }}</td>
                         <td>{{ number_format($pago['monto'], 0) }}</td>
-                        <td></td>
+                        <td>{{ $montoPagado > 0 ? number_format($montoPagado, 0) : '' }}</td>
                         <td></td>
                         <td colspan="4"></td>
                     </tr>

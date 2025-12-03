@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Users;
 
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -12,9 +12,13 @@ class Index extends Component
     use WithPagination;
 
     public $search = '';
+
     public $perPage = 10;
+
     public $roleFilter = '';
+
     public $showDeleteModal = false;
+
     public $userIdToDelete = null;
 
     protected $listeners = ['user-created' => 'refreshUsers', 'user-updated' => 'refreshUsers'];
@@ -40,7 +44,7 @@ class Index extends Component
         if ($this->userIdToDelete) {
             $user = User::find($this->userIdToDelete);
 
-            if ($user && !$user->isAdmin()) {
+            if ($user && ! $user->isAdmin()) {
                 $user->delete();
                 session()->flash('status', 'Usuario eliminado exitosamente.');
             } else {
@@ -74,7 +78,7 @@ class Index extends Component
 
         return view('livewire.users.index', [
             'users' => $users,
-            'allRoles' => $allRoles
+            'allRoles' => $allRoles,
         ]);
     }
 }

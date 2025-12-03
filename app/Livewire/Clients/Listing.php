@@ -2,18 +2,22 @@
 
 namespace App\Livewire\Clients;
 
+use App\Models\Cliente;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Cliente;
 
 class Listing extends Component
 {
     use WithPagination;
 
     public $search = '';
+
     public $perPage = 10;
+
     public $filterEstado = '';
+
     public $filterMunicipio = '';
+
     public $confirmingDeleteId = null;
 
     protected $updatesQueryString = ['search'];
@@ -66,6 +70,7 @@ class Listing extends Component
         if (! auth()->user() || ! auth()->user()->can('eliminar clientes')) {
             $this->dispatch('client-deleted', ['success' => false, 'message' => 'No tienes permiso para eliminar clientes.']);
             $this->confirmingDeleteId = null;
+
             return;
         }
 
@@ -73,6 +78,7 @@ class Listing extends Component
         if (! $cliente) {
             $this->dispatch('client-deleted', ['success' => false, 'message' => 'Cliente no encontrado.']);
             $this->confirmingDeleteId = null;
+
             return;
         }
 

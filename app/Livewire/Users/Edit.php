@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Users;
 
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -13,9 +13,13 @@ class Edit extends Component
     public User $user;
 
     public $name = '';
+
     public $email = '';
+
     public $password = '';
+
     public $password_confirmation = '';
+
     public $selectedRoles = [];
 
     public function mount(User $user)
@@ -59,7 +63,7 @@ class Edit extends Component
             'email' => $this->email,
         ];
 
-        if (!empty($this->password)) {
+        if (! empty($this->password)) {
             $data['password'] = Hash::make($this->password);
         }
 

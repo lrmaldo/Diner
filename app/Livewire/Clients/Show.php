@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Clients;
 
-use Livewire\Component;
 use App\Models\Cliente;
+use Livewire\Component;
 
 class Show extends Component
 {

@@ -85,7 +85,7 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::create([
                 'name' => $name,
                 'slug' => Str::slug($name),
-                'guard_name' => 'web'
+                'guard_name' => 'web',
             ]);
         }
 
@@ -93,7 +93,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $adminRole = Role::create([
             'name' => 'Administrador',
             'slug' => 'administrador',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         // Asignar todos los permisos al rol Administrador
@@ -103,7 +103,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $cajeroRole = Role::create([
             'name' => 'Cajero',
             'slug' => 'cajero',
-            'guard_name' => 'web'
+            'guard_name' => 'web',
         ]);
 
         // Asignar permisos limitados al rol Cajero

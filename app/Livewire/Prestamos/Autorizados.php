@@ -12,12 +12,18 @@ class Autorizados extends Component
 
     // Búsqueda y filtros
     public $search = '';
+
     public $producto = '';
+
     public $fechaDesde = '';
+
     public $fechaHasta = '';
+
     public $perPage = 10;
+
     // Nuevos: ver anteriores y búsqueda por grupo
     public $verAnteriores = false;
+
     public $grupo = '';
 
     public function mount(): void
@@ -88,7 +94,7 @@ class Autorizados extends Component
             ->where('estado', 'autorizado'); // Solo préstamos autorizados
 
         // Búsqueda por folio o nombre del cliente
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where(function ($q) {
                 $q->where('id', 'like', "%{$this->search}%")
                     ->orWhereHas('cliente', function ($q2) {
@@ -100,14 +106,14 @@ class Autorizados extends Component
         }
 
         // Filtro por tipo de producto
-        if (!empty($this->producto)) {
+        if (! empty($this->producto)) {
             $query->where('producto', $this->producto);
         }
 
         // Si está activado ver anteriores, omitimos filtro por fecha_entrega
         if ($this->verAnteriores) {
             // Si ingresaron un grupo, buscar por id (grupo) o folio
-            if (!empty($this->grupo)) {
+            if (! empty($this->grupo)) {
                 $query->where(function ($q) {
                     $q->where('id', $this->grupo)
                         ->orWhere('folio', $this->grupo);
@@ -116,11 +122,11 @@ class Autorizados extends Component
             // si verAnteriores está activo y no hay grupo, no aplicamos filtro por fecha
         } else {
             // Filtro por fecha de entrega: por defecto ambas fechas serán hoy
-            if (!empty($this->fechaDesde)) {
+            if (! empty($this->fechaDesde)) {
                 $query->whereDate('fecha_entrega', '>=', $this->fechaDesde);
             }
 
-            if (!empty($this->fechaHasta)) {
+            if (! empty($this->fechaHasta)) {
                 $query->whereDate('fecha_entrega', '<=', $this->fechaHasta);
             }
         }

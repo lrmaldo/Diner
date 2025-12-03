@@ -2,21 +2,28 @@
 
 namespace App\Livewire\Clients;
 
+use App\Models\Cliente;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Cliente;
 
 class Index extends Component
 {
     use WithPagination;
 
     public $search = '';
+
     public $perPage = 10;
+
     public $filterEstado = '';
+
     public $filterMunicipio = '';
+
     public $confirmingDeleteId = null;
+
     public ?string $statusMessage = null;
+
     public ?string $statusType = null; // success | error
+
     public int $statusTimeout = 5000; // ms
 
     protected $updatesQueryString = ['search'];
@@ -83,6 +90,7 @@ class Index extends Component
             $this->statusType = 'error';
             $this->statusMessage = 'No tienes permiso para eliminar clientes.';
             $this->confirmingDeleteId = null;
+
             return;
         }
 
@@ -91,6 +99,7 @@ class Index extends Component
             $this->statusType = 'error';
             $this->statusMessage = 'Cliente no encontrado.';
             $this->confirmingDeleteId = null;
+
             return;
         }
 
@@ -109,10 +118,10 @@ class Index extends Component
         $clientes = Cliente::query()
             ->when($this->search, function ($q) {
                 $q->where('nombres', 'like', "%{$this->search}%")
-                  ->orWhere('apellido_paterno', 'like', "%{$this->search}%")
-                  ->orWhere('apellido_materno', 'like', "%{$this->search}%")
-                  ->orWhere('email', 'like', "%{$this->search}%")
-                  ->orWhere('curp', 'like', "%{$this->search}%");
+                    ->orWhere('apellido_paterno', 'like', "%{$this->search}%")
+                    ->orWhere('apellido_materno', 'like', "%{$this->search}%")
+                    ->orWhere('email', 'like', "%{$this->search}%")
+                    ->orWhere('curp', 'like', "%{$this->search}%");
             })
             ->when($this->filterEstado, function ($q) {
                 $q->where('estado', $this->filterEstado);
