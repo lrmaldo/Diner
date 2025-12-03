@@ -14,6 +14,17 @@ class Index extends Component
 
     public $notFound = false;
 
+    public $abonos = [];
+    public $selectedClients = [];
+    public $selectAll = false;
+
+    public function updatedSelectAll($value)
+    {
+        foreach ($this->selectedClients as $key => $val) {
+            $this->selectedClients[$key] = $value;
+        }
+    }
+
     public function updatedSearch()
     {
         $this->buscarPrestamo();
@@ -23,6 +34,9 @@ class Index extends Component
     {
         $this->notFound = false;
         $this->prestamo = null;
+        $this->abonos = [];
+        $this->selectedClients = [];
+        $this->selectAll = false;
 
         if (empty($this->search)) {
             return;
@@ -34,6 +48,26 @@ class Index extends Component
 
         if (! $this->prestamo) {
             $this->notFound = true;
+        } else {
+            // Inicializar abonos y selección
+            $clientes = $this->prestamo->producto === 'grupal' 
+                ? $this->prestamo->clientes 
+                : ($this->prestamo->clientes->isNotEmpty() ? $this->prestamo->clientes : collect([$this->prestamo->cliente]));
+
+            foreach ($clientes as $cliente) {
+                $montoAutorizado = 0;
+                if ($this->prestamo->producto === 'grupal') {
+                    $montoAutorizado = $cliente->pivot->monto_autorizado ?? 0;
+                } else {
+                    $montoAutorizado = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
+                }
+
+                $pagoSugerido = $this->calcularCuota($montoAutorizado);
+                
+                $this->abonos[$cliente->id] = $pagoSugerido;
+                $this->selectedClients[$cliente->id] = true;
+            }
+            $this->selectAll = true;
         }
     }
 

@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
     <div class="bg-white shadow-xl rounded-lg overflow-hidden">
         <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
@@ -132,10 +132,24 @@
                                         Pago
                                     </th>
                                     <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Monto Crédito
+                                        Monto
                                     </th>
                                     <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Pago Sugerido
+                                        Pendiente
+                                    </th>
+                                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Moratorio
+                                    </th>
+                                    @if($prestamo->producto === 'grupal')
+                                        <th class="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <div class="flex items-center justify-center gap-1">
+                                                <input type="checkbox" wire:model.live="selectAll" class="rounded border-gray-300 text-red-600 shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50">
+                                                <span class="text-[10px]">Todo</span>
+                                            </div>
+                                        </th>
+                                    @endif
+                                    <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Abono
                                     </th>
                                     <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         Adeudo Total
@@ -145,14 +159,15 @@
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @php
                                     $clientes = $prestamo->producto === 'grupal' ? $prestamo->clientes : ($prestamo->clientes->isNotEmpty() ? $prestamo->clientes : collect([$prestamo->cliente]));
-                                    $totalCredito = 0;
-                                    $totalPago = 0;
+                                    $totalMonto = 0;
+                                    $totalPendiente = 0;
+                                    $totalAbono = 0;
                                     $totalAdeudo = 0;
                                 @endphp
                                 
                                 @foreach($clientes as $cliente)
                                     @php
-                                        // Obtener monto autorizado (si es individual y no está en pivot, usar monto total del préstamo)
+                                        // Obtener monto autorizado
                                         $montoAutorizado = 0;
                                         if ($prestamo->producto === 'grupal') {
                                             $montoAutorizado = $cliente->pivot->monto_autorizado ?? 0;
@@ -160,27 +175,29 @@
                                             $montoAutorizado = $cliente->pivot->monto_autorizado ?? $prestamo->monto_total ?? 0;
                                         }
                                         
-                                        // Calcular pago sugerido usando el método del componente
+                                        // Calcular pago sugerido (Monto)
                                         $pagoSugerido = $this->calcularCuota($montoAutorizado);
                                         
-                                        // Calcular adeudo total (Capital + Interés)
-                                        $tasaInteres = $prestamo->tasa_interes ?? 0;
-                                        // Para el adeudo total, necesitamos saber los meses de interés según la configuración
-                                        // Como no tenemos acceso fácil a 'meses_interes' aquí sin llamar a determinarConfiguracionPago de nuevo,
-                                        // haremos una estimación basada en el pago sugerido * número de pagos, o simplemente Capital + Interés simple
-                                        // Usaremos la lógica simple: Capital + (Capital * Tasa * PlazoEstimado)
-                                        // O mejor: PagoSugerido * NumeroPagos (si pudiéramos obtener numero pagos)
+                                        // Pendiente (Asumimos igual al pago sugerido por ahora)
+                                        $pendiente = $pagoSugerido;
                                         
-                                        // Vamos a usar una aproximación simple para visualización: Capital + Interés Simple del periodo completo
-                                        // O mejor, mostrar el monto autorizado + interés calculado
+                                        // Moratorio
+                                        $moratorio = 0;
+
+                                        // Adeudo Total Estimado
+                                        $tasaInteres = $prestamo->tasa_interes ?? 0;
                                         $interesSimple = $montoAutorizado * ($tasaInteres / 100); 
-                                        // Nota: Esto es inexacto si no consideramos los meses de interés reales, pero sirve de referencia visual rápida
-                                        // Si queremos ser exactos, deberíamos exponer la configuración desde el componente.
-                                        // Por ahora mostraremos Capital + Interés
                                         $adeudoEstimado = $montoAutorizado + $interesSimple;
                                         
-                                        $totalCredito += $montoAutorizado;
-                                        $totalPago += $pagoSugerido;
+                                        $totalMonto += $pagoSugerido;
+                                        $totalPendiente += $pendiente;
+                                        
+                                        // Sumar abono si está definido y seleccionado
+                                        $abonoActual = (float)($abonos[$cliente->id] ?? 0);
+                                        if ($prestamo->producto !== 'grupal' || ($selectedClients[$cliente->id] ?? false)) {
+                                             $totalAbono += $abonoActual;
+                                        }
+                                        
                                         $totalAdeudo += $adeudoEstimado;
 
                                         // Calcular siguiente número de pago
@@ -199,10 +216,26 @@
                                             {{ $siguientePago }}
                                         </td>
                                         <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                                            ${{ number_format($montoAutorizado, 2) }}
-                                        </td>
-                                        <td class="px-3 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900">
                                             ${{ number_format($pagoSugerido, 2) }}
+                                        </td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                            ${{ number_format($pendiente, 2) }}
+                                        </td>
+                                        <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-red-600">
+                                            ${{ number_format($moratorio, 2) }}
+                                        </td>
+                                        @if($prestamo->producto === 'grupal')
+                                            <td class="px-3 py-4 whitespace-nowrap text-center">
+                                                <input type="checkbox" wire:model.live="selectedClients.{{ $cliente->id }}" class="rounded border-gray-300 text-red-600 shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50">
+                                            </td>
+                                        @endif
+                                        <td class="px-3 py-4 whitespace-nowrap text-right">
+                                            <div class="relative rounded-md shadow-sm max-w-[120px] ml-auto">
+                                                <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                                                    <span class="text-gray-500 sm:text-sm">$</span>
+                                                </div>
+                                                <input type="number" wire:model.live.debounce.500ms="abonos.{{ $cliente->id }}" class="focus:ring-red-500 focus:border-red-500 block w-full pl-6 pr-2 sm:text-sm border-gray-300 rounded-md text-right" placeholder="0.00">
+                                            </div>
                                         </td>
                                         <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-500">
                                             ${{ number_format($adeudoEstimado, 2) }}
@@ -213,8 +246,14 @@
                             <tfoot class="bg-gray-50 font-semibold">
                                 <tr>
                                     <td class="px-3 py-4 text-right text-gray-900">Total:</td>
-                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalCredito, 2) }}</td>
-                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalPago, 2) }}</td>
+                                    <td class="px-3 py-4"></td>
+                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalMonto, 2) }}</td>
+                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalPendiente, 2) }}</td>
+                                    <td class="px-3 py-4 text-right text-gray-900">$0.00</td>
+                                    @if($prestamo->producto === 'grupal')
+                                        <td class="px-3 py-4"></td>
+                                    @endif
+                                    <td class="px-3 py-4 text-right text-red-600 text-lg">${{ number_format($totalAbono, 2) }}</td>
                                     <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalAdeudo, 2) }}</td>
                                 </tr>
                             </tfoot>
