@@ -15,6 +15,7 @@ class Index extends Component
     public $notFound = false;
 
     public $abonos = [];
+    public $pendientes = [];
     public $selectedClients = [];
     public $selectAll = false;
 
@@ -35,6 +36,7 @@ class Index extends Component
         $this->notFound = false;
         $this->prestamo = null;
         $this->abonos = [];
+        $this->pendientes = [];
         $this->selectedClients = [];
         $this->selectAll = false;
 
@@ -64,7 +66,26 @@ class Index extends Component
 
                 $pagoSugerido = $this->calcularCuota($montoAutorizado);
                 
-                $this->abonos[$cliente->id] = $pagoSugerido;
+                // Calcular Pendiente
+                $pagosCliente = $this->prestamo->pagos->where('cliente_id', $cliente->id);
+                $totalPagado = $pagosCliente->sum('monto');
+                
+                $pendiente = 0;
+                if ($pagoSugerido > 0) {
+                    $pagoSugeridoCentavos = (int) round($pagoSugerido * 100);
+                    $totalPagadoCentavos = (int) round($totalPagado * 100);
+                    
+                    $restoCentavos = $totalPagadoCentavos % $pagoSugeridoCentavos;
+                    
+                    if ($restoCentavos == 0) {
+                        $pendiente = $pagoSugerido;
+                    } else {
+                        $pendiente = ($pagoSugeridoCentavos - $restoCentavos) / 100;
+                    }
+                }
+
+                $this->pendientes[$cliente->id] = $pendiente;
+                $this->abonos[$cliente->id] = $pendiente; // Sugerir pagar el pendiente exacto
                 $this->selectedClients[$cliente->id] = true;
             }
             $this->selectAll = true;
@@ -169,6 +190,13 @@ class Index extends Component
     public function irACobrar()
     {
         if ($this->prestamo) {
+            // Guardar estado en caché por 5 minutos para recuperarlo en la siguiente vista
+            $cacheKey = 'cobro_data_' . auth()->id() . '_' . $this->prestamo->id;
+            \Illuminate\Support\Facades\Cache::put($cacheKey, [
+                'abonos' => $this->abonos,
+                'selectedClients' => $this->selectedClients,
+            ], now()->addMinutes(5));
+
             return redirect()->route('pagos.desglose-efectivo', $this->prestamo->id);
         }
     }

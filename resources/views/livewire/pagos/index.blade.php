@@ -178,8 +178,8 @@
                                         // Calcular pago sugerido (Monto)
                                         $pagoSugerido = $this->calcularCuota($montoAutorizado);
                                         
-                                        // Pendiente (Asumimos igual al pago sugerido por ahora)
-                                        $pendiente = $pagoSugerido;
+                                        // Pendiente (Calculado en el componente)
+                                        $pendiente = $pendientes[$cliente->id] ?? 0;
                                         
                                         // Moratorio
                                         $moratorio = 0;

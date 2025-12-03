@@ -76,13 +76,31 @@ class DesgloseEfectivo extends Component
             }
         }
 
+        // Intentar recuperar datos de caché enviados desde la vista anterior
+        $cacheKey = 'cobro_data_' . auth()->id() . '_' . $this->prestamo->id;
+        $cachedData = \Illuminate\Support\Facades\Cache::get($cacheKey);
+        // Opcional: Limpiar caché si se desea que sea de un solo uso, pero dejarlo permite recargar la página sin perder datos
+        // \Illuminate\Support\Facades\Cache::forget($cacheKey);
+
         foreach ($this->prestamo->clientes as $cliente) {
             $montoAutorizado = $cliente->pivot->monto_autorizado ?? 0;
-            $montoSugerido = $this->calcularMontoSugerido($montoAutorizado);
+            
+            // Determinar monto: Prioridad a lo que viene de la vista anterior (caché), sino calcular sugerido
+            if ($cachedData && isset($cachedData['abonos'][$cliente->id])) {
+                $montoSugerido = (float) $cachedData['abonos'][$cliente->id];
+            } else {
+                $montoSugerido = $this->calcularMontoSugerido($montoAutorizado);
+            }
 
             $this->montosPorCliente[$cliente->id] = $montoSugerido;
             $this->moratoriosPorCliente[$cliente->id] = 0;
-            $this->clientesSeleccionados[$cliente->id] = true; // Default selected
+            
+            // Determinar selección: Prioridad a caché, sino true por defecto
+            if ($cachedData && isset($cachedData['selectedClients'][$cliente->id])) {
+                $this->clientesSeleccionados[$cliente->id] = $cachedData['selectedClients'][$cliente->id];
+            } else {
+                $this->clientesSeleccionados[$cliente->id] = true; // Default selected
+            }
         }
 
         $this->calcularTotales();
