@@ -395,4 +395,4 @@
         })();
     </script>
 </x-layouts.app>
-```
+
