@@ -144,7 +144,7 @@ class Edit extends Component
 
     public function mount(Prestamo $prestamo): void
     {
-        $this->isAdmin = auth()->check() && auth()->user()->hasRole('Administrador');
+        $this->isAdmin = auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Asesor'));
 
         $this->prestamo_id = $prestamo->id;
         $this->producto = $prestamo->producto;
@@ -274,7 +274,7 @@ class Edit extends Component
 
     protected function rules(): array
     {
-        $isAdmin = auth()->check() && auth()->user()->hasRole('Administrador');
+        $isAdmin = auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Asesor'));
 
         $rules = [
             'producto' => ['required', 'in:individual,grupal'],

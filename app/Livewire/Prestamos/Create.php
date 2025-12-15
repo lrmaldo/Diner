@@ -46,9 +46,9 @@ class Create extends Component
 
     public $fecha_entrega;
 
-    public $tasa_interes = 4.5;
+    public $tasa_interes;
 
-    public $garantia = 10.00;
+    public $garantia;
 
     public $asesor_id;
 
@@ -151,6 +151,12 @@ class Create extends Component
     {
         $this->isAdmin = auth()->check() && auth()->user()->hasRole('Administrador');
 
+        // Cargar valores por defecto de configuración si es un nuevo préstamo
+        if (! $prestamo) {
+            $this->tasa_interes = \App\Models\Configuration::get('tasa_interes_default', 4.5);
+            $this->garantia = \App\Models\Configuration::get('garantia_default', 10.0);
+        }
+
         // Si hay mensajes flash en la sesión, establecerlos en las propiedades de alerta
         if (session()->has('success')) {
             $this->status_type = 'success';
@@ -173,8 +179,8 @@ class Create extends Component
             $this->fecha_entrega = $prestamo->fecha_entrega ? $prestamo->fecha_entrega->toDateString() : $this->fecha_entrega;
             $this->fecha_primer_pago = $prestamo->fecha_primer_pago ? $prestamo->fecha_primer_pago->toDateString() : null;
             $this->dia_pago = $prestamo->dia_pago ?? $this->dia_pago;
-            $this->tasa_interes = $prestamo->tasa_interes ?? $this->tasa_interes;
-            $this->garantia = $prestamo->garantia ?? $this->garantia;
+            $this->tasa_interes = $prestamo->tasa_interes ?? \App\Models\Configuration::get('tasa_interes_default', 4.5);
+            $this->garantia = $prestamo->garantia ?? \App\Models\Configuration::get('garantia_default', 10.0);
             $this->comentarios_comite = $prestamo->comentarios_comite ?? $this->comentarios_comite;
 
             // Cargar datos del asesor si está asignado
@@ -400,13 +406,16 @@ class Create extends Component
             'comentarios_comite' => $this->comentarios_comite,
         ];
 
-        // only allow overriding tasa_interes if user is admin
-        if (auth()->check() && auth()->user()->hasRole('Administrador')) {
+        // only allow overriding tasa_interes if user is admin or committee
+        if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Asesor'))) {
             $data['tasa_interes'] = $this->tasa_interes;
+            $data['garantia'] = $this->garantia;
         } else {
             // ensure default is used
-            $data['tasa_interes'] = 4.5;
-            $this->tasa_interes = 4.5;
+            $data['tasa_interes'] = \App\Models\Configuration::get('tasa_interes_default', 4.5);
+            $data['garantia'] = \App\Models\Configuration::get('garantia_default', 10.0);
+            $this->tasa_interes = $data['tasa_interes'];
+            $this->garantia = $data['garantia'];
         }
 
         $prestamo = Prestamo::create($data);
@@ -466,13 +475,13 @@ class Create extends Component
         $prestamo->fecha_entrega = $this->fecha_entrega;
         $prestamo->fecha_primer_pago = $this->fecha_primer_pago;
         $prestamo->dia_pago = $this->dia_pago;
-        $prestamo->garantia = $this->garantia;
         $prestamo->asesor_id = $this->asesor_id;
         $prestamo->comentarios_comite = $this->comentarios_comite;
 
-        // Solo permitir cambiar tasa_interes si el usuario es administrador
-        if (auth()->check() && auth()->user()->hasRole('Administrador')) {
+        // Solo permitir cambiar tasa_interes y garantia si el usuario es administrador o comité
+        if (auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Asesor'))) {
             $prestamo->tasa_interes = $this->tasa_interes;
+            $prestamo->garantia = $this->garantia;
         }
 
         // Si es grupal, solo asignar representante si ya está seleccionado
