@@ -149,7 +149,7 @@
                             </div>
 
                             {{-- Desglose de Cambio Sugerido --}}
-                            @if($diferencia > 0 && !empty($this->desgloseCambio))
+                        {{--     @if($diferencia > 0 && !empty($this->desgloseCambio))
                                 <div class="mt-3 pt-3 border-t border-green-200">
                                     <p class="text-xs font-bold text-green-800 uppercase mb-2 text-center">Sugerencia de entrega:</p>
                                     <div class="grid grid-cols-2 gap-2 text-sm">
@@ -161,7 +161,7 @@
                                         @endforeach
                                     </div>
                                 </div>
-                            @endif
+                            @endif --}}
                         </div>
 
                         {{-- Botón de Acción --}}
