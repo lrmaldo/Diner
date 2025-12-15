@@ -908,6 +908,23 @@
                         ->whereNotNull('numero_pago')
                         ->get()
                         ->groupBy('numero_pago');
+
+                    // Pre-calcular calendarios individuales para préstamos grupales
+                    $clientSchedules = [];
+                    if ($prestamo->producto === 'grupal') {
+                        foreach ($prestamo->clientes as $cliente) {
+                            $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
+                            $clientSchedules[$cliente->id] = calcularCalendarioPagos(
+                                $montoCliente,
+                                $tasaInteres,
+                                $plazo,
+                                $periodicidad,
+                                $fechaPrimerPago,
+                                $ultimoPago,
+                                'martes'
+                            );
+                        }
+                    }
                 @endphp
                 
                 @foreach($calendarioPagos as $pago)
@@ -924,7 +941,12 @@
                             $fechaPagoReal = $pagoRealizado->first()->fecha_pago->format('d-m-y');
                         }
                     @endphp
-                    <tr @if($pago['numero'] % 2 == 0) style="background-color: #f3f4f6;" @endif>
+                    <tr @if($pago['numero'] % 2 == 0) style="background-color: #f3f4f6;" @endif
+                        @if($prestamo->producto === 'grupal' && !$forPdf) 
+                            onclick="toggleAccordion({{ $pago['numero'] }})" 
+                            style="cursor: pointer;" 
+                            title="Click para ver detalles del grupo"
+                        @endif>
                         <td>{{ $pago['numero'] }}</td>
                         <td>{{ $pago['fecha'] }}</td>
                         <td>{{ $fechaPagoReal }}</td>
@@ -933,6 +955,25 @@
                         <td></td>
                         <td colspan="4"></td>
                     </tr>
+
+                    @if($prestamo->producto === 'grupal')
+                        @foreach($prestamo->clientes as $cliente)
+                            @php
+                                $clientSchedule = $clientSchedules[$cliente->id] ?? [];
+                                $clientPago = collect($clientSchedule)->firstWhere('numero', $pago['numero']);
+                                $montoClientePago = $clientPago['monto'] ?? 0;
+                            @endphp
+                            <tr class="accordion-row-{{ $pago['numero'] }} group-detail-row" style="display: none; background-color: #fff;">
+                                <td style="border-top: none;"></td>
+                                <td colspan="2" style="text-align: left; padding-left: 20px; font-size: 0.9em; color: #555; border-top: none;">
+                                    <span style="display:inline-block; width: 10px;">↳</span> 
+                                    {{ mb_strtoupper(trim($cliente->nombres . ' ' . $cliente->apellido_paterno)) }}
+                                </td>
+                                <td style="font-size: 0.9em; color: #555; border-top: none;">{{ number_format($montoClientePago, 0) }}</td>
+                                <td colspan="6" style="border-top: none;"></td>
+                            </tr>
+                        @endforeach
+                    @endif
                 @endforeach
             </tbody>
         </table>
@@ -1201,5 +1242,19 @@
     @if(!$forPdf)
     </div> {{-- Cierre del page-wrapper --}}
     @endif
+
+    <script>
+        function toggleAccordion(id) {
+            var rows = document.getElementsByClassName('accordion-row-' + id);
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                if (row.style.display === 'none') {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+    </script>
 </body>
 </html>

@@ -254,7 +254,7 @@
                                         <td class="px-3 py-4"></td>
                                     @endif
                                     <td class="px-3 py-4 text-right text-red-600 text-lg">${{ number_format($totalAbono, 2) }}</td>
-                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalAdeudo, 2) }}</td>
+                                    <td class="px-3 py-4 text-right text-gray-900">{{--$ {{ number_format($totalAdeudo, 2) }} --}}</td>
                                 </tr>
                             </tfoot>
                         </table>
