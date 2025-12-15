@@ -47,6 +47,7 @@ class DesgloseEfectivo extends Component
     public $diferencia = 0;
     public $notas = '';
     public $seleccionarTodos = true; // Por defecto seleccionamos todos
+    public $showModalCambio = false;
 
     public function mount($prestamoId)
     {
@@ -256,11 +257,40 @@ class DesgloseEfectivo extends Component
 
     protected function calcularDiferencia()
     {
-        $this->diferencia = $this->totalEfectivo - $this->totalSeleccionado;
+        $this->diferencia = round($this->totalEfectivo - $this->totalSeleccionado, 2);
     }
 
-    public function registrarPagos()
+    public function getDesgloseCambioProperty()
     {
+        if ($this->diferencia <= 0) {
+            return [];
+        }
+
+        $cambio = $this->diferencia;
+        // Denominaciones disponibles en México
+        $denominaciones = [1000, 500, 200, 100, 50, 20, 10, 5, 2, 1, 0.5];
+        $resultado = [];
+
+        foreach ($denominaciones as $valor) {
+            // Usamos round para evitar problemas de precisión flotante
+            if (round($cambio, 2) >= $valor) {
+                $cantidad = floor(round($cambio, 2) / $valor);
+                if ($cantidad > 0) {
+                    $resultado[(string)$valor] = $cantidad;
+                    $cambio = round($cambio - ($cantidad * $valor), 2);
+                }
+            }
+        }
+
+        return $resultado;
+    }
+
+    public function validarRegistro()
+    {
+        // Asegurar que los totales estén actualizados antes de validar
+        $this->calcularTotales();
+        $this->calcularTotalEfectivo();
+
         $clientesSeleccionadosCount = count(array_filter($this->clientesSeleccionados));
 
         if ($clientesSeleccionadosCount === 0) {
@@ -278,6 +308,12 @@ class DesgloseEfectivo extends Component
             return;
         }
 
+        // Si todo es correcto, mostramos el modal de confirmación/cambio
+        $this->showModalCambio = true;
+    }
+
+    public function finalizarRegistro()
+    {
         try {
             DB::beginTransaction();
 
@@ -318,6 +354,7 @@ class DesgloseEfectivo extends Component
                 }
             }
 
+            $clientesSeleccionadosCount = count(array_filter($this->clientesSeleccionados));
             $tipoPrestamo = $this->prestamo->producto === 'grupal' ? 'Cobro grupal' : 'Pago';
             $detalleClientes = $clientesSeleccionadosCount > 1 ? "{$clientesSeleccionadosCount} clientes" : '1 cliente';
 

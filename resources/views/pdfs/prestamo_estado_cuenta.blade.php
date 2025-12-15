@@ -962,13 +962,17 @@
                                 $clientSchedule = $clientSchedules[$cliente->id] ?? [];
                                 $clientPago = collect($clientSchedule)->firstWhere('numero', $pago['numero']);
                                 $montoClientePago = $clientPago['monto'] ?? 0;
+
+                                $pagoCliente = $pagoRealizado ? $pagoRealizado->where('cliente_id', $cliente->id)->first() : null;
+                                $fechaPagoCliente = $pagoCliente ? $pagoCliente->fecha_pago->format('d-m-y') : '';
                             @endphp
                             <tr class="accordion-row-{{ $pago['numero'] }} group-detail-row" style="display: none; background-color: #fff;">
                                 <td style="border-top: none;"></td>
-                                <td colspan="2" style="text-align: left; padding-left: 20px; font-size: 0.9em; color: #555; border-top: none;">
+                                <td style="text-align: left; padding-left: 20px; font-size: 0.9em; color: #555; border-top: none;">
                                     <span style="display:inline-block; width: 10px;">↳</span> 
                                     {{ mb_strtoupper(trim($cliente->nombres . ' ' . $cliente->apellido_paterno)) }}
                                 </td>
+                                <td style="font-size: 0.9em; color: #555; border-top: none;">{{ $fechaPagoCliente }}</td>
                                 <td style="font-size: 0.9em; color: #555; border-top: none;">{{ number_format($montoClientePago, 0) }}</td>
                                 <td colspan="6" style="border-top: none;"></td>
                             </tr>

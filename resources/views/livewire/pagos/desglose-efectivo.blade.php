@@ -49,7 +49,7 @@
                                     </div>
                                     <input type="number" 
                                            min="0"
-                                           wire:model.live="desgloseBilletes.{{ $billete }}"
+                                           wire:model.blur="desgloseBilletes.{{ $billete }}"
                                            class="block w-full pl-8 pr-3 py-3 border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-center text-lg font-semibold shadow-sm transition-colors"
                                            placeholder="0">
                                 </div>
@@ -95,7 +95,7 @@
                                     </div>
                                     <input type="number" 
                                            min="0"
-                                           wire:model.live="desgloseMonedas.{{ $moneda }}"
+                                           wire:model.blur="desgloseMonedas.{{ $moneda }}"
                                            class="block w-full pl-8 pr-3 py-3 border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 text-center text-lg font-semibold shadow-sm transition-colors"
                                            placeholder="0">
                                 </div>
@@ -147,14 +147,30 @@
                                     ${{ number_format(abs($diferencia), 2) }}
                                 </span>
                             </div>
+
+                            {{-- Desglose de Cambio Sugerido --}}
+                            @if($diferencia > 0 && !empty($this->desgloseCambio))
+                                <div class="mt-3 pt-3 border-t border-green-200">
+                                    <p class="text-xs font-bold text-green-800 uppercase mb-2 text-center">Sugerencia de entrega:</p>
+                                    <div class="grid grid-cols-2 gap-2 text-sm">
+                                        @foreach($this->desgloseCambio as $denominacion => $cantidad)
+                                            <div class="flex justify-between items-center bg-white px-2 py-1 rounded border border-green-100">
+                                                <span class="font-medium text-gray-600">{{ $cantidad }}x</span>
+                                                <span class="font-bold text-green-700">${{ $denominacion }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         </div>
 
                         {{-- Botón de Acción --}}
-                        <button wire:click="registrarPagos" 
+                        <button wire:click="validarRegistro" 
                                 wire:loading.attr="disabled"
+                                wire:target="validarRegistro"
                                 class="w-full flex justify-center py-4 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                            <span wire:loading.remove>Confirmar y Registrar</span>
-                            <span wire:loading>Procesando...</span>
+                            <span wire:loading.remove wire:target="validarRegistro">Confirmar y Registrar</span>
+                            <span wire:loading wire:target="validarRegistro">Procesando...</span>
                         </button>
 
                     </div>
@@ -189,4 +205,95 @@
             </div>
         </div>
     </div>
+
+    {{-- Modal de Confirmación y Cambio --}}
+    @if($showModalCambio)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/50" wire:click="$set('showModalCambio', false)"></div>
+            
+            <div class="relative bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden z-10">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Confirmar Pago
+                            </h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">
+                                    Por favor verifica los montos antes de finalizar.
+                                </p>
+                                
+                                <div class="mt-4 bg-gray-50 p-3 rounded-md">
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span>Total a Cobrar:</span>
+                                        <span class="font-bold">${{ number_format($totalSeleccionado, 2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between text-sm mb-1">
+                                        <span>Efectivo Recibido:</span>
+                                        <span class="font-bold text-blue-600">${{ number_format($totalEfectivo, 2) }}</span>
+                                    </div>
+                                    <div class="flex justify-between text-lg mt-2 pt-2 border-t border-gray-200">
+                                        <span class="font-bold text-gray-700">Cambio a Entregar:</span>
+                                        <span class="font-bold text-green-600">${{ number_format($diferencia, 2) }}</span>
+                                    </div>
+                                </div>
+
+                                @if($diferencia > 0 && !empty($this->desgloseCambio))
+                                    <div class="mt-4">
+                                        <h4 class="text-sm font-bold text-gray-700 mb-2">Sugerencia de entrega:</h4>
+                                        <div class="grid grid-cols-3 gap-3">
+                                            @foreach($this->desgloseCambio as $denominacion => $cantidad)
+                                                @php
+                                                    $valor = (float)$denominacion;
+                                                    $esBillete = $valor >= 20;
+                                                    $path = $esBillete ? 'billetes/' : 'monedas/';
+                                                    
+                                                    // Normalizar nombre de archivo
+                                                    if ($valor == 0.5) {
+                                                        $filename = '50centavos';
+                                                    } elseif ($valor == 1) {
+                                                        $filename = '1peso';
+                                                    } else {
+                                                        $filename = $denominacion . 'pesos';
+                                                    }
+                                                @endphp
+                                                <div wire:key="cambio-{{ $denominacion }}" class="flex flex-col items-center p-2 border rounded bg-gray-50">
+                                                    <div class="h-12 flex items-center justify-center mb-1">
+                                                        <img src="{{ asset('img/billetes-monedas/' . $path . $filename . '.png') }}" 
+                                                             alt="${{ $denominacion }}" 
+                                                             class="max-h-full max-w-full object-contain"
+                                                             onerror="this.style.display='none'">
+                                                    </div>
+                                                    <span class="text-lg font-bold text-gray-800">{{ $cantidad }}x</span>
+                                                    <span class="text-xs text-gray-500">${{ $denominacion }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" 
+                            wire:click="finalizarRegistro" 
+                            wire:loading.attr="disabled"
+                            wire:target="finalizarRegistro"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                        <span wire:loading.remove wire:target="finalizarRegistro">Finalizar y Guardar</span>
+                        <span wire:loading wire:target="finalizarRegistro">Guardando...</span>
+                    </button>
+                    <button type="button" wire:click="$set('showModalCambio', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
