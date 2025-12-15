@@ -765,7 +765,7 @@
                         @php
                             $montoCliente = $prestamo->monto_total ?? 0;
                             $garantiaCliente = $montoCliente * (($prestamo->garantia ?? 0) / 100);
-                            $seguroCliente = $montoCliente * 0.02;
+                            $seguroCliente = calcularComision($montoCliente);
                             $efectivoCliente = $montoCliente - $garantiaCliente - $seguroCliente;
                             $tasaCliente = $prestamo->tasa_interes ?? 0;
                             
