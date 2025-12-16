@@ -1111,14 +1111,18 @@
                         @php
                             $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
                             
-                            // Sumatoria de pagos del cliente (0 por ahora)
-                            $sumatoriaPagosCliente = 0;
+                            // Sumatoria de pagos del cliente
+                            $sumatoriaPagosCliente = $prestamo->pagos()->where('cliente_id', $cliente->id)->sum('monto');
                             $montoVencidoCliente = 0;
+
+                            // Obtener pago periódico del cliente
+                            $clientSchedule = $clientSchedules[$cliente->id] ?? [];
+                            $pagoPeriodicoCliente = !empty($clientSchedule) ? $clientSchedule[0]['monto'] : 0;
                             
                             // Capital vigente del cliente
                             $capitalVigenteCliente = $montoCliente;
-                            if ($pagosPorMil > 0) {
-                                $capitalVigenteCliente = $montoCliente - (($sumatoriaPagosCliente / $pagosPorMil) / (1000 / $numeroPagosSaldos));
+                            if ($pagoPeriodicoCliente > 0) {
+                                $capitalVigenteCliente = $montoCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) / (1000 / $numeroPagosSaldos));
                             }
                             
                             // Interés e IVA base del cliente
@@ -1127,32 +1131,32 @@
                             
                             // Interés vigente del cliente
                             $interesVigenteCliente = $interesBaseCliente;
-                            if ($pagosPorMil > 0 && $interesBaseCliente > 0) {
-                                $interesVigenteCliente = $interesBaseCliente - (($sumatoriaPagosCliente / $pagosPorMil) / ($interesBaseCliente / $numeroPagosSaldos));
+                            if ($pagoPeriodicoCliente > 0 && $interesBaseCliente > 0) {
+                                $interesVigenteCliente = $interesBaseCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) / ($interesBaseCliente / $numeroPagosSaldos));
                             }
                             
                             // IVA vigente del cliente
                             $ivaVigenteCliente = $ivaBaseCliente;
-                            if ($pagosPorMil > 0 && $ivaBaseCliente > 0) {
-                                $ivaVigenteCliente = $ivaBaseCliente - (($sumatoriaPagosCliente / $pagosPorMil) / ($ivaBaseCliente / $numeroPagosSaldos));
+                            if ($pagoPeriodicoCliente > 0 && $ivaBaseCliente > 0) {
+                                $ivaVigenteCliente = $ivaBaseCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) / ($ivaBaseCliente / $numeroPagosSaldos));
                             }
                             
                             // Capital vencido del cliente
                             $capitalVencidoCliente = 0;
-                            if ($pagosPorMil > 0) {
-                                $capitalVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * (1000 / $numeroPagosSaldos);
+                            if ($pagoPeriodicoCliente > 0) {
+                                $capitalVencidoCliente = ($montoVencidoCliente / $pagoPeriodicoCliente) * (1000 / $numeroPagosSaldos);
                             }
                             
                             // Interés vencido del cliente
                             $interesVencidoCliente = 0;
-                            if ($pagosPorMil > 0 && $interesBaseCliente > 0) {
-                                $interesVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * ($interesBaseCliente / $numeroPagosSaldos);
+                            if ($pagoPeriodicoCliente > 0 && $interesBaseCliente > 0) {
+                                $interesVencidoCliente = ($montoVencidoCliente / $pagoPeriodicoCliente) * ($interesBaseCliente / $numeroPagosSaldos);
                             }
                             
                             // IVA vencido del cliente
                             $ivaVencidoCliente = 0;
-                            if ($pagosPorMil > 0 && $ivaBaseCliente > 0) {
-                                $ivaVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * ($ivaBaseCliente / $numeroPagosSaldos);
+                            if ($pagoPeriodicoCliente > 0 && $ivaBaseCliente > 0) {
+                                $ivaVencidoCliente = ($montoVencidoCliente / $pagoPeriodicoCliente) * ($ivaBaseCliente / $numeroPagosSaldos);
                             }
                             
                             $atrasosCliente = 0;
@@ -1177,8 +1181,8 @@
                         @php
                             $montoCliente = $prestamo->monto_total ?? 0;
                             
-                            // Sumatoria de pagos del cliente (0 por ahora)
-                            $sumatoriaPagosCliente = 0;
+                            // Sumatoria de pagos del cliente
+                            $sumatoriaPagosCliente = $prestamo->pagos()->sum('monto');
                             $montoVencidoCliente = 0;
                             
                             // Capital vigente del cliente
