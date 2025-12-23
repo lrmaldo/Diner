@@ -1025,13 +1025,15 @@
                     
                     // Calcular monto vencido real
                     $montoVencido = 0;
+                    $pagosTranscurridos = 0;
                     $fechaHoy = now()->startOfDay();
                     
                     foreach ($calendarioPagos as $pagoProg) {
                         $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
                         
-                        // Si la fecha de vencimiento ya pasó
-                        if ($fechaVenc->lt($fechaHoy)) {
+                        // Si la fecha de vencimiento ya pasó (o es hoy)
+                        if ($fechaVenc->lte($fechaHoy)) {
+                            $pagosTranscurridos++;
                             $montoEsperado = $pagoProg['monto'];
                             
                             // Buscar pagos realizados para este número de pago
@@ -1045,28 +1047,22 @@
                         }
                     }
                     
-                    // Fórmula 1: Capital vigente = monto del crédito - ((sumatoria pagos/pago por mil) * (capital por pago))
-                    $capitalVigente = $montoCredito;
-                    if ($pagosPorMil > 0) {
-                        $capitalVigente = $montoCredito - (($sumatoriaPagos / $pagosPorMil) * ($montoCredito / $numeroPagosSaldos));
-                    }
+                    // Calcular pagos futuros (Vigentes)
+                    $pagosFuturos = count($calendarioPagos) - $pagosTranscurridos;
+                    
+                    // Fórmula 1: Capital vigente = (Capital Total / Numero Pagos) * Pagos Futuros
+                    $capitalVigente = ($montoCredito / $numeroPagosSaldos) * $pagosFuturos;
                     
                     // Calcular interés e IVA base
                     $interesBase = (($montoCredito / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
                     $ivaPorcentajeSaldos = \App\Models\Configuration::get('iva_percentage', 16);
                     $ivaBase = ($interesBase / 100) * $ivaPorcentajeSaldos;
                     
-                    // Fórmula 2: Interés vigente
-                    $interesVigente = $interesBase;
-                    if ($pagosPorMil > 0 && $interesBase > 0) {
-                        $interesVigente = $interesBase - (($sumatoriaPagos / $pagosPorMil) * ($interesBase / $numeroPagosSaldos));
-                    }
+                    // Fórmula 2: Interés vigente = (Interés Total / Numero Pagos) * Pagos Futuros
+                    $interesVigente = ($interesBase / $numeroPagosSaldos) * $pagosFuturos;
                     
-                    // Fórmula 3: IVA vigente
-                    $ivaVigente = $ivaBase;
-                    if ($pagosPorMil > 0 && $ivaBase > 0) {
-                        $ivaVigente = $ivaBase - (($sumatoriaPagos / $pagosPorMil) * ($ivaBase / $numeroPagosSaldos));
-                    }
+                    // Fórmula 3: IVA vigente = (IVA Total / Numero Pagos) * Pagos Futuros
+                    $ivaVigente = ($ivaBase / $numeroPagosSaldos) * $pagosFuturos;
                     
                     // Fórmula 4: Capital vencido = ((monto_vencido/pago por mil))*(monto_credito/numero pagos)
                     $capitalVencido = 0;
@@ -1093,15 +1089,15 @@
                     }
                     
                     // Calcular totales
-                    $saldoTotal = $capitalVigente + $interesVigente + $ivaVigente;
-                    $adeudoTotal = $capitalVencido + $interesVencido + $ivaVencido;
+                    $saldoTotal = 0; // Saldo Moratorio (pendiente)
+                    $adeudoTotal = $capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido;
                     
                     // Calcular número de pagos atrasados
                     $atrasos = 0;
-                    $fechaHoy = now()->startOfDay();
                     foreach ($calendarioPagos as $pagoProg) {
                         $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
-                        // Si ya venció
+                        // Si ya venció (estrictamente menor a hoy para considerar atraso, o lte?)
+                        // Generalmente atraso es si fecha < hoy y no pagado.
                         if ($fechaVenc->lt($fechaHoy)) {
                             $montoEsperado = $pagoProg['monto'];
                             $pagosHechos = $pagosRegistrados->get($pagoProg['numero']);
@@ -1163,12 +1159,14 @@
 
                             // Calcular monto vencido del cliente
                             $montoVencidoCliente = 0;
+                            $pagosTranscurridosCliente = 0;
                             $fechaHoy = now()->startOfDay();
                             
                             foreach ($clientSchedule as $pagoProgCliente) {
                                 $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProgCliente['fecha'])->startOfDay();
                                 
-                                if ($fechaVenc->lt($fechaHoy)) {
+                                if ($fechaVenc->lte($fechaHoy)) {
+                                    $pagosTranscurridosCliente++;
                                     $montoEsperado = $pagoProgCliente['monto'];
                                     
                                     // Buscar pagos realizados por este cliente para este número de pago
@@ -1183,27 +1181,21 @@
                                 }
                             }
                             
+                            // Calcular pagos futuros (Vigentes)
+                            $pagosFuturosCliente = count($clientSchedule) - $pagosTranscurridosCliente;
+                            
                             // Capital vigente del cliente
-                            $capitalVigenteCliente = $montoCliente;
-                            if ($pagoPeriodicoCliente > 0) {
-                                $capitalVigenteCliente = $montoCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) * ($montoCliente / $numeroPagosSaldos));
-                            }
+                            $capitalVigenteCliente = ($montoCliente / $numeroPagosSaldos) * $pagosFuturosCliente;
                             
                             // Interés e IVA base del cliente
                             $interesBaseCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
                             $ivaBaseCliente = ($interesBaseCliente / 100) * $ivaPorcentajeSaldos;
                             
                             // Interés vigente del cliente
-                            $interesVigenteCliente = $interesBaseCliente;
-                            if ($pagoPeriodicoCliente > 0 && $interesBaseCliente > 0) {
-                                $interesVigenteCliente = $interesBaseCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) * ($interesBaseCliente / $numeroPagosSaldos));
-                            }
+                            $interesVigenteCliente = ($interesBaseCliente / $numeroPagosSaldos) * $pagosFuturosCliente;
                             
                             // IVA vigente del cliente
-                            $ivaVigenteCliente = $ivaBaseCliente;
-                            if ($pagoPeriodicoCliente > 0 && $ivaBaseCliente > 0) {
-                                $ivaVigenteCliente = $ivaBaseCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) * ($ivaBaseCliente / $numeroPagosSaldos));
-                            }
+                            $ivaVigenteCliente = ($ivaBaseCliente / $numeroPagosSaldos) * $pagosFuturosCliente;
                             
                             // Capital vencido del cliente
                             $capitalVencidoCliente = 0;
@@ -1231,7 +1223,6 @@
                             
                             // Calcular atrasos del cliente
                             $atrasosCliente = 0;
-                            $fechaHoy = now()->startOfDay();
                             foreach ($clientSchedule as $pagoProgCliente) {
                                 $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProgCliente['fecha'])->startOfDay();
                                 if ($fechaVenc->lt($fechaHoy)) {
