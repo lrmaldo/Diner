@@ -104,6 +104,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pagos', \App\Livewire\Pagos\Index::class)->name('pagos.index');
         Route::get('/pagos/cobro-grupal/{prestamoId}', \App\Livewire\Pagos\CobroGrupal::class)->name('pagos.cobro-grupal');
         Route::get('/pagos/desglose-efectivo/{prestamoId}', \App\Livewire\Pagos\DesgloseEfectivo::class)->name('pagos.desglose-efectivo');
+        
+        // Caja - Entrega de Créditos
+        Route::get('/caja/entrega-credito', \App\Livewire\Caja\EntregaCredito::class)->name('caja.entrega-credito');
     });
 
     // Ruta para historial de clientes

@@ -109,17 +109,38 @@
                 </div>
                 @endcan
 
-                @can('ver pagos')
-                <!-- Pagos -->
-                <a href="{{ route('pagos.index') }}"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('pagos.*') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                   wire:navigate>
-                    <svg class="mr-3 h-5 w-5 {{ request()->routeIs('pagos.*') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    Pagos
-                </a>
-                @endcan
+                @if(auth()->user()->can('ver pagos') || auth()->user()->can('ver prestamos'))
+                <!-- Caja -->
+                <div class="space-y-1">
+                    <div class="px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Caja
+                    </div>
+
+                    @can('ver pagos')
+                    <!-- Cobros -->
+                    <a href="{{ route('pagos.index') }}"
+                       class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ml-2 {{ request()->routeIs('pagos.*') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                       wire:navigate>
+                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('pagos.*') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Cobros
+                    </a>
+                    @endcan
+
+                    @can('ver prestamos')
+                    <!-- Entrega de Créditos -->
+                    <a href="{{ route('caja.entrega-credito') }}"
+                       class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ml-2 {{ request()->routeIs('caja.entrega-credito') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                       wire:navigate>
+                        <svg class="mr-3 h-5 w-5 {{ request()->routeIs('caja.entrega-credito') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                        Entrega de Créditos
+                    </a>
+                    @endcan
+                </div>
+                @endif
 
                 @can('ver usuarios')
                 <!-- Usuarios - Solo Administradores -->
