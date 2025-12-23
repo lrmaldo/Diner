@@ -49,7 +49,7 @@
                                     </div>
                                     <input type="number" 
                                            min="0"
-                                           wire:model.blur="desgloseBilletes.{{ $billete }}"
+                                           wire:model.live.debounce.500ms="desgloseBilletes.{{ $billete }}"
                                            class="block w-full pl-8 pr-3 py-3 border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-center text-lg font-semibold shadow-sm transition-colors"
                                            placeholder="0">
                                 </div>
@@ -95,7 +95,7 @@
                                     </div>
                                     <input type="number" 
                                            min="0"
-                                           wire:model.blur="desgloseMonedas.{{ $moneda }}"
+                                           wire:model.live.debounce.500ms="desgloseMonedas.{{ $moneda }}"
                                            class="block w-full pl-8 pr-3 py-3 border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 text-center text-lg font-semibold shadow-sm transition-colors"
                                            placeholder="0">
                                 </div>
@@ -279,7 +279,7 @@
                                                                 <span class="text-xs text-gray-400 font-bold">#</span>
                                                                 <input type="number" 
                                                                        min="0" 
-                                                                       wire:model.blur="desgloseCambioBilletes.{{ $billete }}" 
+                                                                       wire:model.live.debounce.500ms="desgloseCambioBilletes.{{ $billete }}" 
                                                                        class="w-full text-center text-sm border-gray-300 rounded p-1 h-8 focus:ring-indigo-500 focus:border-indigo-500"
                                                                        placeholder="0">
                                                             </div>
@@ -309,7 +309,7 @@
                                                                 <span class="text-xs text-gray-400 font-bold">#</span>
                                                                 <input type="number" 
                                                                        min="0" 
-                                                                       wire:model.blur="desgloseCambioMonedas.{{ $moneda }}" 
+                                                                       wire:model.live.debounce.500ms="desgloseCambioMonedas.{{ $moneda }}" 
                                                                        class="w-full text-center text-sm border-gray-300 rounded p-1 h-8 focus:ring-indigo-500 focus:border-indigo-500"
                                                                        placeholder="0">
                                                             </div>
