@@ -32,7 +32,7 @@
                             Billetes
                         </h2>
                         <span class="text-sm font-medium text-green-600 bg-green-100 px-3 py-1 rounded-full">
-                            Subtotal: ${{ number_format(collect($desgloseBilletes)->map(fn($cant, $val) => $cant * $val)->sum(), 2) }}
+                            Subtotal: ${{ number_format(collect($desgloseBilletes)->map(fn($cant, $val) => (float)$cant * $val)->sum(), 2) }}
                         </span>
                     </div>
                     <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
@@ -54,7 +54,7 @@
                                            placeholder="0">
                                 </div>
                                 <div class="mt-1 text-center text-xs text-gray-400 font-medium">
-                                    = ${{ number_format($billete * ($desgloseBilletes[$billete] ?? 0), 0) }}
+                                    = ${{ number_format($billete * (float)($desgloseBilletes[$billete] ?? 0), 0) }}
                                 </div>
                             </div>
                         @endforeach
@@ -71,7 +71,7 @@
                             Monedas
                         </h2>
                         <span class="text-sm font-medium text-yellow-600 bg-yellow-100 px-3 py-1 rounded-full">
-                            Subtotal: ${{ number_format(collect($desgloseMonedas)->map(fn($cant, $val) => $cant * $val)->sum(), 2) }}
+                            Subtotal: ${{ number_format(collect($desgloseMonedas)->map(fn($cant, $val) => (float)$cant * $val)->sum(), 2) }}
                         </span>
                     </div>
                     <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
@@ -100,7 +100,7 @@
                                            placeholder="0">
                                 </div>
                                 <div class="mt-1 text-center text-xs text-gray-400 font-medium">
-                                    = ${{ number_format($moneda * ($desgloseMonedas[$moneda] ?? 0), 2) }}
+                                    = ${{ number_format($moneda * (float)($desgloseMonedas[$moneda] ?? 0), 2) }}
                                 </div>
                             </div>
                         @endforeach
@@ -243,36 +243,80 @@
                                     </div>
                                 </div>
 
-                                @if($diferencia > 0 && !empty($this->desgloseCambio))
-                                    <div class="mt-4">
-                                        <h4 class="text-sm font-bold text-gray-700 mb-2">Sugerencia de entrega:</h4>
-                                        <div class="grid grid-cols-3 gap-3">
-                                            @foreach($this->desgloseCambio as $denominacion => $cantidad)
-                                                @php
-                                                    $valor = (float)$denominacion;
-                                                    $esBillete = $valor >= 20;
-                                                    $path = $esBillete ? 'billetes/' : 'monedas/';
-                                                    
-                                                    // Normalizar nombre de archivo
-                                                    if ($valor == 0.5) {
-                                                        $filename = '50centavos';
-                                                    } elseif ($valor == 1) {
-                                                        $filename = '1peso';
-                                                    } else {
-                                                        $filename = $denominacion . 'pesos';
-                                                    }
-                                                @endphp
-                                                <div wire:key="cambio-{{ $denominacion }}" class="flex flex-col items-center p-2 border rounded bg-gray-50">
-                                                    <div class="h-12 flex items-center justify-center mb-1">
-                                                        <img src="{{ asset('img/billetes-monedas/' . $path . $filename . '.png') }}" 
-                                                             alt="${{ $denominacion }}" 
-                                                             class="max-h-full max-w-full object-contain"
-                                                             onerror="this.style.display='none'">
-                                                    </div>
-                                                    <span class="text-lg font-bold text-gray-800">{{ $cantidad }}x</span>
-                                                    <span class="text-xs text-gray-500">${{ $denominacion }}</span>
+                                @if($diferencia > 0)
+                                    <div class="mt-4 border-t border-gray-200 pt-4">
+                                        <h4 class="text-sm font-bold text-gray-700 mb-2">Desglose de Cambio a Entregar</h4>
+                                        
+                                        {{-- Resumen de Cambio --}}
+                                        <div class="flex justify-between items-center mb-3 bg-gray-100 p-2 rounded">
+                                            <div class="text-xs text-gray-600">
+                                                Seleccionado: <span class="font-bold text-gray-900">${{ number_format($totalCambioManual, 2) }}</span>
+                                            </div>
+                                            <div class="text-xs">
+                                                @php $faltante = round($diferencia - $totalCambioManual, 2); @endphp
+                                                @if($faltante > 0)
+                                                    <span class="text-red-600 font-bold">Faltan: ${{ number_format($faltante, 2) }}</span>
+                                                @elseif($faltante < 0)
+                                                    <span class="text-orange-600 font-bold">Sobran: ${{ number_format(abs($faltante), 2) }}</span>
+                                                @else
+                                                    <span class="text-green-600 font-bold">Correcto</span>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                            {{-- Billetes --}}
+                                            <div>
+                                                <h5 class="text-xs font-semibold text-gray-500 mb-1">Billetes</h5>
+                                                <div class="grid grid-cols-3 gap-2">
+                                                    @foreach(['1000', '500', '200', '100', '50', '20'] as $billete)
+                                                        <div class="flex flex-col items-center p-2 border rounded bg-white shadow-sm">
+                                                            <div class="h-8 flex items-center justify-center mb-1">
+                                                                <img src="{{ asset('img/billetes-monedas/billetes/' . $billete . 'pesos.png') }}" 
+                                                                     class="max-h-full max-w-full object-contain">
+                                                            </div>
+                                                            <div class="w-full flex items-center gap-1">
+                                                                <span class="text-xs text-gray-400 font-bold">#</span>
+                                                                <input type="number" 
+                                                                       min="0" 
+                                                                       wire:model.blur="desgloseCambioBilletes.{{ $billete }}" 
+                                                                       class="w-full text-center text-sm border-gray-300 rounded p-1 h-8 focus:ring-indigo-500 focus:border-indigo-500"
+                                                                       placeholder="0">
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
                                                 </div>
-                                            @endforeach
+                                            </div>
+
+                                            {{-- Monedas --}}
+                                            <div>
+                                                <h5 class="text-xs font-semibold text-gray-500 mb-1">Monedas</h5>
+                                                <div class="grid grid-cols-3 gap-2">
+                                                    @foreach(['20', '10', '5', '2', '1', '0.5'] as $moneda)
+                                                         @php
+                                                            $imagen = match($moneda) {
+                                                                '1' => '1peso.png',
+                                                                '0.5' => '50centavos.png',
+                                                                default => $moneda . 'pesos.png'
+                                                            };
+                                                        @endphp
+                                                        <div class="flex flex-col items-center p-2 border rounded bg-white shadow-sm">
+                                                            <div class="h-8 flex items-center justify-center mb-1">
+                                                                <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" 
+                                                                     class="max-h-full max-w-full object-contain">
+                                                            </div>
+                                                            <div class="w-full flex items-center gap-1">
+                                                                <span class="text-xs text-gray-400 font-bold">#</span>
+                                                                <input type="number" 
+                                                                       min="0" 
+                                                                       wire:model.blur="desgloseCambioMonedas.{{ $moneda }}" 
+                                                                       class="w-full text-center text-sm border-gray-300 rounded p-1 h-8 focus:ring-indigo-500 focus:border-indigo-500"
+                                                                       placeholder="0">
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 @endif

@@ -182,7 +182,7 @@
                                         $pendiente = $pendientes[$cliente->id] ?? 0;
                                         
                                         // Moratorio
-                                        $moratorio = 0;
+                                        $moratorio = $moratorios[$cliente->id] ?? 0;
 
                                         // Adeudo Total Estimado
                                         $tasaInteres = $prestamo->tasa_interes ?? 0;

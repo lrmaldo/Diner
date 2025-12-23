@@ -3,6 +3,8 @@
 namespace App\Livewire\Pagos;
 
 use App\Models\Prestamo;
+use App\Models\Holiday;
+use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -16,6 +18,7 @@ class Index extends Component
 
     public $abonos = [];
     public $pendientes = [];
+    public $moratorios = [];
     public $selectedClients = [];
     public $selectAll = false;
 
@@ -37,6 +40,7 @@ class Index extends Component
         $this->prestamo = null;
         $this->abonos = [];
         $this->pendientes = [];
+        $this->moratorios = [];
         $this->selectedClients = [];
         $this->selectAll = false;
 
@@ -84,7 +88,11 @@ class Index extends Component
                     }
                 }
 
+                // Calcular Moratorio
+                $moratorio = $this->calcularMoratorio($cliente->id, $montoAutorizado, $pagoSugerido);
+
                 $this->pendientes[$cliente->id] = $pendiente;
+                $this->moratorios[$cliente->id] = $moratorio;
                 $this->abonos[$cliente->id] = $pendiente; // Sugerir pagar el pendiente exacto
                 $this->selectedClients[$cliente->id] = true;
             }
@@ -185,6 +193,104 @@ class Index extends Component
         $clave = $plazo.'_'.$periodicidad;
 
         return $configuraciones[$clave] ?? null;
+    }
+
+    public function calcularMoratorio($clienteId, $montoAutorizado, $cuota)
+    {
+        if ($cuota <= 0) return 0;
+
+        $calendario = $this->generarCalendarioPagos($montoAutorizado);
+        $pagosVencidos = 0;
+        $fechaHoy = now()->startOfDay();
+        
+        // Obtener pagos realizados por el cliente
+        $pagosRealizados = $this->prestamo->pagos->where('cliente_id', $clienteId);
+        
+        foreach ($calendario as $pagoProg) {
+            $fechaVenc = Carbon::parse($pagoProg['fecha'])->startOfDay();
+            
+            // Si la fecha de vencimiento ya pasó
+            if ($fechaVenc->lt($fechaHoy)) {
+                $montoEsperado = $pagoProg['monto'];
+                
+                // Buscar pagos realizados para este número de pago
+                $pagadoParaEsteNumero = $pagosRealizados->where('numero_pago', $pagoProg['numero'])->sum('monto');
+                
+                // Si no se ha cubierto el monto esperado (con tolerancia de 1 peso)
+                if ($pagadoParaEsteNumero < ($montoEsperado - 1)) {
+                    $pagosVencidos++;
+                }
+            }
+        }
+
+        // Cargo por atraso: $50 por pago vencido (Configurable)
+        $cargoPorAtraso = 50; 
+        
+        return $pagosVencidos * $cargoPorAtraso;
+    }
+
+    public function generarCalendarioPagos($montoAutorizado)
+    {
+        $plazo = strtolower(trim($this->prestamo->plazo));
+        $periodicidad = strtolower(trim($this->prestamo->periodicidad));
+        $fechaPrimerPago = $this->prestamo->fecha_primer_pago ? Carbon::parse($this->prestamo->fecha_primer_pago) : now();
+
+        $config = $this->determinarConfiguracionPago($plazo, $periodicidad);
+        
+        if (!$config) {
+            // Fallback básico
+            $plazoNum = preg_match('/(\d+)/', $plazo, $matches) ? (int) $matches[1] : 1;
+            $numeroPagos = $plazoNum; 
+            if (str_contains($periodicidad, 'seman')) $numeroPagos = $plazoNum * 4;
+            elseif (str_contains($periodicidad, 'quincen')) $numeroPagos = $plazoNum * 2;
+            elseif (str_contains($periodicidad, 'mens')) $numeroPagos = $plazoNum;
+        } else {
+             $numeroPagos = $config['total_pagos'];
+        }
+
+        // Calcular cuota
+        $cuota = $this->calcularCuota($montoAutorizado);
+
+        $calendario = [];
+        $fechaActual = $fechaPrimerPago->copy();
+        
+        $intervaloDias = match(true) {
+            str_contains($periodicidad, 'seman') => 7,
+            str_contains($periodicidad, 'catorcen') => 14,
+            str_contains($periodicidad, 'quincen') => 14, // Consistencia con PDF
+            str_contains($periodicidad, 'mens') => 30,
+            default => 7
+        };
+
+        // Cargar feriados
+        $diasFeriados = Holiday::whereYear('date', $fechaActual->year)
+            ->orWhereYear('date', $fechaActual->copy()->addYear()->year)
+            ->pluck('date')
+            ->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))
+            ->toArray();
+
+        for ($i = 1; $i <= $numeroPagos; $i++) {
+            if ($i === 1) {
+                $fechaPago = $fechaActual->copy();
+            } else {
+                $fechaPago = $fechaActual->copy()->addDays($intervaloDias);
+                
+                // Ajuste feriados y domingos
+                while (in_array($fechaPago->format('Y-m-d'), $diasFeriados) || $fechaPago->dayOfWeek === Carbon::SUNDAY) {
+                    $fechaPago->addDay();
+                }
+            }
+
+            $calendario[] = [
+                'numero' => $i,
+                'fecha' => $fechaPago->format('Y-m-d'),
+                'monto' => $cuota,
+            ];
+
+            $fechaActual = $fechaPago->copy();
+        }
+
+        return $calendario;
     }
 
     public function irACobrar()

@@ -42,8 +42,28 @@ class DesgloseEfectivo extends Component
         '0.5' => 0,
     ];
 
+    // Desglose de cambio (billetes y monedas)
+    public $desgloseCambioBilletes = [
+        '1000' => 0,
+        '500' => 0,
+        '200' => 0,
+        '100' => 0,
+        '50' => 0,
+        '20' => 0,
+    ];
+
+    public $desgloseCambioMonedas = [
+        '20' => 0,
+        '10' => 0,
+        '5' => 0,
+        '2' => 0,
+        '1' => 0,
+        '0.5' => 0,
+    ];
+
     public $totalEfectivo = 0;
     public $totalSeleccionado = 0;
+    public $totalCambioManual = 0;
     public $diferencia = 0;
     public $notas = '';
     public $seleccionarTodos = true; // Por defecto seleccionamos todos
@@ -230,6 +250,27 @@ class DesgloseEfectivo extends Component
         $this->calcularTotalEfectivo();
     }
 
+    public function updatedDesgloseCambioBilletes()
+    {
+        $this->calcularTotalCambioManual();
+    }
+
+    public function updatedDesgloseCambioMonedas()
+    {
+        $this->calcularTotalCambioManual();
+    }
+
+    protected function calcularTotalCambioManual()
+    {
+        $this->totalCambioManual = 0;
+        foreach ($this->desgloseCambioBilletes as $denominacion => $cantidad) {
+            $this->totalCambioManual += (float) $denominacion * (int) $cantidad;
+        }
+        foreach ($this->desgloseCambioMonedas as $denominacion => $cantidad) {
+            $this->totalCambioManual += (float) $denominacion * (int) $cantidad;
+        }
+    }
+
     protected function calcularTotales()
     {
         $this->totalSeleccionado = 0;
@@ -307,6 +348,24 @@ class DesgloseEfectivo extends Component
             $this->dispatch('alert', ['type' => 'error', 'message' => 'El efectivo recibido es insuficiente.']);
             return;
         }
+
+        // Resetear desglose de cambio
+        foreach ($this->desgloseCambioBilletes as $k => $v) $this->desgloseCambioBilletes[$k] = 0;
+        foreach ($this->desgloseCambioMonedas as $k => $v) $this->desgloseCambioMonedas[$k] = 0;
+
+        // Pre-llenar con la sugerencia
+        $sugerencia = $this->desgloseCambio;
+        
+        foreach ($sugerencia as $denominacion => $cantidad) {
+            $strDenominacion = (string)$denominacion;
+            if (isset($this->desgloseCambioBilletes[$strDenominacion])) {
+                $this->desgloseCambioBilletes[$strDenominacion] = $cantidad;
+            } elseif (isset($this->desgloseCambioMonedas[$strDenominacion])) {
+                $this->desgloseCambioMonedas[$strDenominacion] = $cantidad;
+            }
+        }
+        
+        $this->calcularTotalCambioManual();
 
         // Si todo es correcto, mostramos el modal de confirmación/cambio
         $this->showModalCambio = true;
