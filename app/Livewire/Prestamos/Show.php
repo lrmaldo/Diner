@@ -74,11 +74,11 @@ class Show extends Component
 
     public function autorizar()
     {
-        // Verificar que el usuario tenga permiso o sea el asesor asignado
-        if (! auth()->user()->can('aprobar prestamos') && auth()->id() !== $this->prestamo->asesor_id) {
+        // Verificar que el usuario sea Administrador
+        if (! auth()->user()->hasRole('Administrador')) {
             $this->dispatch('alert', [
                 'type' => 'error',
-                'message' => 'No tienes permiso para autorizar préstamos.',
+                'message' => 'Solo el administrador puede autorizar préstamos.',
             ]);
 
             return;
@@ -118,10 +118,10 @@ class Show extends Component
 
     public function rechazar(): void
     {
-        if (! auth()->user()->can('aprobar prestamos') && auth()->id() !== $this->prestamo->asesor_id) {
+        if (! auth()->user()->hasRole('Administrador')) {
             $this->dispatch('alert', [
                 'type' => 'error',
-                'message' => 'No tienes permiso para rechazar préstamos.',
+                'message' => 'Solo el administrador puede rechazar préstamos.',
             ]);
 
             return;
