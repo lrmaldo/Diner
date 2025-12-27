@@ -17,106 +17,104 @@
             </a>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             
             {{-- Columna Izquierda: Panel de Efectivo (Principal) --}}
-            <div class="lg:col-span-2 space-y-6">
+            <div class="lg:col-span-8 space-y-4">
                 
-                {{-- Tarjeta de Billetes --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="bg-green-50 px-6 py-4 border-b border-green-100 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-green-800 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            Billetes
-                        </h2>
-                        <span class="text-sm font-medium text-green-600 bg-green-100 px-3 py-1 rounded-full">
-                            Subtotal: ${{ number_format(collect($desgloseBilletes)->map(fn($cant, $val) => (float)$cant * $val)->sum(), 2) }}
-                        </span>
-                    </div>
-                    <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
-                        @foreach(['1000', '500', '200', '100', '50', '20'] as $billete)
-                            <div class="relative group">
-                                <div class="flex justify-center mb-2 h-16 items-center">
-                                    <img src="{{ asset('img/billetes-monedas/billetes/' . $billete . 'pesos.png') }}" 
-                                         alt="${{ $billete }}" 
-                                         class="max-h-full max-w-full object-contain shadow-md rounded-sm transform transition-transform duration-200 group-hover:scale-105">
-                                </div>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span class="text-gray-400 text-sm font-bold">#</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- Tarjeta de Billetes --}}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="bg-green-50 px-4 py-2 border-b border-green-100 flex items-center justify-between">
+                            <h2 class="text-base font-semibold text-green-800 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Billetes
+                            </h2>
+                            <span class="text-xs font-medium text-green-600 bg-green-100 px-2 py-0.5 rounded-full">
+                                ${{ number_format(collect($desgloseBilletes)->map(fn($cant, $val) => (float)$cant * $val)->sum(), 2) }}
+                            </span>
+                        </div>
+                        <div class="p-2 space-y-1">
+                            @foreach(['1000', '500', '200', '100', '50', '20'] as $billete)
+                                <div class="flex items-center justify-between p-1 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 transition-colors">
+                                    <div class="flex items-center gap-2 w-1/3">
+                                        <img src="{{ asset('img/billetes-monedas/billetes/' . $billete . 'pesos.png') }}" 
+                                             alt="${{ $billete }}" 
+                                             class="h-8 w-auto object-contain shadow-sm rounded-sm">
+                                        <span class="text-xs font-bold text-gray-500 hidden sm:inline">${{ $billete }}</span>
                                     </div>
-                                    <input type="number" 
-                                           min="0"
-                                           wire:model.live.debounce.500ms="desgloseBilletes.{{ $billete }}"
-                                           class="block w-full pl-8 pr-3 py-3 border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-center text-lg font-semibold shadow-sm transition-colors"
-                                           placeholder="0">
+                                    <div class="w-1/3 px-2">
+                                        <input type="number" 
+                                               min="0"
+                                               wire:model.live.debounce.500ms="desgloseBilletes.{{ $billete }}"
+                                               class="block w-full text-center border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm font-semibold py-1"
+                                               placeholder="0">
+                                    </div>
+                                    <div class="w-1/3 text-right text-xs text-gray-600 font-medium">
+                                        ${{ number_format($billete * (float)($desgloseBilletes[$billete] ?? 0), 0) }}
+                                    </div>
                                 </div>
-                                <div class="mt-1 text-center text-xs text-gray-400 font-medium">
-                                    = ${{ number_format($billete * (float)($desgloseBilletes[$billete] ?? 0), 0) }}
-                                </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
-                </div>
 
-                {{-- Tarjeta de Monedas --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="bg-yellow-50 px-6 py-4 border-b border-yellow-100 flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-yellow-800 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Monedas
-                        </h2>
-                        <span class="text-sm font-medium text-yellow-600 bg-yellow-100 px-3 py-1 rounded-full">
-                            Subtotal: ${{ number_format(collect($desgloseMonedas)->map(fn($cant, $val) => (float)$cant * $val)->sum(), 2) }}
-                        </span>
-                    </div>
-                    <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
-                        @foreach(['20', '10', '5', '2', '1', '0.5'] as $moneda)
-                            @php
-                                $imagen = match($moneda) {
-                                    '1' => '1peso.png',
-                                    '0.5' => '50centavos.png',
-                                    default => $moneda . 'pesos.png'
-                                };
-                            @endphp
-                            <div class="relative group">
-                                <div class="flex justify-center mb-2 h-14 items-center">
-                                    <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" 
-                                         alt="${{ $moneda }}" 
-                                         class="max-h-full max-w-full object-contain  rounded-full transform transition-transform duration-200 group-hover:scale-110">
-                                </div>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span class="text-gray-400 text-sm font-bold">#</span>
+                    {{-- Tarjeta de Monedas --}}
+                    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                        <div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 flex items-center justify-between">
+                            <h2 class="text-base font-semibold text-yellow-800 flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Monedas
+                            </h2>
+                            <span class="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full">
+                                ${{ number_format(collect($desgloseMonedas)->map(fn($cant, $val) => (float)$cant * $val)->sum(), 2) }}
+                            </span>
+                        </div>
+                        <div class="p-2 space-y-1">
+                            @foreach(['20', '10', '5', '2', '1', '0.5'] as $moneda)
+                                @php
+                                    $imagen = match($moneda) {
+                                        '1' => '1peso.png',
+                                        '0.5' => '50centavos.png',
+                                        default => $moneda . 'pesos.png'
+                                    };
+                                @endphp
+                                <div class="flex items-center justify-between p-1 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 transition-colors">
+                                    <div class="flex items-center gap-2 w-1/3">
+                                        <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" 
+                                             alt="${{ $moneda }}" 
+                                             class="h-8 w-8 object-contain rounded-full">
+                                        <span class="text-xs font-bold text-gray-500 hidden sm:inline">${{ $moneda }}</span>
                                     </div>
-                                    <input type="number" 
-                                           min="0"
-                                           wire:model.live.debounce.500ms="desgloseMonedas.{{ $moneda }}"
-                                           class="block w-full pl-8 pr-3 py-3 border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 text-center text-lg font-semibold shadow-sm transition-colors"
-                                           placeholder="0">
+                                    <div class="w-1/3 px-2">
+                                        <input type="number" 
+                                               min="0"
+                                               wire:model.live.debounce.500ms="desgloseMonedas.{{ $moneda }}"
+                                               class="block w-full text-center border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500 text-sm font-semibold py-1"
+                                               placeholder="0">
+                                    </div>
+                                    <div class="w-1/3 text-right text-xs text-gray-600 font-medium">
+                                        ${{ number_format($moneda * (float)($desgloseMonedas[$moneda] ?? 0), 2) }}
+                                    </div>
                                 </div>
-                                <div class="mt-1 text-center text-xs text-gray-400 font-medium">
-                                    = ${{ number_format($moneda * (float)($desgloseMonedas[$moneda] ?? 0), 2) }}
-                                </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
                 {{-- Notas --}}
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <label for="notas" class="block text-sm font-medium text-gray-700 mb-2">Notas Adicionales</label>
-                    <textarea id="notas" wire:model="notas" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Cualquier observación sobre el pago..."></textarea>
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                    <label for="notas" class="block text-xs font-medium text-gray-700 mb-1">Notas Adicionales</label>
+                    <textarea id="notas" wire:model="notas" rows="2" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Cualquier observación sobre el pago..."></textarea>
                 </div>
 
             </div>
 
             {{-- Columna Derecha: Resumen y Confirmación --}}
-            <div class="lg:col-span-1 space-y-6">
+            <div class="lg:col-span-4 space-y-4">
                 
                 {{-- Tarjeta de Resumen Financiero --}}
                 <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden sticky top-6">
@@ -211,129 +209,136 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div class="fixed inset-0 bg-black/50" wire:click="$set('showModalCambio', false)"></div>
             
-            <div class="relative bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden z-10">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                Confirmar Pago
-                            </h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-500">
-                                    Por favor verifica los montos antes de finalizar.
-                                </p>
-                                
-                                <div class="mt-4 bg-gray-50 p-3 rounded-md">
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span>Total a Cobrar:</span>
-                                        <span class="font-bold">${{ number_format($totalSeleccionado, 2) }}</span>
-                                    </div>
-                                    <div class="flex justify-between text-sm mb-1">
-                                        <span>Efectivo Recibido:</span>
-                                        <span class="font-bold text-blue-600">${{ number_format($totalEfectivo, 2) }}</span>
-                                    </div>
-                                    <div class="flex justify-between text-lg mt-2 pt-2 border-t border-gray-200">
-                                        <span class="font-bold text-gray-700">Cambio a Entregar:</span>
-                                        <span class="font-bold text-green-600">${{ number_format($diferencia, 2) }}</span>
-                                    </div>
-                                </div>
-
-                                @if($diferencia > 0)
-                                    <div class="mt-4 border-t border-gray-200 pt-4">
-                                        <h4 class="text-sm font-bold text-gray-700 mb-2">Desglose de Cambio a Entregar</h4>
-                                        
-                                        {{-- Resumen de Cambio --}}
-                                        <div class="flex justify-between items-center mb-3 bg-gray-100 p-2 rounded">
-                                            <div class="text-xs text-gray-600">
-                                                Seleccionado: <span class="font-bold text-gray-900">${{ number_format($totalCambioManual, 2) }}</span>
-                                            </div>
-                                            <div class="text-xs">
-                                                @php $faltante = round($diferencia - $totalCambioManual, 2); @endphp
-                                                @if($faltante > 0)
-                                                    <span class="text-red-600 font-bold">Faltan: ${{ number_format($faltante, 2) }}</span>
-                                                @elseif($faltante < 0)
-                                                    <span class="text-orange-600 font-bold">Sobran: ${{ number_format(abs($faltante), 2) }}</span>
-                                                @else
-                                                    <span class="text-green-600 font-bold">Correcto</span>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                        <div class="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                                            {{-- Billetes --}}
-                                            <div>
-                                                <h5 class="text-xs font-semibold text-gray-500 mb-1">Billetes</h5>
-                                                <div class="grid grid-cols-3 gap-2">
-                                                    @foreach(['1000', '500', '200', '100', '50', '20'] as $billete)
-                                                        <div class="flex flex-col items-center p-2 border rounded bg-white shadow-sm">
-                                                            <div class="h-8 flex items-center justify-center mb-1">
-                                                                <img src="{{ asset('img/billetes-monedas/billetes/' . $billete . 'pesos.png') }}" 
-                                                                     class="max-h-full max-w-full object-contain">
-                                                            </div>
-                                                            <div class="w-full flex items-center gap-1">
-                                                                <span class="text-xs text-gray-400 font-bold">#</span>
-                                                                <input type="number" 
-                                                                       min="0" 
-                                                                       wire:model.live.debounce.500ms="desgloseCambioBilletes.{{ $billete }}" 
-                                                                       class="w-full text-center text-sm border-gray-300 rounded p-1 h-8 focus:ring-indigo-500 focus:border-indigo-500"
-                                                                       placeholder="0">
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-
-                                            {{-- Monedas --}}
-                                            <div>
-                                                <h5 class="text-xs font-semibold text-gray-500 mb-1">Monedas</h5>
-                                                <div class="grid grid-cols-3 gap-2">
-                                                    @foreach(['20', '10', '5', '2', '1', '0.5'] as $moneda)
-                                                         @php
-                                                            $imagen = match($moneda) {
-                                                                '1' => '1peso.png',
-                                                                '0.5' => '50centavos.png',
-                                                                default => $moneda . 'pesos.png'
-                                                            };
-                                                        @endphp
-                                                        <div class="flex flex-col items-center p-2 border rounded bg-white shadow-sm">
-                                                            <div class="h-8 flex items-center justify-center mb-1">
-                                                                <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" 
-                                                                     class="max-h-full max-w-full object-contain">
-                                                            </div>
-                                                            <div class="w-full flex items-center gap-1">
-                                                                <span class="text-xs text-gray-400 font-bold">#</span>
-                                                                <input type="number" 
-                                                                       min="0" 
-                                                                       wire:model.live.debounce.500ms="desgloseCambioMonedas.{{ $moneda }}" 
-                                                                       class="w-full text-center text-sm border-gray-300 rounded p-1 h-8 focus:ring-indigo-500 focus:border-indigo-500"
-                                                                       placeholder="0">
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endif
+            <div class="relative bg-white rounded-lg shadow-xl w-full max-w-4xl overflow-hidden z-10 max-h-[90vh] flex flex-col">
+                <div class="bg-white px-4 pt-4 pb-2 sm:p-6 sm:pb-2 flex-shrink-0">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 flex items-center gap-2" id="modal-title">
+                            <div class="flex-shrink-0 flex items-center justify-center h-8 w-8 rounded-full bg-green-100">
+                                <svg class="h-5 w-5 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
                             </div>
+                            Confirmar Pago y Cambio
+                        </h3>
+                        <button wire:click="$set('showModalCambio', false)" class="text-gray-400 hover:text-gray-500">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="bg-gray-50 p-3 rounded-md grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <span class="block text-xs text-gray-500 uppercase">Total a Cobrar</span>
+                            <span class="block text-lg font-bold text-gray-900">${{ number_format($totalSeleccionado, 2) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-xs text-gray-500 uppercase">Efectivo Recibido</span>
+                            <span class="block text-lg font-bold text-blue-600">${{ number_format($totalEfectivo, 2) }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-xs text-gray-500 uppercase">Cambio a Entregar</span>
+                            <span class="block text-lg font-bold text-green-600">${{ number_format($diferencia, 2) }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+
+                <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-2">
+                    @if($diferencia > 0)
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-sm font-bold text-gray-700">Desglose de Cambio (Manual)</h4>
+                                <div class="text-sm">
+                                    @php $faltante = round($diferencia - $totalCambioManual, 2); @endphp
+                                    @if($faltante > 0)
+                                        <span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded">Faltan: ${{ number_format($faltante, 2) }}</span>
+                                    @elseif($faltante < 0)
+                                        <span class="text-orange-600 font-bold bg-orange-50 px-2 py-1 rounded">Sobran: ${{ number_format(abs($faltante), 2) }}</span>
+                                    @else
+                                        <span class="text-green-600 font-bold bg-green-50 px-2 py-1 rounded flex items-center gap-1">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Correcto
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {{-- Billetes --}}
+                                <div>
+                                    <h5 class="text-xs font-semibold text-gray-500 mb-2 border-b pb-1">Billetes</h5>
+                                    <div class="space-y-1">
+                                        @foreach(['1000', '500', '200', '100', '50', '20'] as $billete)
+                                            <div class="flex items-center justify-between p-1 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100">
+                                                <div class="flex items-center gap-2 w-1/3">
+                                                    <img src="{{ asset('img/billetes-monedas/billetes/' . $billete . 'pesos.png') }}" 
+                                                         class="h-6 w-auto object-contain">
+                                                    <span class="text-xs font-bold text-gray-500">${{ $billete }}</span>
+                                                </div>
+                                                <div class="w-1/3 px-2">
+                                                    <input type="number" 
+                                                           min="0" 
+                                                           wire:model.live.debounce.500ms="desgloseCambioBilletes.{{ $billete }}" 
+                                                           class="block w-full text-center border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold py-1 h-8"
+                                                           placeholder="0">
+                                                </div>
+                                                <div class="w-1/3 text-right text-xs text-gray-400">
+                                                    ${{ number_format($billete * (float)($desgloseCambioBilletes[$billete] ?? 0), 0) }}
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                {{-- Monedas --}}
+                                <div>
+                                    <h5 class="text-xs font-semibold text-gray-500 mb-2 border-b pb-1">Monedas</h5>
+                                    <div class="space-y-1">
+                                        @foreach(['20', '10', '5', '2', '1', '0.5'] as $moneda)
+                                             @php
+                                                $imagen = match($moneda) {
+                                                    '1' => '1peso.png',
+                                                    '0.5' => '50centavos.png',
+                                                    default => $moneda . 'pesos.png'
+                                                };
+                                            @endphp
+                                            <div class="flex items-center justify-between p-1 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100">
+                                                <div class="flex items-center gap-2 w-1/3">
+                                                    <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" 
+                                                         class="h-6 w-6 object-contain rounded-full">
+                                                    <span class="text-xs font-bold text-gray-500">${{ $moneda }}</span>
+                                                </div>
+                                                <div class="w-1/3 px-2">
+                                                    <input type="number" 
+                                                           min="0" 
+                                                           wire:model.live.debounce.500ms="desgloseCambioMonedas.{{ $moneda }}" 
+                                                           class="block w-full text-center border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold py-1 h-8"
+                                                           placeholder="0">
+                                                </div>
+                                                <div class="w-1/3 text-right text-xs text-gray-400">
+                                                    ${{ number_format($moneda * (float)($desgloseCambioMonedas[$moneda] ?? 0), 2) }}
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 flex flex-row-reverse gap-2 flex-shrink-0">
                     <button type="button" 
                             wire:click="finalizarRegistro" 
                             wire:loading.attr="disabled"
                             wire:target="finalizarRegistro"
-                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50">
+                            class="inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm disabled:opacity-50">
                         <span wire:loading.remove wire:target="finalizarRegistro">Finalizar y Guardar</span>
                         <span wire:loading wire:target="finalizarRegistro">Guardando...</span>
                     </button>
-                    <button type="button" wire:click="$set('showModalCambio', false)" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    <button type="button" wire:click="$set('showModalCambio', false)" class="inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
                         Cancelar
                     </button>
                 </div>

@@ -60,6 +60,11 @@ class Index extends Component
                 ? $this->prestamo->clientes 
                 : ($this->prestamo->clientes->isNotEmpty() ? $this->prestamo->clientes : collect([$this->prestamo->cliente]));
 
+            // Filtrar clientes nulos para evitar errores
+            $clientes = $clientes->filter(function ($value) {
+                return !is_null($value);
+            });
+
             foreach ($clientes as $cliente) {
                 $montoAutorizado = 0;
                 if ($this->prestamo->producto === 'grupal') {

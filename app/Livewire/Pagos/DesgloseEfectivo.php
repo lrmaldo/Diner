@@ -353,17 +353,8 @@ class DesgloseEfectivo extends Component
         foreach ($this->desgloseCambioBilletes as $k => $v) $this->desgloseCambioBilletes[$k] = 0;
         foreach ($this->desgloseCambioMonedas as $k => $v) $this->desgloseCambioMonedas[$k] = 0;
 
-        // Pre-llenar con la sugerencia
-        $sugerencia = $this->desgloseCambio;
-        
-        foreach ($sugerencia as $denominacion => $cantidad) {
-            $strDenominacion = (string)$denominacion;
-            if (isset($this->desgloseCambioBilletes[$strDenominacion])) {
-                $this->desgloseCambioBilletes[$strDenominacion] = $cantidad;
-            } elseif (isset($this->desgloseCambioMonedas[$strDenominacion])) {
-                $this->desgloseCambioMonedas[$strDenominacion] = $cantidad;
-            }
-        }
+        // Se eliminó el pre-llenado automático por solicitud del usuario
+        // El usuario debe ingresar el cambio manualmente
         
         $this->calcularTotalCambioManual();
 
