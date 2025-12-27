@@ -70,23 +70,40 @@
                             </svg>
                             En Comité
                         </a>
-                    @else
-                        <!-- Vista completa para Administradores y Cajeros -->
-                        <a href="{{ route('prestamos.index') }}"
-                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.index') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                           wire:navigate>
-                            <svg class="mr-3 h-5 w-5 {{ request()->routeIs('prestamos.*') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            Todos los Préstamos
-                        </a>
-                    @endif
 
-                    @if(!auth()->user()->hasRole('Asesor'))
+                        @can('crear prestamos')
+                        <!-- Nuevo Préstamo -->
+                        <a href="{{ route('prestamos.create') }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.create') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           wire:navigate>
+                            <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.create') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Solicitar Crédito
+                        </a>
+                        @endcan
+                    @else
+                        <!-- Vista para Administradores y Cajeros -->
+                        <div class="px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Créditos
+                        </div>
+
+                        @can('crear prestamos')
+                        <!-- Nuevo Préstamo -->
+                        <a href="{{ route('prestamos.create') }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ml-2 {{ request()->routeIs('prestamos.create') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           wire:navigate>
+                            <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.create') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Solicitar Crédito
+                        </a>
+                        @endcan
+
                         @if(auth()->user()->hasRole('Administrador'))
                         <!-- En Comité - Solo Administradores -->
                         <a href="{{ route('prestamos.en-comite') }}"
-                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ml-6 {{ request()->routeIs('prestamos.en-comite') ? 'bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ml-2 {{ request()->routeIs('prestamos.en-comite') ? 'bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
                            wire:navigate>
                             <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.en-comite') ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -97,7 +114,7 @@
 
                         <!-- Préstamos Autorizados -->
                         <a href="{{ route('prestamos.autorizados') }}"
-                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ml-6 {{ request()->routeIs('prestamos.autorizados') ? 'bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ml-2 {{ request()->routeIs('prestamos.autorizados') ? 'bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
                            wire:navigate>
                             <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.autorizados') ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -105,18 +122,6 @@
                             Autorizados
                         </a>
                     @endif
-
-                    @can('crear prestamos')
-                    <!-- Nuevo Préstamo -->
-                    <a href="{{ route('prestamos.create') }}"
-                       class="group flex items-center px-2 py-2 text-sm font-medium rounded-md ml-6 {{ request()->routeIs('prestamos.create') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                       wire:navigate>
-                        <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.create') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Solicitar Crédito
-                    </a>
-                    @endcan
                 </div>
                 @endcan
 
