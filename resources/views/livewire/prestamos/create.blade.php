@@ -140,11 +140,10 @@
                     @enderror
                 </div>
 
-                {{-- Sexta fila: Tasa de interés y Garantía (Solo Admin y Comité) --}}
-                @role('Administrador|Asesor')
+                {{-- Sexta fila: Tasa de interés y Garantía --}}
                 <div>
                     <label class="field-label">Tasa de interés (%)</label>
-                    <input wire:model="tasa_interes" type="number" step="0.01" class="input-project" />
+                    <input wire:model="tasa_interes" type="number" step="0.01" class="input-project disabled:bg-gray-100 disabled:text-gray-500" @disabled(!auth()->user()->hasRole('Administrador')) />
                     @error('tasa_interes')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
@@ -152,12 +151,11 @@
 
                 <div>
                     <label class="field-label">Garantía (%)</label>
-                    <input wire:model="garantia" type="number" step="0.01" class="input-project" />
+                    <input wire:model="garantia" type="number" step="0.01" class="input-project disabled:bg-gray-100 disabled:text-gray-500" @disabled(!auth()->user()->hasRole('Administrador')) />
                     @error('garantia')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
                 </div>
-                @endrole
 
                 <div class="sm:col-span-2 flex justify-end gap-2 mt-2">
                     <a href="{{ route('prestamos.index') }}" class="btn-outline">Cancelar</a>
@@ -667,30 +665,6 @@
                 {{-- Card 3: Comentarios y Envío --}}
                 <div class="bg-white shadow-md rounded-lg border border-gray-200 p-5">
                     <h3 class="text-md font-semibold text-gray-700 mb-4">Comentarios para el Comité</h3>
-
-                    {{-- Edición de Tasa y Garantía para Comité --}}
-                    @role('Asesor')
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div class="sm:col-span-2">
-                            <h4 class="text-sm font-semibold text-yellow-800 mb-2">Ajustes del Comité</h4>
-                        </div>
-                        <div>
-                            <label class="field-label">Tasa de interés (%)</label>
-                            <input wire:model="tasa_interes" type="number" step="0.01" class="input-project" />
-                            @error('tasa_interes')
-                                <span class="text-red-500 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label class="field-label">Garantía (%)</label>
-                            <input wire:model="garantia" type="number" step="0.01" class="input-project" />
-                            @error('garantia')
-                                <span class="text-red-500 text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-                    </div>
-                    @endrole
 
                     {{-- Debug: mostrar valor actual --}}
                     {{-- @if(config('app.debug'))

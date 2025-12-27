@@ -25,37 +25,24 @@
                 Créditos del día
             </button>
 
-            {{-- Checkbox Ver créditos anteriores --}}
-            <label class="inline-flex items-center cursor-pointer group">
-                <div class="relative">
-                    <input
-                        type="checkbox"
-                        wire:model.live="verAnteriores"
-                        class="sr-only peer" />
-                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </div>
-                <span class="ml-3 text-sm font-medium text-gray-700 group-hover:text-gray-900">
+            {{-- Input de número de grupo (siempre visible) --}}
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-medium text-gray-700">
                     Ver créditos anteriores
                 </span>
-            </label>
-
-            {{-- Input de número de grupo (solo visible cuando verAnteriores está activo) --}}
-            @if($verAnteriores)
-                <div class="flex-1 md:max-w-xs transition-all duration-300 ease-in-out">
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <input
-                            wire:model.live.debounce.500ms="grupo"
-                            type="text"
-                            placeholder="Número de grupo"
-                            class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" />
+                <div class="relative w-64">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                     </div>
+                    <input
+                        wire:model.live.debounce.500ms="grupo"
+                        type="text"
+                        placeholder="Número de grupo"
+                        class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" />
                 </div>
-            @endif
+            </div>
         </div>
     </div>
 

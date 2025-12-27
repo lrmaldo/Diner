@@ -110,18 +110,14 @@ class Autorizados extends Component
             $query->where('producto', $this->producto);
         }
 
-        // Si está activado ver anteriores, omitimos filtro por fecha_entrega
-        if ($this->verAnteriores) {
-            // Si ingresaron un grupo, buscar por id (grupo) o folio
-            if (! empty($this->grupo)) {
-                $query->where(function ($q) {
-                    $q->where('id', $this->grupo)
-                        ->orWhere('folio', $this->grupo);
-                });
-            }
-            // si verAnteriores está activo y no hay grupo, no aplicamos filtro por fecha
+        // Si hay un grupo especificado, buscamos por ese grupo ignorando fechas
+        if (! empty($this->grupo)) {
+            $query->where(function ($q) {
+                $q->where('id', $this->grupo)
+                    ->orWhere('folio', $this->grupo);
+            });
         } else {
-            // Filtro por fecha de entrega: por defecto ambas fechas serán hoy
+            // Si no hay grupo, aplicamos filtro por fecha (por defecto hoy)
             if (! empty($this->fechaDesde)) {
                 $query->whereDate('fecha_entrega', '>=', $this->fechaDesde);
             }
