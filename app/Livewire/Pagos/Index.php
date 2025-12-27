@@ -55,6 +55,11 @@ class Index extends Component
         if (! $this->prestamo) {
             $this->notFound = true;
         } else {
+            // Validar estado del préstamo
+            if ($this->prestamo->estado !== 'autorizado') {
+                return;
+            }
+
             // Inicializar abonos y selección
             $clientes = $this->prestamo->producto === 'grupal' 
                 ? $this->prestamo->clientes 
