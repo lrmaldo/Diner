@@ -872,7 +872,7 @@ class Create extends Component
             'new_anios_experiencia' => ['nullable', 'integer', 'min:0'],
             'new_ingreso_mensual' => ['nullable', 'numeric'],
             'new_gasto_mensual_familiar' => ['nullable', 'numeric'],
-            'new_credito_solicitado' => ['nullable', 'numeric'],
+            'new_credito_solicitado' => ['required', 'numeric', 'min:0'],
             'new_estado' => ['nullable', 'string', 'max:255'],
             'new_municipio' => ['nullable', 'string', 'max:255'],
             'new_colonia' => ['nullable', 'string', 'max:255'],

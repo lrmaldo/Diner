@@ -185,9 +185,7 @@
                                         $moratorio = $moratorios[$cliente->id] ?? 0;
 
                                         // Adeudo Total Estimado
-                                        $tasaInteres = $prestamo->tasa_interes ?? 0;
-                                        $interesSimple = $montoAutorizado * ($tasaInteres / 100); 
-                                        $adeudoEstimado = $montoAutorizado + $interesSimple;
+                                        $adeudoEstimado = $this->calcularTotalAdeudo($montoAutorizado);
                                         
                                         $totalMonto += $pagoSugerido;
                                         $totalPendiente += $pendiente;

@@ -100,6 +100,33 @@ class Index extends Component
         }
     }
 
+    public function calcularTotalAdeudo($montoAutorizado)
+    {
+        if ($montoAutorizado <= 0) {
+            return 0;
+        }
+
+        $plazo = strtolower(trim($this->prestamo->plazo));
+        $periodicidad = strtolower(trim($this->prestamo->periodicidad));
+        $tasaInteres = (float) $this->prestamo->tasa_interes;
+
+        // Determinar configuración según reglas de negocio
+        $configuracion = $this->determinarConfiguracionPago($plazo, $periodicidad);
+
+        if (! $configuracion) {
+            // Fallback: cálculo básico
+            $interesTotal = $montoAutorizado * ($tasaInteres / 100);
+            return $montoAutorizado + $interesTotal;
+        }
+
+        // Calcular según reglas de negocio específicas
+        $interes = (($montoAutorizado / 100) * $tasaInteres) * $configuracion['meses_interes'];
+        $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
+        $iva = ($interes / 100) * $ivaPorcentaje;
+        
+        return $interes + $iva + $montoAutorizado;
+    }
+
     public function calcularCuota($montoAutorizado)
     {
         if ($montoAutorizado <= 0) {

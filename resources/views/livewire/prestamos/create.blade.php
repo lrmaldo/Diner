@@ -303,6 +303,9 @@
                                 <div class="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                                     <label class="block text-base font-semibold text-blue-900 mb-2">Crédito solicitado *</label>
                                     <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
+                                    @error('new_credito_solicitado')
+                                        <span class="text-red-500 text-sm font-bold mt-1 block">No se ha definido el monto a solicitar</span>
+                                    @enderror
                                 </div>
 
                                 {{-- Sección: Datos Personales --}}
@@ -472,6 +475,9 @@
                                     <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                         <label class="field-label text-blue-900">Crédito solicitado *</label>
                                         <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="input-project" />
+                                        @error('new_credito_solicitado')
+                                            <span class="text-red-500 text-sm font-bold mt-1 block">No se ha definido el monto a solicitar</span>
+                                        @enderror
                                     </div>
 
                                 {{-- Sección: Datos Personales --}}
