@@ -160,7 +160,7 @@
                                     <tr>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600">{{ $index + 1 }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-blue-600 dark:text-blue-400 border-r border-gray-200 dark:border-gray-600 font-bold">
-                                            <button wire:click="selectLoan({{ $loan->id }})" class="hover:underline">{{ $loan->id }}</button>
+                                            <a href="{{ route('prestamos.print', ['prestamo' => $loan->id, 'type' => 'estado_cuenta']) }}" target="_blank" class="hover:underline">{{ $loan->id }}</a>
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600 uppercase">{{ $loan->producto }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600">{{ $loan->periodo_pago }}</td>
