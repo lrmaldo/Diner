@@ -101,7 +101,7 @@ Route::middleware(['auth'])->group(function () {
         })->name('prestamos.print.download');
 
         Route::get('/prestamos/{id}', \App\Livewire\Prestamos\Show::class)->name('prestamos.show');
-        Route::get('/prestamos/{prestamo}/editar', \App\Livewire\Prestamos\Edit::class)->middleware('permission:editar prestamos')->name('prestamos.edit');
+        Route::get('/prestamos/{prestamo}/editar', \App\Livewire\Prestamos\Edit::class)->middleware('role_or_permission:editar prestamos|Asesor')->name('prestamos.edit');
     });
 
     // Rutas para pagos/cobros
