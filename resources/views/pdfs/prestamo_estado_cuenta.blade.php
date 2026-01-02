@@ -1118,8 +1118,17 @@
                     }
                     
                     // Calcular totales
-                    $saldoTotal = 0; // Saldo Moratorio (pendiente)
-                    $adeudoTotal = $capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido;
+                    // Fórmula de multa: (((((monto del credito)/100)* interes)plazo)+(monto del credito/numero de pagos)) 5%
+                    $multaUnitaria = 0;
+                    if ($numeroPagosSaldos > 0) {
+                        $interesTotalMulta = ($montoCredito / 100) * ($prestamo->tasa_interes ?? 0) * $mesesInteresSaldos;
+                        $capitalPorPagoMulta = $montoCredito / $numeroPagosSaldos;
+                        $baseMulta = $interesTotalMulta + $capitalPorPagoMulta;
+                        $multaUnitaria = $baseMulta * 0.05;
+                    }
+
+                    $saldoTotal = $atrasos * $multaUnitaria; // Saldo Moratorio (Multas)
+                    $adeudoTotal = $capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido + $saldoTotal;
                     
                     // Calcular número de pagos atrasados
                     $atrasos = 0;
@@ -1276,8 +1285,17 @@
                                 }
                             }
                             
-                            $saldoMoratorioCliente = 0;
-                            $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente;
+                            // Calcular multa cliente
+                            $multaUnitariaCliente = 0;
+                            if ($numeroPagosSaldos > 0) {
+                                $interesTotalMultaCliente = ($montoCliente / 100) * ($prestamo->tasa_interes ?? 0) * $mesesInteresSaldos;
+                                $capitalPorPagoMultaCliente = $montoCliente / $numeroPagosSaldos;
+                                $baseMultaCliente = $interesTotalMultaCliente + $capitalPorPagoMultaCliente;
+                                $multaUnitariaCliente = $baseMultaCliente * 0.05;
+                            }
+
+                            $saldoMoratorioCliente = $atrasosCliente * $multaUnitariaCliente;
+                            $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente + $saldoMoratorioCliente;
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($cliente->nombres . ' ' . $cliente->apellido_paterno . ' ' . $cliente->apellido_materno)) }}</td>
@@ -1352,8 +1370,17 @@
                             // Calcular atrasos del cliente (individual)
                             $atrasosCliente = $atrasos; // Usamos el cálculo global ya que es individual
                             
-                            $saldoMoratorioCliente = 0;
-                            $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente;
+                            // Calcular multa cliente (individual)
+                            $multaUnitariaCliente = 0;
+                            if ($numeroPagosSaldos > 0) {
+                                $interesTotalMultaCliente = ($montoCliente / 100) * ($prestamo->tasa_interes ?? 0) * $mesesInteresSaldos;
+                                $capitalPorPagoMultaCliente = $montoCliente / $numeroPagosSaldos;
+                                $baseMultaCliente = $interesTotalMultaCliente + $capitalPorPagoMultaCliente;
+                                $multaUnitariaCliente = $baseMultaCliente * 0.05;
+                            }
+
+                            $saldoMoratorioCliente = $atrasosCliente * $multaUnitariaCliente;
+                            $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente + $saldoMoratorioCliente;
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($prestamo->cliente->nombres . ' ' . $prestamo->cliente->apellido_paterno . ' ' . $prestamo->cliente->apellido_materno)) }}</td>
