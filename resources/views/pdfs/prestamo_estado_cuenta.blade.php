@@ -1117,19 +1117,6 @@
                         $ivaVencido = ($montoVencido / $pagosPorMil) * (((($montoPrestamo / 100) * $interes) * $plazo) * $iva) / $numeroPagosSaldos;
                     }
                     
-                    // Calcular totales
-                    // Fórmula de multa: (((((monto del credito)/100)* interes)plazo)+(monto del credito/numero de pagos)) 5%
-                    $multaUnitaria = 0;
-                    if ($numeroPagosSaldos > 0) {
-                        $interesTotalMulta = ($montoCredito / 100) * ($prestamo->tasa_interes ?? 0) * $mesesInteresSaldos;
-                        $capitalPorPagoMulta = $montoCredito / $numeroPagosSaldos;
-                        $baseMulta = $interesTotalMulta + $capitalPorPagoMulta;
-                        $multaUnitaria = $baseMulta * 0.05;
-                    }
-
-                    $saldoTotal = $atrasos * $multaUnitaria; // Saldo Moratorio (Multas)
-                    $adeudoTotal = $capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido + $saldoTotal;
-                    
                     // Calcular número de pagos atrasados
                     $atrasos = 0;
                     foreach ($calendarioPagos as $pagoProg) {
@@ -1147,6 +1134,19 @@
                             }
                         }
                     }
+
+                    // Calcular totales
+                    // Fórmula de multa: (((((monto del credito)/100)* interes)plazo)+(monto del credito/numero de pagos)) 5%
+                    $multaUnitaria = 0;
+                    if ($numeroPagosSaldos > 0) {
+                        $interesTotalMulta = ($montoCredito / 100) * ($prestamo->tasa_interes ?? 0) * $mesesInteresSaldos;
+                        $capitalPorPagoMulta = $montoCredito / $numeroPagosSaldos;
+                        $baseMulta = $interesTotalMulta + $capitalPorPagoMulta;
+                        $multaUnitaria = $baseMulta * 0.05;
+                    }
+
+                    $saldoTotal = $atrasos * $multaUnitaria; // Saldo Moratorio (Multas)
+                    $adeudoTotal = $capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido + $saldoTotal;
                     
                     $garantiaSaldos = $totalGarantia;
                 @endphp
