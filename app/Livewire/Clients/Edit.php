@@ -9,9 +9,8 @@ class Edit extends Component
 {
     public Cliente $cliente;
 
-    public $phones = [];
-
-    public $phoneToDeleteIndex = null;
+    public $telefono_celular;
+    public $telefono_casa;
 
     // Campos del cliente (propiedades públicas para enlazado seguro en Livewire)
     public $apellido_paterno;
@@ -80,7 +79,8 @@ class Edit extends Component
             'municipio' => ['nullable', 'string', 'max:255'],
             'colonia' => ['nullable', 'string', 'max:255'],
             'codigo_postal' => ['nullable', 'string', 'max:20'],
-            'phones.*.numero' => ['nullable', 'string', 'max:30', 'regex:/^[0-9\\s()+-]{7,20}$/'],
+            'telefono_celular' => ['required', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
+            'telefono_casa' => ['nullable', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
         ];
     }
 
@@ -97,7 +97,9 @@ class Edit extends Component
         'ingreso_mensual.numeric' => 'El ingreso mensual debe ser un número.',
         'gasto_mensual_familiar.numeric' => 'El gasto mensual debe ser un número.',
         'credito_solicitado.numeric' => 'El crédito solicitado debe ser un número.',
-        'phones.*.numero.regex' => 'El número de teléfono tiene un formato inválido.',
+        'telefono_celular.required' => 'El teléfono celular es obligatorio.',
+        'telefono_celular.regex' => 'El teléfono celular tiene un formato inválido.',
+        'telefono_casa.regex' => 'El teléfono de casa tiene un formato inválido.',
         'max' => 'El campo :attribute no debe ser mayor de :max caracteres.',
         'required' => 'El campo :attribute es obligatorio.',
     ];
@@ -128,32 +130,8 @@ class Edit extends Component
         $this->colonia = $cliente->colonia;
         $this->codigo_postal = $cliente->codigo_postal;
 
-        $this->phones = $cliente->telefonos->map(function ($t) {
-            return ['id' => $t->id, 'tipo' => $t->tipo, 'numero' => $t->numero];
-        })->toArray();
-    }
-
-    public function addPhone(): void
-    {
-        $this->phones[] = ['id' => null, 'tipo' => 'celular', 'numero' => ''];
-    }
-
-    public function removePhone(int $index): void
-    {
-        $this->phoneToDeleteIndex = $index;
-    }
-
-    public function confirmRemovePhone(): void
-    {
-        if ($this->phoneToDeleteIndex !== null && isset($this->phones[$this->phoneToDeleteIndex])) {
-            array_splice($this->phones, $this->phoneToDeleteIndex, 1);
-        }
-        $this->phoneToDeleteIndex = null;
-    }
-
-    public function cancelRemovePhone(): void
-    {
-        $this->phoneToDeleteIndex = null;
+        $this->telefono_celular = $cliente->telefonos()->where('tipo', 'celular')->value('numero');
+        $this->telefono_casa = $cliente->telefonos()->where('tipo', 'casa')->value('numero');
     }
 
     public function save()
@@ -185,33 +163,20 @@ class Edit extends Component
             'codigo_postal' => $this->codigo_postal,
         ]);
 
-        // Sincronizar teléfonos: actualizar existentes, crear nuevos, borrar los que faltan
-        $existing = $this->cliente->telefonos()->pluck('id')->toArray();
-        $sentIds = [];
-        foreach ($this->phones as $p) {
-            $id = data_get($p, 'id');
-            $numero = data_get($p, 'numero');
-            $tipo = data_get($p, 'tipo', 'celular');
-            if ($id && in_array($id, $existing, true)) {
-                // actualizar o borrar si vacío
-                if ($numero) {
-                    $this->cliente->telefonos()->where('id', $id)->update(['numero' => $numero, 'tipo' => $tipo]);
-                    $sentIds[] = $id;
-                } else {
-                    $this->cliente->telefonos()->where('id', $id)->delete();
-                }
-            } else {
-                // nuevo
-                if ($numero) {
-                    $created = $this->cliente->telefonos()->create(['tipo' => $tipo, 'numero' => $numero]);
-                    $sentIds[] = $created->id;
-                }
-            }
-        }
-        // Borrar los telefonos que no fueron enviados
-        $toDelete = array_diff($existing, $sentIds);
-        if (! empty($toDelete)) {
-            $this->cliente->telefonos()->whereIn('id', $toDelete)->delete();
+        // Actualizar teléfono celular
+        $this->cliente->telefonos()->updateOrCreate(
+            ['tipo' => 'celular'],
+            ['numero' => $this->telefono_celular]
+        );
+
+        // Actualizar teléfono de casa
+        if ($this->telefono_casa) {
+            $this->cliente->telefonos()->updateOrCreate(
+                ['tipo' => 'casa'],
+                ['numero' => $this->telefono_casa]
+            );
+        } else {
+            $this->cliente->telefonos()->where('tipo', 'casa')->delete();
         }
 
         session()->flash('success', 'Cliente actualizado correctamente');

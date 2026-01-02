@@ -299,6 +299,17 @@
                                         </button>
                                     </div>
 
+                                    @if($errors->any())
+                                        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                            <p class="font-bold">Hay errores en el formulario:</p>
+                                            <ul class="list-disc pl-5 mt-1">
+                                                @foreach($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+
                                 {{-- Campo destacado: Crédito solicitado --}}
                                 <div class="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                                     <label class="block text-base font-semibold text-blue-900 mb-2">Crédito solicitado *</label>
@@ -321,26 +332,42 @@
                                             <div>
                                                 <label class="field-label">Apellido paterno *</label>
                                                 <input wire:model.defer="new_apellido_paterno" class="input-project" />
+                                                @error('new_apellido_paterno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Apellido materno</label>
                                                 <input wire:model.defer="new_apellido_materno" class="input-project" />
+                                                @error('new_apellido_materno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Nombres *</label>
                                                 <input wire:model.defer="new_nombres" class="input-project" />
+                                                @error('new_nombres') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">CURP *</label>
-                                                <input wire:model.defer="new_curp" class="input-project" maxlength="18" />
+                                                <input wire:model.defer="new_curp" class="input-project" maxlength="18" x-on:input="$el.value = $el.value.toUpperCase()" />
+                                                @error('new_curp') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Email</label>
                                                 <input wire:model.defer="new_email" type="email" class="input-project" />
+                                                @error('new_email') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">País de nacimiento</label>
                                                 <input wire:model.defer="new_pais_nacimiento" class="input-project" value="México" placeholder="México" />
+                                                @error('new_pais_nacimiento') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Teléfono Celular *</label>
+                                                <input wire:model.defer="new_telefono_celular" class="input-project" placeholder="10 dígitos" />
+                                                @error('new_telefono_celular') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Teléfono de Casa</label>
+                                                <input wire:model.defer="new_telefono_casa" class="input-project" placeholder="Opcional" />
+                                                @error('new_telefono_casa') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Estado civil</label>
@@ -352,16 +379,19 @@
                                                     <option value="viudo">Viudo/a</option>
                                                     <option value="union_libre">Unión libre</option>
                                                 </select>
+                                                @error('new_estado_civil') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             @if(in_array($new_estado_civil, ['casado', 'union_libre']))
                                                 <div class="sm:col-span-2">
                                                     <label class="field-label">Nombre del cónyuge</label>
                                                     <input wire:model.defer="new_nombre_conyuge" class="input-project" />
+                                                    @error('new_nombre_conyuge') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                                 </div>
                                             @endif
                                             <div>
                                                 <label class="field-label">Dependientes económicos</label>
                                                 <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" placeholder="Ej: 3 (hijos, padres, etc.)" autocomplete="off" name="dependientes_economicos_individual" />
+                                                @error('new_dependientes_economicos') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -380,26 +410,32 @@
                                             <div class="sm:col-span-3">
                                                 <label class="field-label">Calle y número *</label>
                                                 <input wire:model.defer="new_calle_numero" class="input-project" />
+                                                @error('new_calle_numero') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Colonia</label>
                                                 <input wire:model.defer="new_colonia" class="input-project" />
+                                                @error('new_colonia') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Municipio</label>
                                                 <input wire:model.defer="new_municipio" class="input-project" />
+                                                @error('new_municipio') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Estado</label>
                                                 <input wire:model.defer="new_estado" class="input-project" />
+                                                @error('new_estado') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Código Postal</label>
                                                 <input wire:model.defer="new_codigo_postal" class="input-project" />
+                                                @error('new_codigo_postal') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div class="sm:col-span-2">
                                                 <label class="field-label">Referencia domiciliaria</label>
                                                 <textarea wire:model.defer="new_referencia_domiciliaria" class="input-project" rows="2"></textarea>
+                                                @error('new_referencia_domiciliaria') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -418,22 +454,27 @@
                                             <div>
                                                 <label class="field-label">Actividad productiva</label>
                                                 <input wire:model.defer="new_actividad_productiva" class="input-project" autocomplete="off" name="actividad_productiva_individual" />
+                                                @error('new_actividad_productiva') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Años de experiencia</label>
                                                 <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" autocomplete="off" name="anios_experiencia_individual" />
+                                                @error('new_anios_experiencia') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Ingreso mensual</label>
                                                 <input wire:model.defer="new_ingreso_mensual" type="number" step="0.01" class="input-project" />
+                                                @error('new_ingreso_mensual') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Gasto mensual familiar</label>
                                                 <input wire:model.defer="new_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
+                                                @error('new_gasto_mensual_familiar') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div class="sm:col-span-2">
                                                 <label class="field-label">Nombre de aval</label>
                                                 <input wire:model.defer="new_nombre_aval" class="input-project" />
+                                                @error('new_nombre_aval') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -471,6 +512,17 @@
                                         </button>
                                     </div>
 
+                                    @if($errors->any())
+                                        <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                                            <p class="font-bold">Hay errores en el formulario:</p>
+                                            <ul class="list-disc pl-5 mt-1">
+                                                @foreach($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+
                                     {{-- Crédito solicitado destacado --}}
                                     <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                         <label class="field-label text-blue-900">Crédito solicitado *</label>
@@ -493,26 +545,42 @@
                                             <div>
                                                 <label class="field-label">Apellido paterno *</label>
                                                 <input wire:model.defer="new_apellido_paterno" class="input-project" />
+                                                @error('new_apellido_paterno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Apellido materno</label>
                                                 <input wire:model.defer="new_apellido_materno" class="input-project" />
+                                                @error('new_apellido_materno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Nombres *</label>
                                                 <input wire:model.defer="new_nombres" class="input-project" />
+                                                @error('new_nombres') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">CURP *</label>
-                                                <input wire:model.defer="new_curp" class="input-project" maxlength="18" />
+                                                <input wire:model.defer="new_curp" class="input-project" maxlength="18" x-on:input="$el.value = $el.value.toUpperCase()" />
+                                                @error('new_curp') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Email</label>
                                                 <input wire:model.defer="new_email" type="email" class="input-project" />
+                                                @error('new_email') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">País de nacimiento</label>
                                                 <input wire:model.defer="new_pais_nacimiento" class="input-project" value="México" placeholder="México" />
+                                                @error('new_pais_nacimiento') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Teléfono Celular *</label>
+                                                <input wire:model.defer="new_telefono_celular" class="input-project" placeholder="10 dígitos" />
+                                                @error('new_telefono_celular') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Teléfono de Casa</label>
+                                                <input wire:model.defer="new_telefono_casa" class="input-project" placeholder="Opcional" />
+                                                @error('new_telefono_casa') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Estado civil</label>
@@ -524,16 +592,19 @@
                                                     <option value="viudo">Viudo/a</option>
                                                     <option value="union_libre">Unión libre</option>
                                                 </select>
+                                                @error('new_estado_civil') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             @if(in_array($new_estado_civil, ['casado', 'union_libre']))
                                                 <div class="sm:col-span-2">
                                                     <label class="field-label">Nombre del cónyuge</label>
                                                     <input wire:model.defer="new_nombre_conyuge" class="input-project" />
+                                                    @error('new_nombre_conyuge') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                                 </div>
                                             @endif
                                             <div>
                                                 <label class="field-label">Dependientes económicos</label>
                                                 <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" placeholder="Ej: 3 (hijos, padres, etc.)" autocomplete="off" name="dependientes_economicos_grupal" />
+                                                @error('new_dependientes_economicos') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -552,26 +623,32 @@
                                             <div class="sm:col-span-3">
                                                 <label class="field-label">Calle y número *</label>
                                                 <input wire:model.defer="new_calle_numero" class="input-project" />
+                                                @error('new_calle_numero') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Colonia</label>
                                                 <input wire:model.defer="new_colonia" class="input-project" />
+                                                @error('new_colonia') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Municipio</label>
                                                 <input wire:model.defer="new_municipio" class="input-project" />
+                                                @error('new_municipio') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Estado</label>
                                                 <input wire:model.defer="new_estado" class="input-project" />
+                                                @error('new_estado') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Código Postal</label>
                                                 <input wire:model.defer="new_codigo_postal" class="input-project" />
+                                                @error('new_codigo_postal') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div class="sm:col-span-2">
                                                 <label class="field-label">Referencia domiciliaria</label>
                                                 <textarea wire:model.defer="new_referencia_domiciliaria" class="input-project" rows="2"></textarea>
+                                                @error('new_referencia_domiciliaria') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
                                     </div>
@@ -590,22 +667,27 @@
                                             <div>
                                                 <label class="field-label">Actividad productiva</label>
                                                 <input wire:model.defer="new_actividad_productiva" class="input-project" autocomplete="off" name="actividad_productiva_grupal" />
+                                                @error('new_actividad_productiva') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Años de experiencia</label>
                                                 <input wire:model.defer="new_anios_experiencia" type="number" min="0" class="input-project" autocomplete="off" name="anios_experiencia_grupal" />
+                                                @error('new_anios_experiencia') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Ingreso mensual</label>
                                                 <input wire:model.defer="new_ingreso_mensual" type="number" step="0.01" class="input-project" />
+                                                @error('new_ingreso_mensual') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Gasto mensual familiar</label>
                                                 <input wire:model.defer="new_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
+                                                @error('new_gasto_mensual_familiar') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div class="sm:col-span-2">
                                                 <label class="field-label">Nombre de aval</label>
                                                 <input wire:model.defer="new_nombre_aval" class="input-project" />
+                                                @error('new_nombre_aval') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
                                     </div>

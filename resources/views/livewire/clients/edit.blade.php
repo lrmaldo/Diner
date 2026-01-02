@@ -161,51 +161,17 @@
                 @error('codigo_postal') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 
-            <div class="sm:col-span-2">
-                <label class="field-label">Teléfono</label>
-                <div class="space-y-2">
-                    @foreach($phones as $i => $p)
-                        <div class="flex gap-2 items-center w-full flex-wrap">
-                            <div class="flex-none">
-                                <select wire:model.defer="phones.{{ $i }}.tipo" class="input-project w-28">
-                                    <option value="celular">Celular</option>
-                                    <option value="casa">Casa</option>
-                                    <option value="trabajo">Trabajo</option>
-                                    <option value="otro">Otro</option>
-                                </select>
-                            </div>
-
-                            <div class="flex-1 min-w-0">
-                                <input wire:model.defer="phones.{{ $i }}.numero" type="text" class="input-project w-full" style="min-width:0;" placeholder="Número" />
-                            </div>
-
-                            <div class="flex-none">
-                                <button type="button" wire:click.prevent="removePhone({{ $i }})" class="btn-outline">Eliminar</button>
-                            </div>
-                        </div>
-                    @endforeach
-
-                    <div>
-                        <button type="button" wire:click.prevent="addPhone" class="btn-primary">Agregar teléfono</button>
-                    </div>
-                </div>
-                @error('phones.*.numero') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+            <div>
+                <label class="field-label">Teléfono Celular <span class="text-red-600">*</span></label>
+                <input wire:model.defer="telefono_celular" type="text" class="input-project" placeholder="10 dígitos" value="{{ old('telefono_celular', $telefono_celular) }}" />
+                @error('telefono_celular') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 
-            {{-- Modal de confirmación para eliminar teléfono --}}
-            @if($phoneToDeleteIndex !== null)
-                <div class="modal-backdrop"></div>
-                <div class="fixed inset-0 flex items-center justify-center z-50">
-                    <div class="modal-panel max-w-lg w-full p-6">
-                        <h3 class="text-lg font-semibold mb-4 dark:text-gray-200">Confirmar eliminación</h3>
-                        <p class="mb-4 dark:text-gray-300">¿Deseas eliminar el teléfono <strong>{{ $phones[$phoneToDeleteIndex]['numero'] ?? '' }}</strong>?</p>
-                        <div class="flex justify-end gap-2">
-                            <button wire:click="cancelRemovePhone" class="btn-outline">Cancelar</button>
-                            <button wire:click="confirmRemovePhone" class="btn-danger">Eliminar</button>
-                        </div>
-                    </div>
-                </div>
-            @endif
+            <div>
+                <label class="field-label">Teléfono de Casa</label>
+                <input wire:model.defer="telefono_casa" type="text" class="input-project" placeholder="Opcional" value="{{ old('telefono_casa', $telefono_casa) }}" />
+                @error('telefono_casa') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+            </div>
 
             <div class="sm:col-span-2 flex justify-end gap-2 mt-2">
                 <a href="{{ route('clients.index') }}" class="btn-outline">Cancelar</a>

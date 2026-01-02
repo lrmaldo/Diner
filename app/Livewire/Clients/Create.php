@@ -49,11 +49,9 @@ class Create extends Component
 
     public $codigo_postal;
 
-    public $telefono;
-
-    public $phones = [];
-
-    public $phoneToDeleteIndex = null;
+    // Nuevos campos específicos
+    public $telefono_celular;
+    public $telefono_casa;
 
     protected function rules(): array
     {
@@ -79,9 +77,8 @@ class Create extends Component
             'municipio' => ['nullable', 'string', 'max:255'],
             'colonia' => ['nullable', 'string', 'max:255'],
             'codigo_postal' => ['nullable', 'string', 'max:20'],
-            'telefono' => ['nullable', 'string', 'max:30'],
-            'phones' => ['nullable', 'array'],
-            'phones.*.numero' => ['nullable', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
+            'telefono_celular' => ['required', 'string', 'max:20', 'regex:/^[0-9\s()+-]{7,20}$/'],
+            'telefono_casa' => ['nullable', 'string', 'max:20', 'regex:/^[0-9\s()+-]{7,20}$/'],
         ];
     }
 
@@ -98,6 +95,9 @@ class Create extends Component
         'ingreso_mensual.numeric' => 'El ingreso mensual debe ser un número.',
         'gasto_mensual_familiar.numeric' => 'El gasto mensual debe ser un número.',
         'credito_solicitado.numeric' => 'El crédito solicitado debe ser un número.',
+        'telefono_celular.required' => 'El teléfono celular es obligatorio.',
+        'telefono_celular.regex' => 'El formato del teléfono celular no es válido.',
+        'telefono_casa.regex' => 'El formato del teléfono de casa no es válido.',
         'max' => 'El campo :attribute no debe ser mayor de :max caracteres.',
         'required' => 'El campo :attribute es obligatorio.',
     ];
@@ -130,13 +130,20 @@ class Create extends Component
             'codigo_postal' => $this->codigo_postal,
         ]);
 
-        // Guardar teléfonos enviados (si existen)
-        $phones = $this->phones ?? [];
-        foreach ($phones as $p) {
-            $numero = data_get($p, 'numero');
-            if ($numero) {
-                $cliente->telefonos()->create(['tipo' => data_get($p, 'tipo', 'celular'), 'numero' => $numero]);
-            }
+        // Guardar teléfono celular
+        if ($this->telefono_celular) {
+            $cliente->telefonos()->create([
+                'tipo' => 'celular',
+                'numero' => $this->telefono_celular
+            ]);
+        }
+
+        // Guardar teléfono de casa
+        if ($this->telefono_casa) {
+            $cliente->telefonos()->create([
+                'tipo' => 'casa',
+                'numero' => $this->telefono_casa
+            ]);
         }
 
         session()->flash('success', 'Cliente creado correctamente');
@@ -160,30 +167,6 @@ class Create extends Component
         if ($value === 'soltero') {
             $this->nombre_conyuge = null;
         }
-    }
-
-    public function addPhone(): void
-    {
-        $this->phones[] = ['tipo' => 'celular', 'numero' => ''];
-    }
-
-    public function removePhone(int $index): void
-    {
-        // pedir confirmación en frontend antes de eliminar
-        $this->phoneToDeleteIndex = $index;
-    }
-
-    public function confirmRemovePhone(): void
-    {
-        if ($this->phoneToDeleteIndex !== null && isset($this->phones[$this->phoneToDeleteIndex])) {
-            array_splice($this->phones, $this->phoneToDeleteIndex, 1);
-        }
-        $this->phoneToDeleteIndex = null;
-    }
-
-    public function cancelRemovePhone(): void
-    {
-        $this->phoneToDeleteIndex = null;
     }
 
     public function render(): \Illuminate\Contracts\View\View

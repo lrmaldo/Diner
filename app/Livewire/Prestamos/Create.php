@@ -134,6 +134,10 @@ class Create extends Component
 
     public $new_codigo_postal;
 
+    public $new_telefono_celular;
+
+    public $new_telefono_casa;
+
     public $showNewGrupoForm = false;
 
     public $new_grupo_nombre;
@@ -855,11 +859,16 @@ class Create extends Component
 
     public function addNewClient()
     {
+        // Force uppercase CURP
+        if ($this->new_curp) {
+            $this->new_curp = strtoupper($this->new_curp);
+        }
+
         $this->validate([
             'new_apellido_paterno' => ['required', 'string', 'max:255'],
             'new_apellido_materno' => ['nullable', 'string', 'max:255'],
             'new_nombres' => ['required', 'string', 'max:255'],
-            'new_curp' => ['required', 'string', 'max:18'],
+            'new_curp' => ['required', 'string', 'size:18'],
             'new_email' => ['nullable', 'email', 'max:255'],
             'new_pais_nacimiento' => ['nullable', 'string', 'max:255'],
             'new_nombre_conyuge' => ['nullable', 'string', 'max:255'],
@@ -877,6 +886,17 @@ class Create extends Component
             'new_municipio' => ['nullable', 'string', 'max:255'],
             'new_colonia' => ['nullable', 'string', 'max:255'],
             'new_codigo_postal' => ['nullable', 'string', 'max:20'],
+            'new_telefono_celular' => ['required', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
+            'new_telefono_casa' => ['nullable', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
+        ], [
+            'new_apellido_paterno.required' => 'El apellido paterno es obligatorio.',
+            'new_nombres.required' => 'El nombre es obligatorio.',
+            'new_curp.required' => 'La CURP es obligatoria.',
+            'new_curp.size' => 'La CURP debe tener exactamente 18 caracteres.',
+            'new_calle_numero.required' => 'La calle y número son obligatorios.',
+            'new_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
+            'new_telefono_celular.required' => 'El teléfono celular es obligatorio.',
+            'new_telefono_celular.regex' => 'El formato del teléfono celular no es válido.',
         ]);
 
         $cliente = Cliente::create([
@@ -903,6 +923,21 @@ class Create extends Component
             'codigo_postal' => $this->new_codigo_postal,
         ]);
 
+        // Crear teléfonos
+        if ($this->new_telefono_celular) {
+            $cliente->telefonos()->create([
+                'tipo' => 'celular',
+                'numero' => $this->new_telefono_celular,
+            ]);
+        }
+
+        if ($this->new_telefono_casa) {
+            $cliente->telefonos()->create([
+                'tipo' => 'casa',
+                'numero' => $this->new_telefono_casa,
+            ]);
+        }
+
         $this->cliente_id = $cliente->id;
 
         // Cerrar el modal
@@ -916,6 +951,7 @@ class Create extends Component
         $this->new_nombre_aval = $this->new_actividad_productiva = null;
         $this->new_anios_experiencia = $this->new_ingreso_mensual = $this->new_gasto_mensual_familiar = null;
         $this->new_credito_solicitado = $this->new_estado = $this->new_municipio = $this->new_colonia = $this->new_codigo_postal = null;
+        $this->new_telefono_celular = $this->new_telefono_casa = null;
         // si estamos en flujo grupal, agregar a la lista de miembros con su monto solicitado
         if ($this->producto === 'grupal') {
             $this->normalizeClientesAgregados();
