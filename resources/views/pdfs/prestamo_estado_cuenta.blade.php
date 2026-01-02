@@ -569,7 +569,27 @@
             </div>
             <div class="info-header-item">
                 <div class="info-header-label">Entregado: {{ $prestamo->fecha_entrega ? $prestamo->fecha_entrega->format('d-m-y') : 'N/A' }}</div>
-                <div class="info-header-value">Número de pagos: 16</div>
+                <div class="info-header-value">
+                    @php
+                        $plazoNormHeader = strtolower(trim($prestamo->plazo ?? '4meses'));
+                        $periodicidadNormHeader = strtolower(trim($prestamo->periodicidad ?? 'semanal'));
+                        $configHeader = determinarConfiguracionPago($plazoNormHeader, $periodicidadNormHeader);
+                        
+                        if ($configHeader) {
+                            $numPagosHeader = $configHeader['total_pagos'];
+                        } else {
+                            $plazoNumHeader = extraerPlazoNumerico($prestamo->plazo);
+                            if (in_array($periodicidadNormHeader, ['semanal', 'semana', 'weekly'])) {
+                                $numPagosHeader = $plazoNumHeader * 4;
+                            } elseif (in_array($periodicidadNormHeader, ['quincenal', 'quincena', 'biweekly', 'catorcenal'])) {
+                                $numPagosHeader = $plazoNumHeader * 2;
+                            } else {
+                                $numPagosHeader = $plazoNumHeader;
+                            }
+                        }
+                    @endphp
+                    Número de pagos: {{ $numPagosHeader }}
+                </div>
             </div>
             <div class="info-header-item">
                 <div class="info-header-label">Garantía devuelta:</div>
@@ -1048,21 +1068,30 @@
                     }
                     
                     // Calcular pagos futuros (Vigentes)
-                    $pagosFuturos = count($calendarioPagos) - $pagosTranscurridos;
+                    // $pagosFuturos = count($calendarioPagos) - $pagosTranscurridos;
                     
-                    // Fórmula 1: Capital vigente = (Capital Total / Numero Pagos) * Pagos Futuros
-                    $capitalVigente = ($montoCredito / $numeroPagosSaldos) * $pagosFuturos;
+                    // Fórmula 1: Capital vigente = Capital Total - ( (Total Pagado / Pago por Mil) * (Capital Total / Numero Pagos) )
+                    $capitalVigente = $montoCredito;
+                    if ($pagosPorMil > 0) {
+                        $capitalVigente = $montoCredito - (($sumatoriaPagos / $pagosPorMil) * ($montoCredito / $numeroPagosSaldos));
+                    }
                     
                     // Calcular interés e IVA base
                     $interesBase = (($montoCredito / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
                     $ivaPorcentajeSaldos = \App\Models\Configuration::get('iva_percentage', 16);
                     $ivaBase = ($interesBase / 100) * $ivaPorcentajeSaldos;
                     
-                    // Fórmula 2: Interés vigente = (Interés Total / Numero Pagos) * Pagos Futuros
-                    $interesVigente = ($interesBase / $numeroPagosSaldos) * $pagosFuturos;
+                    // Fórmula 2: Interés vigente = Interés Total - ( (Total Pagado / Pago por Mil) * (Interés Total / Numero Pagos) )
+                    $interesVigente = $interesBase;
+                    if ($pagosPorMil > 0) {
+                        $interesVigente = $interesBase - (($sumatoriaPagos / $pagosPorMil) * ($interesBase / $numeroPagosSaldos));
+                    }
                     
-                    // Fórmula 3: IVA vigente = (IVA Total / Numero Pagos) * Pagos Futuros
-                    $ivaVigente = ($ivaBase / $numeroPagosSaldos) * $pagosFuturos;
+                    // Fórmula 3: IVA vigente = IVA Total - ( (Total Pagado / Pago por Mil) * (IVA Total / Numero Pagos) )
+                    $ivaVigente = $ivaBase;
+                    if ($pagosPorMil > 0) {
+                        $ivaVigente = $ivaBase - (($sumatoriaPagos / $pagosPorMil) * ($ivaBase / $numeroPagosSaldos));
+                    }
                     
                     // Fórmula 4: Capital vencido = ((monto_vencido/pago por mil))*(monto_credito/numero pagos)
                     $capitalVencido = 0;
@@ -1182,20 +1211,29 @@
                             }
                             
                             // Calcular pagos futuros (Vigentes)
-                            $pagosFuturosCliente = count($clientSchedule) - $pagosTranscurridosCliente;
+                            // $pagosFuturosCliente = count($clientSchedule) - $pagosTranscurridosCliente;
                             
                             // Capital vigente del cliente
-                            $capitalVigenteCliente = ($montoCliente / $numeroPagosSaldos) * $pagosFuturosCliente;
+                            $capitalVigenteCliente = $montoCliente;
+                            if ($pagoPeriodicoCliente > 0) {
+                                $capitalVigenteCliente = $montoCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) * ($montoCliente / $numeroPagosSaldos));
+                            }
                             
                             // Interés e IVA base del cliente
                             $interesBaseCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
                             $ivaBaseCliente = ($interesBaseCliente / 100) * $ivaPorcentajeSaldos;
                             
                             // Interés vigente del cliente
-                            $interesVigenteCliente = ($interesBaseCliente / $numeroPagosSaldos) * $pagosFuturosCliente;
+                            $interesVigenteCliente = $interesBaseCliente;
+                            if ($pagoPeriodicoCliente > 0) {
+                                $interesVigenteCliente = $interesBaseCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) * ($interesBaseCliente / $numeroPagosSaldos));
+                            }
                             
                             // IVA vigente del cliente
-                            $ivaVigenteCliente = ($ivaBaseCliente / $numeroPagosSaldos) * $pagosFuturosCliente;
+                            $ivaVigenteCliente = $ivaBaseCliente;
+                            if ($pagoPeriodicoCliente > 0) {
+                                $ivaVigenteCliente = $ivaBaseCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) * ($ivaBaseCliente / $numeroPagosSaldos));
+                            }
                             
                             // Capital vencido del cliente
                             $capitalVencidoCliente = 0;
