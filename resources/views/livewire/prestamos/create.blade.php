@@ -331,17 +331,17 @@
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <div>
                                                 <label class="field-label">Apellido paterno *</label>
-                                                <input wire:model.defer="new_apellido_paterno" class="input-project" />
+                                                <input wire:model.defer="new_apellido_paterno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                 @error('new_apellido_paterno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Apellido materno</label>
-                                                <input wire:model.defer="new_apellido_materno" class="input-project" />
+                                                <input wire:model.defer="new_apellido_materno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                 @error('new_apellido_materno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Nombres *</label>
-                                                <input wire:model.defer="new_nombres" class="input-project" />
+                                                <input wire:model.defer="new_nombres" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                 @error('new_nombres') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
@@ -356,17 +356,17 @@
                                             </div>
                                             <div>
                                                 <label class="field-label">País de nacimiento</label>
-                                                <input wire:model.defer="new_pais_nacimiento" class="input-project" value="México" placeholder="México" />
+                                                <input wire:model.defer="new_pais_nacimiento" class="input-project" value="México" placeholder="México" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                 @error('new_pais_nacimiento') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Teléfono Celular *</label>
-                                                <input wire:model.defer="new_telefono_celular" class="input-project" placeholder="10 dígitos" />
+                                                <input wire:model.defer="new_telefono_celular" class="input-project" placeholder="10 dígitos" x-on:input="$el.value = $el.value.replace(/[^0-9+\-\(\)\s]/g, '')" />
                                                 @error('new_telefono_celular') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Teléfono de Casa</label>
-                                                <input wire:model.defer="new_telefono_casa" class="input-project" placeholder="Opcional" />
+                                                <input wire:model.defer="new_telefono_casa" class="input-project" placeholder="Opcional" x-on:input="$el.value = $el.value.replace(/[^0-9+\-\(\)\s]/g, '')" />
                                                 @error('new_telefono_casa') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
@@ -384,7 +384,7 @@
                                             @if(in_array($new_estado_civil, ['casado', 'union_libre']))
                                                 <div class="sm:col-span-2">
                                                     <label class="field-label">Nombre del cónyuge</label>
-                                                    <input wire:model.defer="new_nombre_conyuge" class="input-project" />
+                                                    <input wire:model.defer="new_nombre_conyuge" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                     @error('new_nombre_conyuge') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                                 </div>
                                             @endif
@@ -544,17 +544,17 @@
                                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                             <div>
                                                 <label class="field-label">Apellido paterno *</label>
-                                                <input wire:model.defer="new_apellido_paterno" class="input-project" />
+                                                <input wire:model.defer="new_apellido_paterno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                 @error('new_apellido_paterno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Apellido materno</label>
-                                                <input wire:model.defer="new_apellido_materno" class="input-project" />
+                                                <input wire:model.defer="new_apellido_materno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                 @error('new_apellido_materno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Nombres *</label>
-                                                <input wire:model.defer="new_nombres" class="input-project" />
+                                                <input wire:model.defer="new_nombres" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                 @error('new_nombres') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
@@ -569,17 +569,17 @@
                                             </div>
                                             <div>
                                                 <label class="field-label">País de nacimiento</label>
-                                                <input wire:model.defer="new_pais_nacimiento" class="input-project" value="México" placeholder="México" />
+                                                <input wire:model.defer="new_pais_nacimiento" class="input-project" value="México" placeholder="México" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                 @error('new_pais_nacimiento') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Teléfono Celular *</label>
-                                                <input wire:model.defer="new_telefono_celular" class="input-project" placeholder="10 dígitos" />
+                                                <input wire:model.defer="new_telefono_celular" class="input-project" placeholder="10 dígitos" x-on:input="$el.value = $el.value.replace(/[^0-9+\-\(\)\s]/g, '')" />
                                                 @error('new_telefono_celular') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Teléfono de Casa</label>
-                                                <input wire:model.defer="new_telefono_casa" class="input-project" placeholder="Opcional" />
+                                                <input wire:model.defer="new_telefono_casa" class="input-project" placeholder="Opcional" x-on:input="$el.value = $el.value.replace(/[^0-9+\-\(\)\s]/g, '')" />
                                                 @error('new_telefono_casa') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
@@ -597,7 +597,7 @@
                                             @if(in_array($new_estado_civil, ['casado', 'union_libre']))
                                                 <div class="sm:col-span-2">
                                                     <label class="field-label">Nombre del cónyuge</label>
-                                                    <input wire:model.defer="new_nombre_conyuge" class="input-project" />
+                                                    <input wire:model.defer="new_nombre_conyuge" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                     @error('new_nombre_conyuge') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                                 </div>
                                             @endif
