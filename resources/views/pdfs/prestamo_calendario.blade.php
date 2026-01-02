@@ -388,6 +388,35 @@
             'configuracion_encontrada' => true
         ];
     }
+
+    // Función para calcular la comisión (seguro) según el monto del crédito
+    function calcularComision($monto) {
+        if ($monto < 3000) {
+            return 0;
+        } elseif ($monto >= 3000 && $monto <= 10000) {
+            return 50;
+        } elseif ($monto > 10000 && $monto <= 20000) {
+            return 100;
+        } elseif ($monto > 20000 && $monto <= 30000) {
+            return 150;
+        } elseif ($monto > 30000 && $monto <= 40000) {
+            return 200;
+        } elseif ($monto > 40000 && $monto <= 50000) {
+            return 250;
+        } elseif ($monto > 50000 && $monto <= 60000) {
+            return 300;
+        } elseif ($monto > 60000 && $monto <= 70000) {
+            return 350;
+        } elseif ($monto > 70000 && $monto <= 80000) {
+            return 400;
+        } elseif ($monto > 80000 && $monto <= 90000) {
+            return 450;
+        } elseif ($monto > 90000 && $monto <= 100000) {
+            return 500;
+        } else {
+            return 500; // Para montos mayores a 100,000
+        }
+    }
 @endphp
 
 @unless($forPdf)
@@ -432,6 +461,11 @@
             );
 
             $nombreCompleto = trim(($cliente->nombres ?? $cliente->nombre ?? '') . ' ' . ($cliente->apellido_paterno ?? '') . ' ' . ($cliente->apellido_materno ?? ''));
+
+            // Cálculos corregidos de garantía, seguro y efectivo
+            $garantiaMonto = $montoCliente * (($prestamo->garantia ?? 0) / 100);
+            $seguroMonto = calcularComision($montoCliente);
+            $efectivoMonto = $montoCliente - $garantiaMonto - $seguroMonto;
         @endphp
 
         {{-- Header con logo --}}
@@ -461,19 +495,19 @@
                 <td class="info-label">ASESOR:</td>
                 <td class="info-value">{{ $prestamo->asesor ? mb_strtoupper($prestamo->asesor->name, 'UTF-8') : 'N/A' }}</td>
                 <td class="info-label">GARANTÍA:</td>
-                <td class="info-value">{{ $prestamo->garantia ?? 0 }}</td>
+                <td class="info-value">{{ number_format($garantiaMonto, 0) }}</td>
             </tr>
             <tr>
                 <td class="info-label">PLAZO:</td>
                 <td class="info-value">{{ formatearPlazoCompleto($prestamo->plazo) }}</td>
                 <td class="info-label">SEGURO DEL CRÉDITO:</td>
-                <td class="info-value">{{ number_format(($montoCliente * 0.01), 0) }}</td>
+                <td class="info-value">{{ number_format($seguroMonto, 0) }}</td>
             </tr>
             <tr>
                 <td class="info-label">PERIODO DE PAGOS:</td>
                 <td class="info-value">{{ strtoupper($prestamo->periodicidad ?? 'SEMANAL') }}</td>
                 <td class="info-label">EFECTIVO:</td>
-                <td class="info-value">${{ number_format($montoCliente - ($montoCliente * 0.01), 0) }}</td>
+                <td class="info-value">${{ number_format($efectivoMonto, 0) }}</td>
             </tr>
             <tr>
                 <td class="info-label">NÚMERO DE PAGOS:</td>
@@ -567,6 +601,11 @@
             );
 
             $nombreCompleto = trim(($cliente->nombres ?? '') . ' ' . ($cliente->apellido_paterno ?? '') . ' ' . ($cliente->apellido_materno ?? ''));
+
+            // Cálculos corregidos de garantía, seguro y efectivo
+            $garantiaMonto = $montoCliente * (($prestamo->garantia ?? 0) / 100);
+            $seguroMonto = calcularComision($montoCliente);
+            $efectivoMonto = $montoCliente - $garantiaMonto - $seguroMonto;
         }
     @endphp
 
@@ -598,19 +637,19 @@
                 <td class="info-label">ASESOR:</td>
                 <td class="info-value">{{ $prestamo->asesor ? strtoupper($prestamo->asesor->name) : 'N/A' }}</td>
                 <td class="info-label">GARANTÍA:</td>
-                <td class="info-value">{{ $prestamo->garantia ?? 0 }}</td>
+                <td class="info-value">{{ number_format($garantiaMonto, 0) }}</td>
             </tr>
             <tr>
                 <td class="info-label">PLAZO:</td>
                 <td class="info-value">{{ formatearPlazoCompleto($prestamo->plazo) }}</td>
                 <td class="info-label">SEGURO DEL CRÉDITO:</td>
-                <td class="info-value">{{ number_format(($montoCliente * 0.01), 0) }}</td>
+                <td class="info-value">{{ number_format($seguroMonto, 0) }}</td>
             </tr>
             <tr>
                 <td class="info-label">PERIODO DE PAGOS:</td>
                 <td class="info-value">{{ strtoupper($prestamo->periodicidad ?? 'SEMANAL') }}</td>
                 <td class="info-label">EFECTIVO:</td>
-                <td class="info-value">${{ number_format($montoCliente - ($montoCliente * 0.01), 0) }}</td>
+                <td class="info-value">${{ number_format($efectivoMonto, 0) }}</td>
             </tr>
             <tr>
                 <td class="info-label">NÚMERO DE PAGOS:</td>

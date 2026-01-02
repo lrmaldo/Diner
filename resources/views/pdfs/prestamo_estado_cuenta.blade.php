@@ -568,7 +568,7 @@
                 <div class="info-header-value">Período de pago: SEMANAL</div>
             </div>
             <div class="info-header-item">
-                <div class="info-header-label">Entregado: {{ $prestamo->fecha_desembolso ? $prestamo->fecha_desembolso->format('d-m-y') : 'N/A' }}</div>
+                <div class="info-header-label">Entregado: {{ $prestamo->fecha_entrega ? $prestamo->fecha_entrega->format('d-m-y') : 'N/A' }}</div>
                 <div class="info-header-value">Número de pagos: 16</div>
             </div>
             <div class="info-header-item">
