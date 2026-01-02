@@ -71,6 +71,26 @@
                             En Comité
                         </a>
 
+                        <!-- En Proceso -->
+                        <a href="{{ route('prestamos.en-proceso') }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.en-proceso') ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           wire:navigate>
+                            <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.en-proceso') ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            En Proceso
+                        </a>
+
+                        <!-- Rechazados -->
+                        <a href="{{ route('prestamos.rechazados') }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.rechazados') ? 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           wire:navigate>
+                            <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.rechazados') ? 'text-red-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Rechazados
+                        </a>
+
                         @can('crear prestamos')
                         <!-- Nuevo Préstamo -->
                         <a href="{{ route('prestamos.create') }}"
@@ -113,6 +133,20 @@
                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.en-comite') ? 'bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
                                    wire:navigate>
                                     En Comité
+                                </a>
+
+                                <!-- En Proceso -->
+                                <a href="{{ route('prestamos.en-proceso') }}"
+                                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.en-proceso') ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                                   wire:navigate>
+                                    En Proceso
+                                </a>
+
+                                <!-- Rechazados -->
+                                <a href="{{ route('prestamos.rechazados') }}"
+                                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.rechazados') ? 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                                   wire:navigate>
+                                    Rechazados
                                 </a>
                                 @endif
 

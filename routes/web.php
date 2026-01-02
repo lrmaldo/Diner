@@ -52,6 +52,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/prestamos/nuevo', \App\Livewire\Prestamos\Create::class)->name('prestamos.create');
         Route::get('/prestamos/autorizados', \App\Livewire\Prestamos\Autorizados::class)->name('prestamos.autorizados');
         // Permitir acceso a Administrador y Asesor
+        Route::get('/prestamos/rechazados', \App\Livewire\Prestamos\Rechazados::class)->middleware('role:Administrador|Asesor')->name('prestamos.rechazados');
+        Route::get('/prestamos/en-proceso', \App\Livewire\Prestamos\EnProceso::class)->name('prestamos.en-proceso');
         Route::get('/prestamos/en-comite', \App\Livewire\Prestamos\EnComite::class)->middleware('role:Administrador|Asesor')->name('prestamos.en-comite');
         Route::get('/prestamos', \App\Livewire\Prestamos\Index::class)->name('prestamos.index');
         // Rutas para vistas imprimibles (detalle / pagaré / calendario / estado_cuenta)
