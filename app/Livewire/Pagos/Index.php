@@ -19,6 +19,7 @@ class Index extends Component
     public $abonos = [];
     public $pendientes = [];
     public $moratorios = [];
+    public $saldosRestantes = [];
     public $selectedClients = [];
     public $selectAll = false;
 
@@ -41,6 +42,7 @@ class Index extends Component
         $this->abonos = [];
         $this->pendientes = [];
         $this->moratorios = [];
+        $this->saldosRestantes = [];
         $this->selectedClients = [];
         $this->selectAll = false;
 
@@ -80,12 +82,21 @@ class Index extends Component
 
                 $pagoSugerido = $this->calcularCuota($montoAutorizado);
                 
+                // Calcular Total Adeudo (Total Debt)
+                $totalAdeudo = $this->calcularTotalAdeudo($montoAutorizado);
+
                 // Calcular Pendiente
                 $pagosCliente = $this->prestamo->pagos->where('cliente_id', $cliente->id);
                 $totalPagado = $pagosCliente->sum('monto');
                 
+                // Calcular Saldo Restante
+                $saldoRestante = max(0, $totalAdeudo - $totalPagado);
+                $this->saldosRestantes[$cliente->id] = $saldoRestante;
+                
                 $pendiente = 0;
-                if ($pagoSugerido > 0) {
+                if ($saldoRestante <= 0.01) {
+                    $pendiente = 0;
+                } elseif ($pagoSugerido > 0) {
                     $pagoSugeridoCentavos = (int) round($pagoSugerido * 100);
                     $totalPagadoCentavos = (int) round($totalPagado * 100);
                     
@@ -95,6 +106,11 @@ class Index extends Component
                         $pendiente = $pagoSugerido;
                     } else {
                         $pendiente = ($pagoSugeridoCentavos - $restoCentavos) / 100;
+                    }
+
+                    // Cap pendiente at saldo restante
+                    if ($pendiente > $saldoRestante) {
+                        $pendiente = $saldoRestante;
                     }
                 }
 

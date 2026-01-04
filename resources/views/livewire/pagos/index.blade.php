@@ -154,7 +154,7 @@
                                         Abono
                                     </th>
                                     <th class="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Adeudo Total
+                                        Saldo Restante
                                     </th>
                                 </tr>
                             </thead>
@@ -164,7 +164,7 @@
                                     $totalMonto = 0;
                                     $totalPendiente = 0;
                                     $totalAbono = 0;
-                                    $totalAdeudo = 0;
+                                    $totalSaldoRestante = 0;
                                 @endphp
                                 
                                 @foreach($clientes as $cliente)
@@ -186,8 +186,8 @@
                                         // Moratorio
                                         $moratorio = $moratorios[$cliente->id] ?? 0;
 
-                                        // Adeudo Total Estimado
-                                        $adeudoEstimado = $this->calcularTotalAdeudo($montoAutorizado);
+                                        // Saldo Restante
+                                        $saldoRestante = $saldosRestantes[$cliente->id] ?? 0;
                                         
                                         $totalMonto += $pagoSugerido;
                                         $totalPendiente += $pendiente;
@@ -198,7 +198,7 @@
                                              $totalAbono += $abonoActual;
                                         }
                                         
-                                        $totalAdeudo += $adeudoEstimado;
+                                        $totalSaldoRestante += $saldoRestante;
 
                                         // Calcular siguiente número de pago
                                         $ultimoPagoNum = $prestamo->pagos
@@ -238,7 +238,7 @@
                                             </div>
                                         </td>
                                         <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                                            ${{ number_format($adeudoEstimado, 2) }}
+                                            ${{ number_format($saldoRestante, 2) }}
                                         </td>
                                     </tr>
                                 @endforeach
@@ -254,7 +254,7 @@
                                         <td class="px-3 py-4"></td>
                                     @endif
                                     <td class="px-3 py-4 text-right text-red-600 text-lg">${{ number_format($totalAbono, 2) }}</td>
-                                    <td class="px-3 py-4 text-right text-gray-900">{{--$ {{ number_format($totalAdeudo, 2) }} --}}</td>
+                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalSaldoRestante, 2) }}</td>
                                 </tr>
                             </tfoot>
                         </table>
