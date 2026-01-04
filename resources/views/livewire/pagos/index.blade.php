@@ -109,6 +109,7 @@
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Estado</label>
                             <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                 @if($prestamo->estado === 'autorizado') bg-green-100 text-green-800
+                                @elseif($prestamo->estado === 'liquidado') bg-blue-100 text-blue-800
                                 @elseif($prestamo->estado === 'pendiente') bg-yellow-100 text-yellow-800
                                 @elseif($prestamo->estado === 'rechazado') bg-red-100 text-red-800
                                 @else bg-gray-100 text-gray-800 @endif">
@@ -117,7 +118,7 @@
                         </div>
                     </div>
                     
-                    @if($prestamo->estado === 'autorizado')
+                    @if($prestamo->estado === 'autorizado' || $prestamo->estado === 'liquidado')
                     {{-- Tabla de clientes --}}
                     <div class="mt-8 overflow-x-auto">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">
@@ -259,14 +260,31 @@
                         </table>
                     </div>
 
-                    <div class="mt-8 flex justify-end">
-                        <button wire:click="irACobrar" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-md shadow-md transition duration-150 ease-in-out flex items-center justify-center gap-2 transform hover:scale-105">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            Ir a Cobrar
-                        </button>
-                    </div>
+                    @if($prestamo->estado === 'liquidado')
+                        <div class="mt-8 bg-blue-50 border-l-4 border-blue-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700">
+                                        Este préstamo se encuentra <strong>Liquidado</strong>. No se pueden realizar más cobros.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="mt-8 flex justify-end">
+                            <button wire:click="irACobrar" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-md shadow-md transition duration-150 ease-in-out flex items-center justify-center gap-2 transform hover:scale-105">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Ir a Cobrar
+                            </button>
+                        </div>
+                    @endif
                     @else
                         <div class="mt-8 bg-yellow-50 border-l-4 border-yellow-400 p-4">
                             <div class="flex">

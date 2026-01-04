@@ -413,6 +413,17 @@ class DesgloseEfectivo extends Component
                 "{$tipoPrestamo} registrado: {$detalleClientes}, total: $".number_format($this->totalSeleccionado, 2)
             );
 
+            // Verificar si el préstamo ha sido liquidado
+            if ($this->prestamo->calcularSaldoPendiente() <= 0.01) {
+                $this->prestamo->estado = 'liquidado';
+                $this->prestamo->save();
+
+                $this->prestamo->registrarBitacora(
+                    'prestamo_liquidado',
+                    "Préstamo liquidado automáticamente tras el último pago."
+                );
+            }
+
             DB::commit();
 
             $this->dispatch('alert', ['type' => 'success', 'message' => 'Pagos registrados exitosamente.']);

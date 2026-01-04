@@ -56,7 +56,7 @@ class Index extends Component
             $this->notFound = true;
         } else {
             // Validar estado del préstamo
-            if ($this->prestamo->estado !== 'autorizado') {
+            if ($this->prestamo->estado !== 'autorizado' && $this->prestamo->estado !== 'liquidado') {
                 return;
             }
 
