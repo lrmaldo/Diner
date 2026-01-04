@@ -113,15 +113,13 @@
                                             </svg>
                                         </a>
                                         
-                                        @can('editar prestamos')
+                                        @if(auth()->user()->can('editar prestamos') || auth()->user()->hasRole('Asesor'))
                                         <a href="{{ route('prestamos.edit', $p) }}" class="text-indigo-600 hover:text-indigo-900" title="Editar">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
                                         </a>
-                                        @endcan
 
-                                        @can('editar prestamos')
                                         <button wire:click="reenviarAComite({{ $p->id }})" 
                                                 wire:confirm="¿Estás seguro de reenviar este préstamo a comité? Asegúrate de haber realizado las correcciones necesarias."
                                                 class="text-green-600 hover:text-green-900" 
@@ -130,7 +128,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                             </svg>
                                         </button>
-                                        @endcan
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
