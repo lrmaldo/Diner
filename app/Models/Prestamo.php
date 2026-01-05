@@ -210,18 +210,66 @@ class Prestamo extends Model
     }
 
     /**
-     * Calcula el monto vencido aplicando los pagos de forma acumulada (FIFO) y sin depender de numero_pago.
+     * Aplica pagos sin `numero_pago` a cuotas en orden (FIFO).
      *
-     * @param  array<int, array{fecha: string, monto: mixed}>  $calendarioPagos
+     * @param  array<int, array{numero: mixed, monto: mixed}>  $calendarioPagos
+     * @param  array<int|string, float|int|string>  $pagadoPorNumero
+     * @return array{pagadoPorNumero: array<int, float>, remanente: float}
      */
-    public static function calcularMontoVencidoDesdeCalendario(array $calendarioPagos, Carbon $fechaHoy, float $totalPagado): float
+    public static function aplicarPagosSinNumeroAFifo(array $calendarioPagos, array $pagadoPorNumero, float $pagosSinNumeroTotal): array
     {
-        $montoExigibleHastaHoy = 0.0;
+        $pagado = [];
+        foreach ($pagadoPorNumero as $numero => $monto) {
+            $pagado[(int) $numero] = (float) $monto;
+        }
+
+        $remanente = (float) $pagosSinNumeroTotal;
+
+        foreach ($calendarioPagos as $pagoProg) {
+            $numero = (int) ($pagoProg['numero'] ?? 0);
+            $esperado = (float) ($pagoProg['monto'] ?? 0);
+
+            if ($numero <= 0 || $esperado <= 0 || $remanente <= 0) {
+                continue;
+            }
+
+            $pagadoActual = (float) ($pagado[$numero] ?? 0);
+            $falta = $esperado - $pagadoActual;
+
+            if ($falta <= 0) {
+                continue;
+            }
+
+            $aplicar = min($falta, $remanente);
+            $pagado[$numero] = $pagadoActual + $aplicar;
+            $remanente -= $aplicar;
+        }
+
+        return [
+            'pagadoPorNumero' => $pagado,
+            'remanente' => $remanente,
+        ];
+    }
+
+    /**
+     * Calcula el monto vencido por cuota: usa pagos por `numero_pago` y reparte pagos sin número en FIFO.
+     *
+     * @param  array<int, array{numero: mixed, fecha: string, monto: mixed}>  $calendarioPagos
+     * @param  array<int|string, float|int|string>  $pagadoPorNumero
+     */
+    public static function calcularMontoVencidoDesdeCalendario(array $calendarioPagos, Carbon $fechaHoy, array $pagadoPorNumero, float $pagosSinNumeroTotal = 0): float
+    {
         $fechaHoy = $fechaHoy->copy()->startOfDay();
+
+        $resultado = self::aplicarPagosSinNumeroAFifo($calendarioPagos, $pagadoPorNumero, $pagosSinNumeroTotal);
+        $pagado = $resultado['pagadoPorNumero'];
+
+        $montoVencido = 0.0;
 
         foreach ($calendarioPagos as $pagoProg) {
             $fecha = (string) ($pagoProg['fecha'] ?? '');
             $monto = (float) ($pagoProg['monto'] ?? 0);
+            $numero = (int) ($pagoProg['numero'] ?? 0);
 
             try {
                 $fechaVenc = Carbon::createFromFormat('d-m-y', $fecha)->startOfDay();
@@ -230,28 +278,35 @@ class Prestamo extends Model
             }
 
             if ($fechaVenc->lte($fechaHoy)) {
-                $montoExigibleHastaHoy += $monto;
+                $pagadoCuota = (float) ($pagado[$numero] ?? 0);
+                if ($pagadoCuota < $monto) {
+                    $montoVencido += ($monto - $pagadoCuota);
+                }
             }
         }
 
-        return max(0.0, $montoExigibleHastaHoy - $totalPagado);
+        return max(0.0, $montoVencido);
     }
 
     /**
-     * Cuenta atrasos comparando el exigible acumulado vs total pagado, aplicando pagos al vencido primero.
+     * Cuenta atrasos por cuota: usa pagos por `numero_pago` y reparte pagos sin número en FIFO.
      *
-     * @param  array<int, array{fecha: string, monto: mixed}>  $calendarioPagos
+     * @param  array<int, array{numero: mixed, fecha: string, monto: mixed}>  $calendarioPagos
+     * @param  array<int|string, float|int|string>  $pagadoPorNumero
      */
-    public static function calcularAtrasosDesdeCalendario(array $calendarioPagos, Carbon $fechaHoy, float $totalPagado, float $tolerancia = 1): int
+    public static function calcularAtrasosDesdeCalendario(array $calendarioPagos, Carbon $fechaHoy, array $pagadoPorNumero, float $pagosSinNumeroTotal = 0, float $tolerancia = 1): int
     {
-        $atrasos = 0;
-        $exigibleAcumulado = 0.0;
         $fechaHoy = $fechaHoy->copy()->startOfDay();
+
+        $resultado = self::aplicarPagosSinNumeroAFifo($calendarioPagos, $pagadoPorNumero, $pagosSinNumeroTotal);
+        $pagado = $resultado['pagadoPorNumero'];
+
+        $atrasos = 0;
 
         foreach ($calendarioPagos as $pagoProg) {
             $fecha = (string) ($pagoProg['fecha'] ?? '');
             $monto = (float) ($pagoProg['monto'] ?? 0);
-            $exigibleAcumulado += $monto;
+            $numero = (int) ($pagoProg['numero'] ?? 0);
 
             try {
                 $fechaVenc = Carbon::createFromFormat('d-m-y', $fecha)->startOfDay();
@@ -259,8 +314,11 @@ class Prestamo extends Model
                 $fechaVenc = Carbon::parse($fecha)->startOfDay();
             }
 
-            if ($fechaVenc->lt($fechaHoy) && $totalPagado < ($exigibleAcumulado - $tolerancia)) {
-                $atrasos++;
+            if ($fechaVenc->lt($fechaHoy)) {
+                $pagadoCuota = (float) ($pagado[$numero] ?? 0);
+                if ($pagadoCuota < ($monto - $tolerancia)) {
+                    $atrasos++;
+                }
             }
         }
 

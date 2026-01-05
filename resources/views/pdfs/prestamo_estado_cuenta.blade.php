@@ -1054,10 +1054,25 @@
                         }
                     }
 
+                    $pagosHastaHoy = $prestamo->pagos()
+                        ->whereDate('fecha_pago', '<=', $fechaHoy)
+                        ->get();
+
+                    $pagadoPorNumero = $pagosHastaHoy
+                        ->whereNotNull('numero_pago')
+                        ->groupBy('numero_pago')
+                        ->map(fn ($pagos) => (float) $pagos->sum('monto'))
+                        ->toArray();
+
+                    $pagosSinNumeroTotal = (float) $pagosHastaHoy
+                        ->whereNull('numero_pago')
+                        ->sum('monto');
+
                     $montoVencido = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
                         $calendarioPagos,
                         $fechaHoy,
-                        (float) $sumatoriaPagos
+                        $pagadoPorNumero,
+                        $pagosSinNumeroTotal
                     );
                     
                     // Calcular pagos futuros (Vigentes)
@@ -1114,7 +1129,8 @@
                     $atrasos = \App\Models\Prestamo::calcularAtrasosDesdeCalendario(
                         $calendarioPagos,
                         $fechaHoy,
-                        (float) $sumatoriaPagos,
+                        $pagadoPorNumero,
+                        $pagosSinNumeroTotal,
                         1
                     );
 
@@ -1190,10 +1206,26 @@
                                 }
                             }
 
+                            $pagosHastaHoyCliente = $prestamo->pagos()
+                                ->where('cliente_id', $cliente->id)
+                                ->whereDate('fecha_pago', '<=', $fechaHoy)
+                                ->get();
+
+                            $pagadoPorNumeroCliente = $pagosHastaHoyCliente
+                                ->whereNotNull('numero_pago')
+                                ->groupBy('numero_pago')
+                                ->map(fn ($pagos) => (float) $pagos->sum('monto'))
+                                ->toArray();
+
+                            $pagosSinNumeroClienteTotal = (float) $pagosHastaHoyCliente
+                                ->whereNull('numero_pago')
+                                ->sum('monto');
+
                             $montoVencidoCliente = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
                                 $clientSchedule,
                                 $fechaHoy,
-                                (float) $sumatoriaPagosCliente
+                                $pagadoPorNumeroCliente,
+                                $pagosSinNumeroClienteTotal
                             );
                             
                             // Calcular pagos futuros (Vigentes)
@@ -1249,7 +1281,8 @@
                             $atrasosCliente = \App\Models\Prestamo::calcularAtrasosDesdeCalendario(
                                 $clientSchedule,
                                 $fechaHoy,
-                                (float) $sumatoriaPagosCliente,
+                                $pagadoPorNumeroCliente,
+                                $pagosSinNumeroClienteTotal,
                                 1
                             );
                             

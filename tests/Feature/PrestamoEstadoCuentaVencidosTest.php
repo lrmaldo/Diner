@@ -19,14 +19,20 @@ class PrestamoEstadoCuentaVencidosTest extends TestCase
             ['numero' => 4, 'fecha' => '10-01-26', 'monto' => 100],
         ];
 
-        // Exigible hasta hoy (<= 05-01-26): 3 pagos => 300
-        $this->assertSame(0.0, Prestamo::calcularMontoVencidoDesdeCalendario($calendario, $fechaHoy, 300));
-        $this->assertSame(0.0, Prestamo::calcularMontoVencidoDesdeCalendario($calendario, $fechaHoy, 450));
-        $this->assertSame(150.0, Prestamo::calcularMontoVencidoDesdeCalendario($calendario, $fechaHoy, 150));
+        // Hasta hoy (<= 05-01-26) hay 3 cuotas (300). Pagos por numero: cuota 1 pagada.
+        // Pagos sin numero (FIFO): 50 se aplica a cuota 2.
+        $pagadoPorNumero = [
+            1 => 100,
+        ];
 
-        // Atrasos (fecha < hoy) con pagos acumulados aplicados al vencido primero
-        // Con totalPagado=150: a 01/01 cubre, a 02/01 ya no cubre el acumulado 200, a 03/01 tampoco (300)
-        $this->assertSame(2, Prestamo::calcularAtrasosDesdeCalendario($calendario, $fechaHoy, 150, 1));
-        $this->assertSame(0, Prestamo::calcularAtrasosDesdeCalendario($calendario, $fechaHoy, 300, 1));
+        $this->assertSame(150.0, Prestamo::calcularMontoVencidoDesdeCalendario($calendario, $fechaHoy, $pagadoPorNumero, 50));
+
+        // Atrasos (fecha < hoy): cuotas 1-3.
+        // cuota1 ok, cuota2 queda con 50/100, cuota3 0/100 => 2 atrasos.
+        $this->assertSame(2, Prestamo::calcularAtrasosDesdeCalendario($calendario, $fechaHoy, $pagadoPorNumero, 50, 1));
+
+        // Si se cubre todo lo vencido con pagos sin numero, vencido y atrasos bajan a 0.
+        $this->assertSame(0.0, Prestamo::calcularMontoVencidoDesdeCalendario($calendario, $fechaHoy, $pagadoPorNumero, 200));
+        $this->assertSame(0, Prestamo::calcularAtrasosDesdeCalendario($calendario, $fechaHoy, $pagadoPorNumero, 200, 1));
     }
 }
