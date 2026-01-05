@@ -1078,6 +1078,11 @@
                     // Calcular pagos futuros (Vigentes)
                     // $pagosFuturos = count($calendarioPagos) - $pagosTranscurridos;
                     
+                    // Calcular interés e IVA base
+                    $interesBase = (($montoCredito / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
+                    $ivaPorcentajeSaldos = \App\Models\Configuration::get('iva_percentage', 16);
+                    $ivaBase = ($interesBase / 100) * $ivaPorcentajeSaldos;
+
                     $totalDelPrestamo = $montoCredito + $interesBase + $ivaBase;
                     $proporcionCapital = ($totalDelPrestamo > 0) ? $montoCredito / $totalDelPrestamo : 0;
                     $proporcionInteres = ($totalDelPrestamo > 0) ? $interesBase / $totalDelPrestamo : 0;
