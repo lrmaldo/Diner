@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -206,5 +207,63 @@ class Prestamo extends Model
     public function calcularSaldoPendiente(): float
     {
         return $this->monto_total - $this->calcularTotalPagado();
+    }
+
+    /**
+     * Calcula el monto vencido aplicando los pagos de forma acumulada (FIFO) y sin depender de numero_pago.
+     *
+     * @param  array<int, array{fecha: string, monto: mixed}>  $calendarioPagos
+     */
+    public static function calcularMontoVencidoDesdeCalendario(array $calendarioPagos, Carbon $fechaHoy, float $totalPagado): float
+    {
+        $montoExigibleHastaHoy = 0.0;
+        $fechaHoy = $fechaHoy->copy()->startOfDay();
+
+        foreach ($calendarioPagos as $pagoProg) {
+            $fecha = (string) ($pagoProg['fecha'] ?? '');
+            $monto = (float) ($pagoProg['monto'] ?? 0);
+
+            try {
+                $fechaVenc = Carbon::createFromFormat('d-m-y', $fecha)->startOfDay();
+            } catch (\Throwable $e) {
+                $fechaVenc = Carbon::parse($fecha)->startOfDay();
+            }
+
+            if ($fechaVenc->lte($fechaHoy)) {
+                $montoExigibleHastaHoy += $monto;
+            }
+        }
+
+        return max(0.0, $montoExigibleHastaHoy - $totalPagado);
+    }
+
+    /**
+     * Cuenta atrasos comparando el exigible acumulado vs total pagado, aplicando pagos al vencido primero.
+     *
+     * @param  array<int, array{fecha: string, monto: mixed}>  $calendarioPagos
+     */
+    public static function calcularAtrasosDesdeCalendario(array $calendarioPagos, Carbon $fechaHoy, float $totalPagado, float $tolerancia = 1): int
+    {
+        $atrasos = 0;
+        $exigibleAcumulado = 0.0;
+        $fechaHoy = $fechaHoy->copy()->startOfDay();
+
+        foreach ($calendarioPagos as $pagoProg) {
+            $fecha = (string) ($pagoProg['fecha'] ?? '');
+            $monto = (float) ($pagoProg['monto'] ?? 0);
+            $exigibleAcumulado += $monto;
+
+            try {
+                $fechaVenc = Carbon::createFromFormat('d-m-y', $fecha)->startOfDay();
+            } catch (\Throwable $e) {
+                $fechaVenc = Carbon::parse($fecha)->startOfDay();
+            }
+
+            if ($fechaVenc->lt($fechaHoy) && $totalPagado < ($exigibleAcumulado - $tolerancia)) {
+                $atrasos++;
+            }
+        }
+
+        return $atrasos;
     }
 }

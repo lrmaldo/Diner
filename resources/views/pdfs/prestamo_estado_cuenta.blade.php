@@ -1043,29 +1043,22 @@
                     // Sumatoria de pagos realizados
                     $sumatoriaPagos = $prestamo->pagos()->sum('monto');
                     
-                    // Calcular monto vencido real
-                    $montoVencido = 0;
+                    // Calcular monto vencido real (sin depender de numero_pago)
+                    // Regla: cualquier pago descuenta primero lo ya vencido (FIFO).
                     $pagosTranscurridos = 0;
                     $fechaHoy = now()->startOfDay();
-                    
                     foreach ($calendarioPagos as $pagoProg) {
                         $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
-                        
-                        // Si la fecha de vencimiento ya pasó (o es hoy)
                         if ($fechaVenc->lte($fechaHoy)) {
                             $pagosTranscurridos++;
-                            $montoEsperado = $pagoProg['monto'];
-                            
-                            // Buscar pagos realizados para este número de pago
-                            $pagosHechos = $pagosRegistrados->get($pagoProg['numero']);
-                            $montoPagado = $pagosHechos ? $pagosHechos->sum('monto') : 0;
-                            
-                            // Si no se ha cubierto el monto esperado, sumar la diferencia
-                            if ($montoPagado < $montoEsperado) {
-                                $montoVencido += ($montoEsperado - $montoPagado);
-                            }
                         }
                     }
+
+                    $montoVencido = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
+                        $calendarioPagos,
+                        $fechaHoy,
+                        (float) $sumatoriaPagos
+                    );
                     
                     // Calcular pagos futuros (Vigentes)
                     // $pagosFuturos = count($calendarioPagos) - $pagosTranscurridos;
@@ -1117,23 +1110,13 @@
                         $ivaVencido = ($montoVencido / $pagosPorMil) * (((($montoPrestamo / 100) * $interes) * $plazo) * $iva) / $numeroPagosSaldos;
                     }
                     
-                    // Calcular número de pagos atrasados
-                    $atrasos = 0;
-                    foreach ($calendarioPagos as $pagoProg) {
-                        $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
-                        // Si ya venció (estrictamente menor a hoy para considerar atraso, o lte?)
-                        // Generalmente atraso es si fecha < hoy y no pagado.
-                        if ($fechaVenc->lt($fechaHoy)) {
-                            $montoEsperado = $pagoProg['monto'];
-                            $pagosHechos = $pagosRegistrados->get($pagoProg['numero']);
-                            $montoPagado = $pagosHechos ? $pagosHechos->sum('monto') : 0;
-                            
-                            // Si no está cubierto totalmente (con un pequeño margen de tolerancia de 1 peso)
-                            if ($montoPagado < ($montoEsperado - 1)) {
-                                $atrasos++;
-                            }
-                        }
-                    }
+                    // Calcular número de pagos atrasados (aplicando pagos acumulados a lo más antiguo)
+                    $atrasos = \App\Models\Prestamo::calcularAtrasosDesdeCalendario(
+                        $calendarioPagos,
+                        $fechaHoy,
+                        (float) $sumatoriaPagos,
+                        1
+                    );
 
                     // Calcular totales
                     // Fórmula de multa: (((((monto del credito)/100)* interes)plazo)+(monto del credito/numero de pagos)) 5%
@@ -1199,25 +1182,19 @@
                             $montoVencidoCliente = 0;
                             $pagosTranscurridosCliente = 0;
                             $fechaHoy = now()->startOfDay();
-                            
+
                             foreach ($clientSchedule as $pagoProgCliente) {
                                 $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProgCliente['fecha'])->startOfDay();
-                                
                                 if ($fechaVenc->lte($fechaHoy)) {
                                     $pagosTranscurridosCliente++;
-                                    $montoEsperado = $pagoProgCliente['monto'];
-                                    
-                                    // Buscar pagos realizados por este cliente para este número de pago
-                                    $pagosHechosCliente = $prestamo->pagos()
-                                        ->where('cliente_id', $cliente->id)
-                                        ->where('numero_pago', $pagoProgCliente['numero'])
-                                        ->sum('monto');
-                                    
-                                    if ($pagosHechosCliente < $montoEsperado) {
-                                        $montoVencidoCliente += ($montoEsperado - $pagosHechosCliente);
-                                    }
                                 }
                             }
+
+                            $montoVencidoCliente = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
+                                $clientSchedule,
+                                $fechaHoy,
+                                (float) $sumatoriaPagosCliente
+                            );
                             
                             // Calcular pagos futuros (Vigentes)
                             // $pagosFuturosCliente = count($clientSchedule) - $pagosTranscurridosCliente;
@@ -1268,22 +1245,13 @@
                                 $ivaVencidoCliente = ($montoVencidoCliente / $pagoPeriodicoCliente) * (((($montoPrestamoCliente / 100) * $interes) * $plazo) * $iva) / $numeroPagosSaldos;
                             }
                             
-                            // Calcular atrasos del cliente
-                            $atrasosCliente = 0;
-                            foreach ($clientSchedule as $pagoProgCliente) {
-                                $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProgCliente['fecha'])->startOfDay();
-                                if ($fechaVenc->lt($fechaHoy)) {
-                                    $montoEsperado = $pagoProgCliente['monto'];
-                                    $pagosHechosCliente = $prestamo->pagos()
-                                        ->where('cliente_id', $cliente->id)
-                                        ->where('numero_pago', $pagoProgCliente['numero'])
-                                        ->sum('monto');
-                                    
-                                    if ($pagosHechosCliente < ($montoEsperado - 1)) {
-                                        $atrasosCliente++;
-                                    }
-                                }
-                            }
+                            // Calcular atrasos del cliente (aplicando pagos acumulados a lo más antiguo)
+                            $atrasosCliente = \App\Models\Prestamo::calcularAtrasosDesdeCalendario(
+                                $clientSchedule,
+                                $fechaHoy,
+                                (float) $sumatoriaPagosCliente,
+                                1
+                            );
                             
                             // Calcular multa cliente
                             $multaUnitariaCliente = 0;
