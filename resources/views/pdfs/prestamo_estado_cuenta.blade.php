@@ -1078,52 +1078,29 @@
                     // Calcular pagos futuros (Vigentes)
                     // $pagosFuturos = count($calendarioPagos) - $pagosTranscurridos;
                     
-                    // Fórmula 1: Capital vigente = Capital Total - ( (Total Pagado / Pago por Mil) * (Capital Total / Numero Pagos) )
-                    $capitalVigente = $montoCredito;
-                    if ($pagosPorMil > 0) {
-                        $capitalVigente = $montoCredito - (($sumatoriaPagos / $pagosPorMil) * ($montoCredito / $numeroPagosSaldos));
-                    }
-                    
-                    // Calcular interés e IVA base
-                    $interesBase = (($montoCredito / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
-                    $ivaPorcentajeSaldos = \App\Models\Configuration::get('iva_percentage', 16);
-                    $ivaBase = ($interesBase / 100) * $ivaPorcentajeSaldos;
-                    
-                    // Fórmula 2: Interés vigente = Interés Total - ( (Total Pagado / Pago por Mil) * (Interés Total / Numero Pagos) )
-                    $interesVigente = $interesBase;
-                    if ($pagosPorMil > 0) {
-                        $interesVigente = $interesBase - (($sumatoriaPagos / $pagosPorMil) * ($interesBase / $numeroPagosSaldos));
-                    }
-                    
-                    // Fórmula 3: IVA vigente = IVA Total - ( (Total Pagado / Pago por Mil) * (IVA Total / Numero Pagos) )
-                    $ivaVigente = $ivaBase;
-                    if ($pagosPorMil > 0) {
-                        $ivaVigente = $ivaBase - (($sumatoriaPagos / $pagosPorMil) * ($ivaBase / $numeroPagosSaldos));
-                    }
-                    
-                    // Fórmula 4: Capital vencido = ((monto_vencido/pago por mil))*(monto_credito/numero pagos)
-                    $capitalVencido = 0;
-                    if ($pagosPorMil > 0) {
-                        $capitalVencido = ($montoVencido / $pagosPorMil) * ($montoCredito / $numeroPagosSaldos);
-                    }
-                    
-                    // Fórmula 5: Interés vencido = (monto_vencido/pago por mil)*((((monto/100)*interés)*plazo)/numero pagos)
-                    $interesVencido = 0;
-                    if ($pagosPorMil > 0) {
-                        $totalInteresCalculado = (($montoCredito / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
-                        $interesVencido = ($montoVencido / $pagosPorMil) * ($totalInteresCalculado / $numeroPagosSaldos);
-                    }
-                    
-                    // Fórmula 6: IVA vencido = (monto_vencido/pago por mil)*(((((monto del préstamo/100))*interés)*plazo)*iva)/numero de pagos
-                    $ivaVencido = 0;
-                    if ($pagosPorMil > 0) {
-                        $montoPrestamo = $montoCredito;
-                        $interes = $prestamo->tasa_interes ?? 0;
-                        $plazo = $mesesInteresSaldos;
-                        $iva = \App\Models\Configuration::get('iva_percentage', 16) / 100;
-                        
-                        $ivaVencido = ($montoVencido / $pagosPorMil) * (((($montoPrestamo / 100) * $interes) * $plazo) * $iva) / $numeroPagosSaldos;
-                    }
+                    $totalDelPrestamo = $montoCredito + $interesBase + $ivaBase;
+                    $proporcionCapital = ($totalDelPrestamo > 0) ? $montoCredito / $totalDelPrestamo : 0;
+                    $proporcionInteres = ($totalDelPrestamo > 0) ? $interesBase / $totalDelPrestamo : 0;
+                    $proporcionIva = ($totalDelPrestamo > 0) ? $ivaBase / $totalDelPrestamo : 0;
+
+                    // Fórmula 4: Capital vencido
+                    $capitalVencido = $montoVencido * $proporcionCapital;
+
+                    // Fórmula 5: Interés vencido
+                    $interesVencido = $montoVencido * $proporcionInteres;
+
+                    // Fórmula 6: IVA vencido
+                    $ivaVencido = $montoVencido * $proporcionIva;
+
+                    // Calcular montos pagados
+                    $capitalPagado = $sumatoriaPagos * $proporcionCapital;
+                    $interesPagado = $sumatoriaPagos * $proporcionInteres;
+                    $ivaPagado = $sumatoriaPagos * $proporcionIva;
+
+                    // Fórmulas 1, 2, 3: Saldos Vigentes
+                    $capitalVigente = $montoCredito - $capitalPagado - $capitalVencido;
+                    $interesVigente = $interesBase - $interesPagado - $interesVencido;
+                    $ivaVigente = $ivaBase - $ivaPagado - $ivaVencido;
                     
                     // Calcular número de pagos atrasados (aplicando pagos acumulados a lo más antiguo)
                     $atrasos = \App\Models\Prestamo::calcularAtrasosDesdeCalendario(
@@ -1241,41 +1218,36 @@
                             $interesBaseCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
                             $ivaBaseCliente = ($interesBaseCliente / 100) * $ivaPorcentajeSaldos;
                             
-                            // Interés vigente del cliente
-                            $interesVigenteCliente = $interesBaseCliente;
-                            if ($pagoPeriodicoCliente > 0) {
-                                $interesVigenteCliente = $interesBaseCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) * ($interesBaseCliente / $numeroPagosSaldos));
-                            }
-                            
-                            // IVA vigente del cliente
-                            $ivaVigenteCliente = $ivaBaseCliente;
-                            if ($pagoPeriodicoCliente > 0) {
-                                $ivaVigenteCliente = $ivaBaseCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) * ($ivaBaseCliente / $numeroPagosSaldos));
-                            }
-                            
-                            // Capital vencido del cliente
-                            $capitalVencidoCliente = 0;
-                            if ($pagoPeriodicoCliente > 0) {
-                                $capitalVencidoCliente = ($montoVencidoCliente / $pagoPeriodicoCliente) * ($montoCliente / $numeroPagosSaldos);
-                            }
-                            
-                            // Interés vencido del cliente
-                            $interesVencidoCliente = 0;
-                            if ($pagoPeriodicoCliente > 0) {
-                                $totalInteresCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
-                                $interesVencidoCliente = ($montoVencidoCliente / $pagoPeriodicoCliente) * ($totalInteresCliente / $numeroPagosSaldos);
-                            }
-                            
-                            // IVA vencido del cliente
-                            $ivaVencidoCliente = 0;
-                            if ($pagoPeriodicoCliente > 0) {
-                                $montoPrestamoCliente = $montoCliente;
-                                $interes = $prestamo->tasa_interes ?? 0;
-                                $plazo = $mesesInteresSaldos;
-                                $iva = \App\Models\Configuration::get('iva_percentage', 16) / 100;
-                                
-                                $ivaVencidoCliente = ($montoVencidoCliente / $pagoPeriodicoCliente) * (((($montoPrestamoCliente / 100) * $interes) * $plazo) * $iva) / $numeroPagosSaldos;
-                            }
+                            $interesBaseCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
+                            $ivaBaseCliente = ($interesBaseCliente / 100) * $ivaPorcentajeSaldos;
+
+                            $totalDelPrestamoCliente = $montoCliente + $interesBaseCliente + $ivaBaseCliente;
+                            $proporcionCapitalCliente = ($totalDelPrestamoCliente > 0) ? $montoCliente / $totalDelPrestamoCliente : 0;
+                            $proporcionInteresCliente = ($totalDelPrestamoCliente > 0) ? $interesBaseCliente / $totalDelPrestamoCliente : 0;
+                            $proporcionIvaCliente = ($totalDelPrestamoCliente > 0) ? $ivaBaseCliente / $totalDelPrestamoCliente : 0;
+
+                            // Monto vencido del cliente
+                            $montoVencidoCliente = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
+                                $clientSchedule,
+                                $fechaHoy,
+                                $pagadoPorNumeroCliente,
+                                $pagosSinNumeroClienteTotal
+                            );
+
+                            // Capital, Interés e IVA vencidos
+                            $capitalVencidoCliente = $montoVencidoCliente * $proporcionCapitalCliente;
+                            $interesVencidoCliente = $montoVencidoCliente * $proporcionInteresCliente;
+                            $ivaVencidoCliente = $montoVencidoCliente * $proporcionIvaCliente;
+
+                            // Montos pagados del cliente
+                            $capitalPagadoCliente = $sumatoriaPagosCliente * $proporcionCapitalCliente;
+                            $interesPagadoCliente = $sumatoriaPagosCliente * $proporcionInteresCliente;
+                            $ivaPagadoCliente = $sumatoriaPagosCliente * $proporcionIvaCliente;
+
+                            // Saldos Vigentes del cliente
+                            $capitalVigenteCliente = $montoCliente - $capitalPagadoCliente - $capitalVencidoCliente;
+                            $interesVigenteCliente = $interesBaseCliente - $interesPagadoCliente - $interesVencidoCliente;
+                            $ivaVigenteCliente = $ivaBaseCliente - $ivaPagadoCliente - $ivaVencidoCliente;
                             
                             // Calcular atrasos del cliente (aplicando pagos acumulados a lo más antiguo)
                             $atrasosCliente = \App\Models\Prestamo::calcularAtrasosDesdeCalendario(
@@ -1322,51 +1294,28 @@
                             // Calcular monto vencido (reutilizamos el cálculo global ya que es individual)
                             $montoVencidoCliente = $montoVencido;
                             
-                            // Capital vigente del cliente
-                            $capitalVigenteCliente = $montoCliente;
-                            if ($pagosPorMil > 0) {
-                                $capitalVigenteCliente = $montoCliente - (($sumatoriaPagosCliente / $pagosPorMil) * ($montoCliente / $numeroPagosSaldos));
-                            }
-                            
-                            // Interés e IVA base del cliente
                             $interesBaseCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
                             $ivaBaseCliente = ($interesBaseCliente / 100) * $ivaPorcentajeSaldos;
-                            
-                            // Interés vigente del cliente
-                            $interesVigenteCliente = $interesBaseCliente;
-                            if ($pagosPorMil > 0 && $interesBaseCliente > 0) {
-                                $interesVigenteCliente = $interesBaseCliente - (($sumatoriaPagosCliente / $pagosPorMil) * ($interesBaseCliente / $numeroPagosSaldos));
-                            }
-                            
-                            // IVA vigente del cliente
-                            $ivaVigenteCliente = $ivaBaseCliente;
-                            if ($pagosPorMil > 0 && $ivaBaseCliente > 0) {
-                                $ivaVigenteCliente = $ivaBaseCliente - (($sumatoriaPagosCliente / $pagosPorMil) * ($ivaBaseCliente / $numeroPagosSaldos));
-                            }
-                            
-                            // Capital vencido del cliente
-                            $capitalVencidoCliente = 0;
-                            if ($pagosPorMil > 0) {
-                                $capitalVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * ($montoCliente / $numeroPagosSaldos);
-                            }
-                            
-                            // Interés vencido del cliente
-                            $interesVencidoCliente = 0;
-                            if ($pagosPorMil > 0) {
-                                $totalInteresCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
-                                $interesVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * ($totalInteresCliente / $numeroPagosSaldos);
-                            }
-                            
-                            // IVA vencido del cliente
-                            $ivaVencidoCliente = 0;
-                            if ($pagosPorMil > 0) {
-                                $montoPrestamoCliente = $montoCliente;
-                                $interes = $prestamo->tasa_interes ?? 0;
-                                $plazo = $mesesInteresSaldos;
-                                $iva = \App\Models\Configuration::get('iva_percentage', 16) / 100;
-                                
-                                $ivaVencidoCliente = ($montoVencidoCliente / $pagosPorMil) * (((($montoPrestamoCliente / 100) * $interes) * $plazo) * $iva) / $numeroPagosSaldos;
-                            }
+
+                            $totalDelPrestamoCliente = $montoCliente + $interesBaseCliente + $ivaBaseCliente;
+                            $proporcionCapitalCliente = ($totalDelPrestamoCliente > 0) ? $montoCliente / $totalDelPrestamoCliente : 0;
+                            $proporcionInteresCliente = ($totalDelPrestamoCliente > 0) ? $interesBaseCliente / $totalDelPrestamoCliente : 0;
+                            $proporcionIvaCliente = ($totalDelPrestamoCliente > 0) ? $ivaBaseCliente / $totalDelPrestamoCliente : 0;
+
+                            // Capital, Interés e IVA vencidos
+                            $capitalVencidoCliente = $montoVencidoCliente * $proporcionCapitalCliente;
+                            $interesVencidoCliente = $montoVencidoCliente * $proporcionInteresCliente;
+                            $ivaVencidoCliente = $montoVencidoCliente * $proporcionIvaCliente;
+
+                            // Montos pagados
+                            $capitalPagadoCliente = $sumatoriaPagosCliente * $proporcionCapitalCliente;
+                            $interesPagadoCliente = $sumatoriaPagosCliente * $proporcionInteresCliente;
+                            $ivaPagadoCliente = $sumatoriaPagosCliente * $proporcionIvaCliente;
+
+                            // Saldos Vigentes
+                            $capitalVigenteCliente = $montoCliente - $capitalPagadoCliente - $capitalVencidoCliente;
+                            $interesVigenteCliente = $interesBaseCliente - $interesPagadoCliente - $interesVencidoCliente;
+                            $ivaVigenteCliente = $ivaBaseCliente - $ivaPagadoCliente - $ivaVencidoCliente;
                             
                             // Calcular atrasos del cliente (individual)
                             $atrasosCliente = $atrasos; // Usamos el cálculo global ya que es individual
