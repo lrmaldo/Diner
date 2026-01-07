@@ -52,21 +52,21 @@ class EntregaCredito extends Component
             ->find($this->busqueda);
 
         if (!$prestamo) {
-            $this->dispatch('alert', ['type' => 'error', 'message' => 'Préstamo no encontrado.']);
+            $this->dispatch('alert', type: 'error', message: 'Préstamo no encontrado.');
             return;
         }
 
         // Validar si ya fue entregado específicamente
         if ($prestamo->estado === 'entregado') {
             $fecha = $prestamo->fecha_entrega ? $prestamo->fecha_entrega->format('d/m/Y') : 'recientemente';
-            $this->dispatch('alert', ['type' => 'warning', 'message' => "Este préstamo YA FUE ENTREGADO el {$fecha}. Estado actual: Entregado"]);
+            $this->dispatch('alert', type: 'warning', message: "Este préstamo YA FUE ENTREGADO el {$fecha}. Estado actual: Entregado");
             return;
         }
 
         // Validar otros estados no permitidos
         if (!in_array($prestamo->estado, ['aprobado', 'autorizado'])) {
             $estadoActual = ucfirst($prestamo->estado);
-            $this->dispatch('alert', ['type' => 'warning', 'message' => "Este préstamo no se puede entregar. Estado actual: {$estadoActual}"]);
+            $this->dispatch('alert', type: 'warning', message: "Este préstamo no se puede entregar. Estado actual: {$estadoActual}");
             return;
         }
 
@@ -144,7 +144,7 @@ class EntregaCredito extends Component
         $this->calcularTotalSeleccionado();
 
         if (abs($this->diferencia) > 0.01) {
-            $this->dispatch('alert', ['type' => 'error', 'message' => 'El desglose de efectivo no coincide con el monto a entregar.']);
+            $this->dispatch('alert', type: 'error', message: 'El desglose de efectivo no coincide con el monto a entregar.');
             return;
         }
 
@@ -174,12 +174,12 @@ class EntregaCredito extends Component
 
             DB::commit();
 
-            $this->dispatch('alert', ['type' => 'success', 'message' => 'Crédito entregado exitosamente.']);
+            $this->dispatch('alert', type: 'success', message: 'Crédito entregado exitosamente.');
             $this->reset(['busqueda', 'prestamo', 'mostrarDesglose']);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->dispatch('alert', ['type' => 'error', 'message' => 'Error al entregar crédito: ' . $e->getMessage()]);
+            $this->dispatch('alert', type: 'error', message: 'Error al entregar crédito: ' . $e->getMessage());
         }
     }
 
