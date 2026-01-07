@@ -335,17 +335,17 @@ class DesgloseEfectivo extends Component
         $clientesSeleccionadosCount = count(array_filter($this->clientesSeleccionados));
 
         if ($clientesSeleccionadosCount === 0) {
-            $this->dispatch('alert', ['type' => 'error', 'message' => 'Debe seleccionar al menos un cliente.']);
+            $this->dispatch('alert', type: 'error', message: 'Debe seleccionar al menos un cliente.');
             return;
         }
 
         if ($this->totalEfectivo <= 0) {
-            $this->dispatch('alert', ['type' => 'error', 'message' => 'Debe ingresar el efectivo recibido.']);
+            $this->dispatch('alert', type: 'error', message: 'Debe ingresar el efectivo recibido.');
             return;
         }
 
         if ($this->diferencia < 0) {
-            $this->dispatch('alert', ['type' => 'error', 'message' => 'El efectivo recibido es insuficiente.']);
+            $this->dispatch('alert', type: 'error', message: 'El efectivo recibido es insuficiente.');
             return;
         }
 
@@ -426,12 +426,12 @@ class DesgloseEfectivo extends Component
 
             DB::commit();
 
-            $this->dispatch('alert', ['type' => 'success', 'message' => 'Pagos registrados exitosamente.']);
+            $this->dispatch('alert', type: 'success', message: 'Pagos registrados exitosamente.');
             return redirect()->route('prestamos.show', $this->prestamo->id);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->dispatch('alert', ['type' => 'error', 'message' => 'Error: '.$e->getMessage()]);
+            $this->dispatch('alert', type: 'error', message: 'Error: '.$e->getMessage());
         }
     }
 
