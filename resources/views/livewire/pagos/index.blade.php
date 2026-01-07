@@ -118,7 +118,7 @@
                         </div>
                     </div>
                     
-                    @if($prestamo->estado === 'autorizado' || $prestamo->estado === 'liquidado')
+                    @if($prestamo->estado === 'autorizado' || $prestamo->estado === 'entregado' || $prestamo->estado === 'liquidado')
                     {{-- Tabla de clientes --}}
                     <div class="mt-8 overflow-x-auto">
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">
