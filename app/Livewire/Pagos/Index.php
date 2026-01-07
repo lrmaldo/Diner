@@ -58,7 +58,7 @@ class Index extends Component
             $this->notFound = true;
         } else {
             // Validar estado del préstamo
-            if ($this->prestamo->estado !== 'autorizado' && $this->prestamo->estado !== 'liquidado') {
+            if (!in_array($this->prestamo->estado, ['autorizado', 'entregado', 'liquidado'])) {
                 return;
             }
 
@@ -89,8 +89,13 @@ class Index extends Component
                 $pagosCliente = $this->prestamo->pagos->where('cliente_id', $cliente->id);
                 $totalPagado = $pagosCliente->sum('monto');
                 
-                // Calcular Saldo Restante
-                $saldoRestante = max(0, $totalAdeudo - $totalPagado);
+                // Calcular Saldo Restante (Deuda Total para Liquidar)
+                try {
+                    $saldoRestante = $this->prestamo->calcularSaldoLiquidarParaCliente($cliente->id, $montoAutorizado);
+                } catch (\Exception $e) {
+                    $saldoRestante = max(0, $totalAdeudo - $totalPagado);
+                }
+                
                 $this->saldosRestantes[$cliente->id] = $saldoRestante;
                 
                 $pendiente = 0;
@@ -114,8 +119,12 @@ class Index extends Component
                     }
                 }
 
-                // Calcular Moratorio
-                $moratorio = $this->calcularMoratorio($cliente->id, $montoAutorizado, $pagoSugerido);
+                // Calcular Moratorio (Usando lógica robusta del modelo)
+                try {
+                    $moratorio = $this->prestamo->calcularMoratorioVigente($cliente->id, $montoAutorizado);
+                } catch (\Exception $e) {
+                    $moratorio = $this->calcularMoratorio($cliente->id, $montoAutorizado, $pagoSugerido); // Fallback old logic
+                }
 
                 $this->pendientes[$cliente->id] = $pendiente;
                 $this->moratorios[$cliente->id] = $moratorio;
