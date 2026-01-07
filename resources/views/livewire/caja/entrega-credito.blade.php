@@ -21,7 +21,7 @@
                             </svg>
                         </div>
                         <input type="number" 
-                               wire:model="busqueda" 
+                               wire:model.live.debounce.500ms="busqueda" 
                                wire:keydown.enter="buscarPrestamo"
                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
                                placeholder="Ingrese ID del préstamo...">
@@ -33,6 +33,36 @@
                 </div>
             </div>
         </div>
+
+        @if($feedback)
+            @php
+                $colors = match($feedback['type']) {
+                    'success' => 'bg-green-50 border-green-400 text-green-700',
+                    'error' => 'bg-red-50 border-red-400 text-red-700',
+                    'warning' => 'bg-yellow-50 border-yellow-400 text-yellow-700',
+                    'info' => 'bg-blue-50 border-blue-400 text-blue-700',
+                    default => 'bg-gray-50 border-gray-400 text-gray-700',
+                };
+                $icon = match($feedback['type']) {
+                    'success' => '<svg class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+                    'error' => '<svg class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+                    'warning' => '<svg class="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+                    'info' => '<svg class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+                    default => '',
+                };
+            @endphp
+            <div class="mb-8 rounded-xl border-l-8 p-6 shadow-md {{ $colors }} transition-all duration-300 ease-in-out transform hover:scale-[1.01]">
+                <div class="flex items-center gap-4">
+                    <div class="flex-shrink-0 bg-white p-2 rounded-full shadow-sm">
+                        {!! $icon !!}
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold uppercase tracking-wide">{{ $feedback['title'] }}</h3>
+                        <p class="text-lg mt-1 font-medium">{{ $feedback['message'] }}</p>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         @if($prestamo && $mostrarDesglose)
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

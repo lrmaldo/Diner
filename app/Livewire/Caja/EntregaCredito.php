@@ -36,42 +36,74 @@ class EntregaCredito extends Component
     public $totalSeleccionado = 0;
     public $diferencia = 0;
     public $notas = '';
+    
+    // Feedback vizual en tarjeta grande
+    public $feedback = null; // ['type' => 'warning|error|success|info', 'title' => '...', 'message' => '...']
 
     public function updatedBusqueda()
     {
-        $this->reset(['prestamo', 'mostrarDesglose', 'totalEntregar', 'totalSeleccionado', 'diferencia']);
+        $this->reset(['prestamo', 'mostrarDesglose', 'totalEntregar', 'totalSeleccionado', 'diferencia', 'feedback']);
+        
+        // Búsqueda en tiempo real si hay input
+        if (strlen($this->busqueda) > 0) {
+            $this->buscarPrestamo(true);
+        }
     }
 
-    public function buscarPrestamo()
+    public function buscarPrestamo($fromTyping = false)
     {
         $this->validate([
             'busqueda' => 'required|numeric',
         ]);
+        
+        $this->reset(['feedback', 'prestamo', 'mostrarDesglose']);
 
         $prestamo = Prestamo::with(['cliente', 'grupo', 'clientes', 'representante', 'asesor'])
             ->find($this->busqueda);
 
         if (!$prestamo) {
-            $this->dispatch('alert', type: 'error', message: 'Préstamo no encontrado.');
+            if (!$fromTyping) {
+                // Solo mostrar error si fue enter/clic
+                $this->feedback = [
+                    'type' => 'error',
+                    'title' => 'No encontrado',
+                    'message' => 'No se encontró ningún préstamo con el ID proporcionado.'
+                ];
+                $this->dispatch('alert', type: 'error', message: 'Préstamo no encontrado.');
+            }
             return;
         }
+
+        // Siempre asignamos el préstamo para poder mostrar info básica si se desea
+        $this->prestamo = $prestamo;
 
         // Validar si ya fue entregado específicamente
         if ($prestamo->estado === 'entregado') {
             $fecha = $prestamo->fecha_entrega ? $prestamo->fecha_entrega->format('d/m/Y') : 'recientemente';
-            $this->dispatch('alert', type: 'warning', message: "Este préstamo YA FUE ENTREGADO el {$fecha}. Estado actual: Entregado");
+            $this->feedback = [
+                'type' => 'warning',
+                'title' => 'Préstamo Ya Entregado',
+                'message' => "Este crédito ya fue entregado el fecha {$fecha}. No se puede volver a entregar."
+            ];
+            // Tambien toast
+            $this->dispatch('alert', type: 'warning', message: "Este préstamo YA FUE ENTREGADO el {$fecha}.");
             return;
         }
 
         // Validar otros estados no permitidos
         if (!in_array($prestamo->estado, ['aprobado', 'autorizado'])) {
             $estadoActual = ucfirst($prestamo->estado);
-            $this->dispatch('alert', type: 'warning', message: "Este préstamo no se puede entregar. Estado actual: {$estadoActual}");
+            $this->feedback = [
+                'type' => 'error',
+                'title' => 'Estado No Válido',
+                'message' => "El préstamo se encuentra en estado '{$estadoActual}' y no puede ser entregado."
+            ];
+            $this->dispatch('alert', type: 'warning', message: "Estado actual: {$estadoActual}");
             return;
         }
 
-        $this->prestamo = $prestamo;
-        $this->totalEntregar = (float) $prestamo->monto_total; // O monto_autorizado según tu lógica
+        // Si pasa validaciones, mostrar desglose
+        $this->totalEntregar = (float) $prestamo->monto_total; 
         
         // Inicializar desglose en ceros
         foreach ($this->desgloseBilletes as $k => $v) $this->desgloseBilletes[$k] = 0;
