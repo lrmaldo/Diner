@@ -146,7 +146,7 @@ class EntregaCredito extends Component
             DB::beginTransaction();
 
             // 1. Actualizar estado del préstamo
-            $this->prestamo->estado = 'activo';
+            $this->prestamo->estado = 'entregado';
             $this->prestamo->fecha_entrega = now(); // Asumiendo que tienes este campo, si no, usa fecha_inicio
             // Si la fecha de inicio era tentativa, quizás quieras actualizarla a hoy:
             // $this->prestamo->fecha_inicio = now(); 

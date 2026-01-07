@@ -33,6 +33,14 @@
                     window.Livewire.on('client-deleted', toastHandler);
                     // listen for miembroGuardado dispatched from server
                     window.Livewire.on('miembroGuardado', toastHandler);
+                    // Listen for generic alerts
+                    window.Livewire.on('alert', function(data) {
+                        // Adaptar formato {type: 'success', message: '...'} al formato esperado por toastHandler
+                        if (data && data.type) {
+                            data.success = (data.type === 'success');
+                        }
+                        toastHandler(data);
+                    });
                 }
 
                 // Fallback: native DOM CustomEvent dispatched on window
