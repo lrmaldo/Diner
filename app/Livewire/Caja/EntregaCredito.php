@@ -56,8 +56,14 @@ class EntregaCredito extends Component
             return;
         }
 
-        // Validar estado del préstamo (Asumiendo que 'aprobado' es el estado previo a la entrega)
-        // Ajusta 'aprobado' según los estados reales de tu base de datos
+        // Validar si ya fue entregado específicamente
+        if ($prestamo->estado === 'entregado') {
+            $fecha = $prestamo->fecha_entrega ? $prestamo->fecha_entrega->format('d/m/Y') : 'recientemente';
+            $this->dispatch('alert', ['type' => 'warning', 'message' => "Este préstamo YA FUE ENTREGADO el {$fecha}. Estado actual: Entregado"]);
+            return;
+        }
+
+        // Validar otros estados no permitidos
         if (!in_array($prestamo->estado, ['aprobado', 'autorizado'])) {
             $estadoActual = ucfirst($prestamo->estado);
             $this->dispatch('alert', ['type' => 'warning', 'message' => "Este préstamo no se puede entregar. Estado actual: {$estadoActual}"]);
