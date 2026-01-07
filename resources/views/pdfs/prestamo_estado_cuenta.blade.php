@@ -925,11 +925,61 @@
                         'martes'
                     );
 
-                    // Obtener todos los pagos registrados del préstamo
-                    $pagosRegistrados = $prestamo->pagos()
-                        ->whereNotNull('numero_pago')
-                        ->get()
-                        ->groupBy('numero_pago');
+                    // Obtener todos los pagos registrados del préstamo ordenados por fecha
+                    $todosLosPagos = $prestamo->pagos()
+                        ->orderBy('fecha_pago')
+                        ->orderBy('id')
+                        ->get();
+
+                    // Función para simular desglose de pagos (Bucket Logic)
+                    $distribuirPagos = function($calendario, $pagosDisponibles) {
+                        $distribucion = collect();
+                        
+                        // Crear cola de dinero disponible
+                        // Cada entrada es una porción de un pago real
+                        $colaPagos = [];
+                        foreach($pagosDisponibles as $p) {
+                            $colaPagos[] = [
+                                'original' => $p,
+                                'remanente' => (float)$p->monto
+                            ];
+                        }
+                        
+                        foreach($calendario as $cuota) {
+                            $montoRequerido = (float)$cuota['monto'];
+                            $pagosAsignados = collect();
+                            
+                            foreach($colaPagos as &$entry) {
+                                if ($entry['remanente'] <= 0.001) continue;
+                                
+                                $tomar = min($entry['remanente'], $montoRequerido);
+                                
+                                if ($tomar > 0) {
+                                    // Clonamos el pago original para preservar fechas e IDs
+                                    // pero ajustamos el monto a la porción que cubre esta cuota
+                                    $pagoVirtual = clone $entry['original'];
+                                    $pagoVirtual->monto = $tomar;
+                                    
+                                    $pagosAsignados->push($pagoVirtual);
+                                    
+                                    $entry['remanente'] -= $tomar;
+                                    $montoRequerido -= $tomar;
+                                }
+                                
+                                if ($montoRequerido <= 0.001) break;
+                            }
+                            unset($entry); // Romper referencia
+
+                            if ($pagosAsignados->isNotEmpty()) {
+                                $distribucion->put($cuota['numero'], $pagosAsignados);
+                            }
+                        }
+                        
+                        return $distribucion;
+                    };
+
+                    // Aplicar la distribución
+                    $pagosRegistrados = $distribuirPagos($calendarioPagos, $todosLosPagos);
 
                     // Pre-calcular calendarios individuales para préstamos grupales
                     $clientSchedules = [];
@@ -951,16 +1001,20 @@
                 
                 @foreach($calendarioPagos as $pago)
                     @php
-                        // Buscar si existe un pago registrado para este número
+                        // Buscar si existe un pago registrado (distribuido) para este número
                         $pagoRealizado = $pagosRegistrados->get($pago['numero']);
                         $fechaPagoReal = '';
                         $montoPagado = 0;
                         
                         if ($pagoRealizado && $pagoRealizado->isNotEmpty()) {
-                            // Si hay múltiples pagos (varios clientes), sumar los montos
+                            // Si hay múltiples pagos (varios clientes o abonos parciales), sumar los montos
                             $montoPagado = $pagoRealizado->sum('monto');
-                            // Usar la fecha del primer pago registrado
-                            $fechaPagoReal = $pagoRealizado->first()->fecha_pago->format('d-m-y');
+                            // Usar la fecha del ÚLTIMO pago que completó esta cuota, o el primero?
+                            // El requerimiento dice: "registrando la misma fecha en la que se pago"
+                            // Si un solo pago cubre 5 cuotas, todas tendrán esa fecha.
+                            // Si múltiples pagos cubren 1 cuota, mostramos la fecha del último (fecha de liquidación de cuota) o listamos?
+                            // Lo estándar es mostrar la fecha en que se cubrió.
+                            $fechaPagoReal = $pagoRealizado->sortByDesc('fecha_pago')->first()->fecha_pago->format('d-m-y');
                         }
                     @endphp
                     <tr @if($pago['numero'] % 2 == 0) style="background-color: #f3f4f6;" @endif
