@@ -346,9 +346,11 @@
             default => 7
         };
 
-        // Calcular monto por pago sin redondear
-        $montoPorPagoBase = floor($montoPorPago);
-        $diferencia = $montoTotal - ($montoPorPagoBase * $numeroPagos);
+        // Calcular monto por pago usando lógica de decimales (igual que en detalle de crédito y caja)
+        $pagoConDecimales = $montoTotal / $numeroPagos;
+        $montoPorPagoBase = floor($pagoConDecimales); // Parte entera
+        $decimales = $pagoConDecimales - $montoPorPagoBase;
+        $montoUltimoPago = $montoPorPagoBase + ($decimales * $numeroPagos);
 
         for ($i = 1; $i <= $numeroPagos; $i++) {
             if ($i === 1) {
@@ -365,8 +367,8 @@
                 $fechaPago = Carbon::parse($ultimoPago);
             }
 
-            // El último pago lleva el monto base más la diferencia acumulada
-            $montoPago = ($i === $numeroPagos) ? ($montoPorPagoBase + $diferencia) : $montoPorPagoBase;
+            // El último pago lleva el monto base más los decimales acumulados
+            $montoPago = ($i === $numeroPagos) ? $montoUltimoPago : $montoPorPagoBase;
 
             $calendario[] = [
                 'numero' => $i,
