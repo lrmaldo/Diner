@@ -159,8 +159,12 @@
                                 @foreach($clientLoans as $index => $loan)
                                     <tr>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600">{{ $index + 1 }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-blue-600 dark:text-blue-400 border-r border-gray-200 dark:border-gray-600 font-bold">
-                                            <a href="{{ route('prestamos.print', ['prestamo' => $loan->id, 'type' => 'estado_cuenta']) }}" target="_blank" class="hover:underline">{{ $loan->id }}</a>
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm border-r border-gray-200 dark:border-gray-600 font-bold {{ $loan->estado === 'entregado' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100' }}">
+                                            @if($loan->estado === 'entregado')
+                                                <a href="{{ route('prestamos.print', ['prestamo' => $loan->id, 'type' => 'estado_cuenta']) }}" target="_blank" class="hover:underline">{{ $loan->id }}</a>
+                                            @else
+                                                {{ $loan->id }}
+                                            @endif
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600 uppercase">{{ $loan->producto }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600">{{ $loan->periodo_pago }}</td>
