@@ -145,14 +145,22 @@
                             {{ $nombre }}
                             <div style="margin-top:6px">{{ $prestamo->cliente->direccion ?? '' }}</div>
                             <div>{{ $prestamo->cliente->telefono ?? $prestamo->cliente->cel ?? '' }}</div>
-                            @if(!empty($prestamo->cliente->nombre_aval))
-                                <div style="margin-top:6px"><strong>AVAL:</strong> {{ mb_strtoupper($prestamo->cliente->nombre_aval, 'UTF-8') }}</div>
-                            @endif
                         </td>
                         <td style="width:220px;text-align:right;vertical-align:top;">
                             <div>${{ number_format($prestamo->monto_total ?? 0, 0) }}&nbsp;__________________</div>
                         </td>
                     </tr>
+                    @if(!empty($prestamo->cliente->nombre_aval))
+                    <tr>
+                        <td style="vertical-align:top; padding-top:20px;">
+                            <strong>AVAL:</strong> {{ mb_strtoupper($prestamo->cliente->nombre_aval, 'UTF-8') }}
+                        </td>
+                        <td style="width:220px;text-align:right;vertical-align:top; padding-top:20px;">
+                            <div>__________________</div>
+                            <div style="font-size:11px; text-align:right; padding-right:10px;">Firma Aval</div>
+                        </td>
+                    </tr>
+                    @endif
                 </table>
             @endif
         </div>
