@@ -771,6 +771,18 @@ class Create extends Component
                 return;
             }
             $prestamo->representante_id = $this->representante_id;
+            
+            // Sincronizar clientes finales para asegurar que la BD coincide con la lista visual
+            $this->normalizeClientesAgregados();
+            $syncData = [];
+            foreach ($this->clientesAgregados as $row) {
+                if (isset($row['cliente_id'])) {
+                    $syncData[$row['cliente_id']] = ['monto_solicitado' => $row['monto_solicitado'] ?? 0];
+                }
+            }
+            // Importante: sync eliminará cualquier cliente que no esté en la lista (incluidos los borrados)
+            $prestamo->clientes()->sync($syncData);
+
             // si el monto_total no está definido aún, calcularlo desde los miembros en memoria
             if (! is_numeric($prestamo->monto_total) || (float) $prestamo->monto_total <= 0) {
                 $this->normalizeClientesAgregados();
@@ -1219,6 +1231,14 @@ class Create extends Component
         }
 
         $row = $this->clientesAgregados[$index];
+
+        // si el préstamo ya existe, eliminar de la BD inmediatamente para mantener consistencia
+        if ($this->prestamo_id && isset($row['cliente_id'])) {
+            $prestamo = Prestamo::find($this->prestamo_id);
+            if ($prestamo) {
+                $prestamo->clientes()->detach($row['cliente_id']);
+            }
+        }
 
         // remover elemento y reindexar
         unset($this->clientesAgregados[$index]);
