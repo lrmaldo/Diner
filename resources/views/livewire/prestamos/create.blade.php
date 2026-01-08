@@ -704,11 +704,6 @@
                                                 <input wire:model.defer="new_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
                                                 @error('new_gasto_mensual_familiar') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
-                                            <div class="sm:col-span-2">
-                                                <label class="field-label">Nombre de aval</label>
-                                                <input wire:model.defer="new_nombre_aval" class="input-project" />
-                                                @error('new_nombre_aval') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -991,10 +986,12 @@
                                 <label class="field-label">Gasto mensual familiar</label>
                                 <input wire:model.defer="edit_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
                             </div>
+                            @if($producto === 'individual')
                             <div>
                                 <label class="field-label">Nombre de aval</label>
                                 <input wire:model.defer="edit_nombre_aval" class="input-project" />
                             </div>
+                            @endif
                         </div>
                     </div>
                 </div>
