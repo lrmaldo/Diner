@@ -202,11 +202,36 @@ class Prestamo extends Model
     }
 
     /**
-     * Calcular el saldo pendiente
+     * Calcular el monto total de la deuda (Capital + Interés + IVA)
+     */
+    public function calcularMontoTotalDeuda(): float
+    {
+        $monto = (float) $this->monto_total;
+        $tasaInteres = (float) $this->tasa_interes;
+        $plazo = strtolower(trim($this->plazo));
+        $periodicidad = strtolower(trim($this->periodicidad));
+        
+        $config = $this->determinarConfiguracionPago($plazo, $periodicidad);
+        
+        if (!$config) {
+            // Fallback: cálculo básico
+             $interesTotal = $monto * ($tasaInteres / 100);
+             return $monto + $interesTotal;
+        }
+
+        $interes = (($monto / 100) * $tasaInteres) * $config['meses_interes'];
+        $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
+        $iva = ($interes / 100) * $ivaPorcentaje;
+        
+        return $monto + $interes + $iva;
+    }
+
+    /**
+     * Calcular el saldo pendiente real considerando intereses e IVA
      */
     public function calcularSaldoPendiente(): float
     {
-        return $this->monto_total - $this->calcularTotalPagado();
+        return $this->calcularMontoTotalDeuda() - $this->calcularTotalPagado();
     }
 
     /**
