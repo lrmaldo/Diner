@@ -1095,6 +1095,10 @@ class Create extends Component
     public $edit_colonia;
 
     public $edit_codigo_postal;
+    
+    public $edit_telefono_celular;
+    
+    public $edit_telefono_casa;
 
     public function openEditCliente(int $id): void
     {
@@ -1107,6 +1111,10 @@ class Create extends Component
         $this->edit_email = $c->email;
         $this->edit_pais_nacimiento = $c->pais_nacimiento;
         $this->edit_nombre_conyuge = $c->nombre_conyuge;
+        // Cargar teléfonos
+        $this->edit_telefono_celular = $c->telefonos()->where('tipo', 'celular')->value('numero');
+        $this->edit_telefono_casa = $c->telefonos()->where('tipo', 'casa')->value('numero');
+        
         $this->edit_calle_numero = $c->calle_numero;
         $this->edit_referencia_domiciliaria = $c->referencia_domiciliaria;
         $this->edit_estado_civil = $c->estado_civil;
@@ -1151,6 +1159,8 @@ class Create extends Component
             'edit_municipio' => ['nullable', 'string', 'max:255'],
             'edit_colonia' => ['nullable', 'string', 'max:255'],
             'edit_codigo_postal' => ['nullable', 'string', 'max:20'],
+            'edit_telefono_celular' => ['required', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
+            'edit_telefono_casa' => ['nullable', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
         ]);
 
         $c = Cliente::findOrFail($this->edit_cliente_id);
@@ -1177,6 +1187,17 @@ class Create extends Component
             'colonia' => $this->edit_colonia,
             'codigo_postal' => $this->edit_codigo_postal,
         ]);
+
+        // Actualizar teléfonos
+        $c->telefonos()->where('tipo', 'celular')->delete();
+        if ($this->edit_telefono_celular) {
+            $c->telefonos()->create(['tipo' => 'celular', 'numero' => $this->edit_telefono_celular]);
+        }
+        
+        $c->telefonos()->where('tipo', 'casa')->delete();
+        if ($this->edit_telefono_casa) {
+            $c->telefonos()->create(['tipo' => 'casa', 'numero' => $this->edit_telefono_casa]);
+        }
 
         // Ajustar monto o lista según producto
         if ($this->producto === 'individual') {

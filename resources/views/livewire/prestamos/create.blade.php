@@ -934,6 +934,14 @@
                                 <input wire:model.defer="edit_calle_numero" class="input-project" />
                             </div>
                             <div>
+                                <label class="field-label">Teléfono Celular *</label>
+                                <input wire:model="edit_telefono_celular" class="input-project" placeholder="(999) 999-9999" />
+                            </div>
+                            <div>
+                                <label class="field-label">Teléfono Casa</label>
+                                <input wire:model="edit_telefono_casa" class="input-project" placeholder="(999) 999-9999" />
+                            </div>
+                            <div>
                                 <label class="field-label">Estado</label>
                                 <input wire:model.defer="edit_estado" class="input-project" />
                             </div>
