@@ -159,9 +159,9 @@
                                 @foreach($clientLoans as $index => $loan)
                                     <tr>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600">{{ $index + 1 }}</td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm border-r border-gray-200 dark:border-gray-600 font-bold {{ $loan->estado === 'entregado' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100' }}">
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm border-r border-gray-200 dark:border-gray-600 font-bold {{ $loan->estado === 'entregado' ? 'text-blue-600 dark:text-blue-400' : ($loan->estado === 'liquidado' ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-gray-100') }}">
                                             <flux:tooltip content="Estatus: {{ ucfirst($loan->estado) }}">
-                                                @if($loan->estado === 'entregado')
+                                                @if($loan->estado === 'entregado' || $loan->estado === 'liquidado')
                                                     <a href="{{ route('prestamos.print', ['prestamo' => $loan->id, 'type' => 'estado_cuenta']) }}" target="_blank" class="hover:underline">{{ $loan->id }}</a>
                                                 @else
                                                     <span>{{ $loan->id }}</span>
