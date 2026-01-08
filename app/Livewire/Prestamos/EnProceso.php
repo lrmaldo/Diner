@@ -49,6 +49,20 @@ class EnProceso extends Component
         $this->resetPage();
     }
 
+    public function eliminarPrestamo($id)
+    {
+        $prestamo = Prestamo::findOrFail($id);
+
+        if ($prestamo->estado !== 'en_curso') {
+            $this->dispatch('toast', message: 'El préstamo no está en proceso.', type: 'error');
+            return;
+        }
+
+        $prestamo->delete();
+
+        $this->dispatch('toast', message: 'Préstamo eliminado correctamente.', type: 'success');
+    }
+
     public function render()
     {
         $query = Prestamo::query()

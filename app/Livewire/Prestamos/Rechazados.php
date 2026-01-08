@@ -70,6 +70,20 @@ class Rechazados extends Component
         $this->dispatch('toast', message: 'Préstamo reenviado a comité exitosamente.', type: 'success');
     }
 
+    public function eliminarPrestamo($id)
+    {
+        $prestamo = Prestamo::findOrFail($id);
+
+        if ($prestamo->estado !== 'rechazado') {
+            $this->dispatch('toast', message: 'El préstamo no está en estado rechazado.', type: 'error');
+            return;
+        }
+
+        $prestamo->delete();
+
+        $this->dispatch('toast', message: 'Préstamo eliminado correctamente.', type: 'success');
+    }
+
     public function render()
     {
         $query = Prestamo::query()
