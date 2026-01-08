@@ -809,7 +809,7 @@
                     </div>
 
                     <div class="mt-3">
-                        <input wire:model.debounce.300ms="clienteSearch" placeholder="Buscar por nombre o ID" class="input-project w-full" />
+                        <input wire:model.live.debounce.300ms="clienteSearch" placeholder="Buscar por nombre o ID" class="input-project w-full" />
                     </div>
 
                     <div class="mt-3 max-h-64 overflow-auto">
@@ -1028,7 +1028,7 @@
                     </div>
 
                     <div class="mt-3">
-                        <input wire:model.debounce.300ms="grupoSearch" placeholder="Buscar por nombre o ID" class="input-project w-full" />
+                        <input wire:model.live.debounce.300ms="grupoSearch" placeholder="Buscar por nombre o ID" class="input-project w-full" />
                     </div>
 
                     <div class="mt-3 max-h-64 overflow-auto">
