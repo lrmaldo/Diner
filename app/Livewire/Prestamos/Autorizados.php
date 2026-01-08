@@ -87,6 +87,18 @@ class Autorizados extends Component
         $this->resetPage();
     }
 
+    public function rechazarPrestamo(Prestamo $prestamo)
+    {
+        if ($prestamo->estado !== 'autorizado') {
+            return;
+        }
+
+        $prestamo->estado = 'rechazado';
+        $prestamo->save();
+
+        session()->flash('status', 'Préstamo rechazado y enviado a corrección.');
+    }
+
     public function render()
     {
         $query = Prestamo::query()

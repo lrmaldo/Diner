@@ -156,6 +156,18 @@
                                             Pagaré (PDF)
                                         </a>
 
+                                    @if(auth()->user()->hasRole('Asesor') && $p->estado === 'autorizado')
+                                        <button 
+                                            wire:click="rechazarPrestamo({{ $p->id }})"
+                                            wire:confirm="¿Está seguro de rechazar este crédito autorizado? Pasará a estatus RECHAZADO para su corrección."
+                                            class="inline-flex items-center px-3 py-1 border border-red-300 shadow-sm text-xs font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            Rechazar (Corregir)
+                                        </button>
+                                    @endif
+
                                         <!-- Calendario (PDF) -->
                                                      <a href="{{ route('prestamos.print', ['prestamo' => $p->id, 'type' => 'calendario']) }}" target="_blank" rel="noopener"
                                            class="inline-flex items-center px-3 py-1 border border-green-300 shadow-sm text-xs font-medium rounded-md text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
