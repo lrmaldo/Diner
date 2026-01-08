@@ -200,11 +200,8 @@
                                         
                                         $totalSaldoRestante += $saldoRestante;
 
-                                        // Calcular siguiente número de pago
-                                        $ultimoPagoNum = $prestamo->pagos
-                                            ->where('cliente_id', $cliente->id)
-                                            ->max('numero_pago');
-                                        $siguientePago = ($ultimoPagoNum ?? 0) + 1;
+                                        // Usar el número de pago calculado en el componente (Bucket Logic)
+                                        $siguientePago = $siguientesPagos[$cliente->id] ?? 1;
                                     @endphp
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-3 py-4 whitespace-nowrap">

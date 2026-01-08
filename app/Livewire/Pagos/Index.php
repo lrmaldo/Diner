@@ -20,6 +20,7 @@ class Index extends Component
     public $pendientes = [];
     public $moratorios = [];
     public $saldosRestantes = [];
+    public $siguientesPagos = [];
     public $selectedClients = [];
     public $selectAll = false;
 
@@ -43,6 +44,7 @@ class Index extends Component
         $this->pendientes = [];
         $this->moratorios = [];
         $this->saldosRestantes = [];
+        $this->siguientesPagos = [];
         $this->selectedClients = [];
         $this->selectAll = false;
 
@@ -128,6 +130,32 @@ class Index extends Component
 
                 $this->pendientes[$cliente->id] = $pendiente;
                 $this->moratorios[$cliente->id] = $moratorio;
+                
+                // Calcular siguiente número de pago basado en monto pagado acumulado (Bucket Logic)
+                $numPagoCalculado = 1;
+                if ($pagoSugerido > 0) {
+                    $pagosAcumulados = $totalPagado;
+                    // Cuántos pagos enteros caben en lo pagado
+                    $pagosCubiertos = floor($pagosAcumulados / $pagoSugerido);
+                    $numPagoCalculado = $pagosCubiertos + 1;
+                    
+                    // Asegurar que no exceda el total de pagos + 1 (o mantener en total si ya acabó)
+                    $plazo = strtolower(trim($this->prestamo->plazo));
+                    $periodicidad = strtolower(trim($this->prestamo->periodicidad));
+                    $config = $this->determinarConfiguracionPago($plazo, $periodicidad);
+                    $totalPagosEsperados = $config['total_pagos'] ?? 16;
+                    
+                    if ($numPagoCalculado > $totalPagosEsperados) {
+                        $numPagoCalculado = $totalPagosEsperados + 1; // O indicar terminado
+                        
+                        // Si ya está liquidado (saldo 0), a veces se prefiere mostrar el último o un indicador
+                        if ($saldoRestante <= 0.01) {
+                            $numPagoCalculado = $totalPagosEsperados; // Dejar en el último
+                        }
+                    }
+                }
+                $this->siguientesPagos[$cliente->id] = $numPagoCalculado;
+                
                 $this->abonos[$cliente->id] = $pendiente; // Sugerir pagar el pendiente exacto
                 $this->selectedClients[$cliente->id] = true;
             }
