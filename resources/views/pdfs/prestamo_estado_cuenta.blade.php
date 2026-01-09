@@ -1110,9 +1110,10 @@
                         }
                     }
 
-                    $pagosHastaHoy = $prestamo->pagos()
-                        ->whereDate('fecha_pago', '<=', $fechaHoy)
-                        ->get();
+                    // Usar todos los pagos para mantener consistencia con la tabla de movimientos
+                    // Anteriormente se filtraba por fecha <= hoy, lo que causaba discrepancias si el pago
+                    // tenía fecha posterior a la generación del reporte o timestamps con horas futuras.
+                    $pagosHastaHoy = $todosLosPagos;
 
                     $pagadoPorNumero = $pagosHastaHoy
                         ->whereNotNull('numero_pago')
@@ -1244,10 +1245,8 @@
                                 }
                             }
 
-                            $pagosHastaHoyCliente = $prestamo->pagos()
-                                ->where('cliente_id', $cliente->id)
-                                ->whereDate('fecha_pago', '<=', $fechaHoy)
-                                ->get();
+                            // Usar todos los pagos (filtrando por cliente) para consistencia
+                            $pagosHastaHoyCliente = $todosLosPagos->where('cliente_id', $cliente->id);
 
                             $pagadoPorNumeroCliente = $pagosHastaHoyCliente
                                 ->whereNotNull('numero_pago')
