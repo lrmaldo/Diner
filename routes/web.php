@@ -112,6 +112,7 @@ Route::middleware(['auth'])->group(function () {
         
         // Caja - Entrega de Créditos
         Route::get('/caja/entrega-credito', \App\Livewire\Caja\EntregaCredito::class)->name('caja.entrega-credito');
+        Route::get('/caja/sumar-capital', \App\Livewire\Caja\SumarCapital::class)->name('caja.sumar-capital');
     });
 
     // Ruta para historial de clientes
