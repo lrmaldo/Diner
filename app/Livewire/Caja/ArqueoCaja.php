@@ -14,6 +14,7 @@ class ArqueoCaja extends Component
     public $showCapitalizarModal = false;
     public $showSuccessModal = false;
     public $comentariosCapital = '';
+    public $montoGuardado = 0;
 
     public $billetesCapital = [
         '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
@@ -70,6 +71,8 @@ class ArqueoCaja extends Component
             $this->dispatch('toast', message: 'El monto total debe ser mayor a 0.', type: 'error');
             return;
         }
+
+        $this->montoGuardado = $this->totalGeneralCapital;
 
         Capitalizacion::create([
             'monto' => $this->totalGeneralCapital,

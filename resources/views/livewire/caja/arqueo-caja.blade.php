@@ -221,7 +221,9 @@
             </div>
             <div>
                 <flux:heading size="lg">¡Capital Registrado!</flux:heading>
-                <flux:subheading>El capital se ha sumado correctamente al arqueo de caja.</flux:subheading>
+                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    Has sumado <strong class="text-gray-900 dark:text-white font-bold">${{ number_format($montoGuardado, 2) }}</strong> pesos al capital.
+                </div>
             </div>
             <div class="flex justify-center">
                 <flux:button variant="primary" wire:click="$set('showSuccessModal', false)">Aceptar</flux:button>
