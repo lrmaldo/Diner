@@ -185,9 +185,12 @@ class EntregaCredito extends Component
 
             // 1. Actualizar estado del préstamo
             $this->prestamo->estado = 'entregado';
-            $this->prestamo->fecha_entrega = now(); // Asumiendo que tienes este campo, si no, usa fecha_inicio
-            // Si la fecha de inicio era tentativa, quizás quieras actualizarla a hoy:
-            // $this->prestamo->fecha_inicio = now(); 
+            $this->prestamo->fecha_entrega = now(); 
+            // Guardar desglose de salida para el arqueo
+            $this->prestamo->desglose_entrega = [
+                'billetes' => $this->desgloseBilletes,
+                'monedas' => $this->desgloseMonedas,
+            ];
             $this->prestamo->save();
 
             // 2. Registrar en Bitácora

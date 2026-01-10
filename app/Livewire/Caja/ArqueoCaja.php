@@ -10,12 +10,84 @@ use Livewire\Component;
 
 class ArqueoCaja extends Component
 {
+    // Propiedades para Capitalizar (Modal)
+    public $showCapitalizarModal = false;
+    public $showSuccessModal = false;
+    public $comentariosCapital = '';
+
+    public $billetesCapital = [
+        '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
+    ];
+
+    public $monedasCapital = [
+        '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0.5' => 0,
+    ];
+
     public function mount()
     {
         if (!auth()->user()->hasRole('Administrador')) {
             abort(403, 'No tiene permisos para ver esta sección.');
         }
     }
+
+    // Computed properties para el modal de Capitalizar
+    public function getTotalBilletesCapitalProperty()
+    {
+        $total = 0;
+        foreach ($this->billetesCapital as $denom => $qty) {
+            $total += (float)$denom * (int)$qty;
+        }
+        return $total;
+    }
+
+    public function getTotalMonedasCapitalProperty()
+    {
+        $total = 0;
+        foreach ($this->monedasCapital as $denom => $qty) {
+            $total += (float)$denom * (int)$qty;
+        }
+        return $total;
+    }
+
+    public function getTotalGeneralCapitalProperty()
+    {
+        return $this->totalBilletesCapital + $this->totalMonedasCapital;
+    }
+
+    public function abrirCapitalizar()
+    {
+        $this->reset(['billetesCapital', 'monedasCapital', 'comentariosCapital']);
+        $this->showCapitalizarModal = true;
+    }
+
+    public function guardarCapital()
+    {
+        $this->validate([
+            'comentariosCapital' => 'nullable|string|max:255',
+        ]);
+
+        if ($this->totalGeneralCapital <= 0) {
+            $this->dispatch('toast', message: 'El monto total debe ser mayor a 0.', type: 'error');
+            return;
+        }
+
+        Capitalizacion::create([
+            'monto' => $this->totalGeneralCapital,
+            'desglose_billetes' => [
+                'billetes' => $this->billetesCapital,
+                'monedas' => $this->monedasCapital,
+            ],
+            'user_id' => auth()->id(),
+            'comentarios' => $this->comentariosCapital,
+        ]);
+
+        $this->showCapitalizarModal = false;
+        $this->showSuccessModal = true;
+        
+        // No es necesario emitir evento para recargar, Livewire refrescará el componente automáticamente 
+        // y recalculará el Arqueo porque getDenominacionesProperty es una computed property que se evalúa al renderizar.
+    }
+
 
     public function getDenominacionesProperty()
     {
@@ -68,11 +140,15 @@ class ArqueoCaja extends Component
         }
 
         // 3. Restar Entregas de Crédito (Salidas)
-        // NOTA: Actualmente el desglose de entregas NO se guarda en la tabla prestamos.
-        // El componente EntregaCredito guarda los datos en la bitácora como comentario de texto,
-        // por lo que no es posible reconstruir el desglose de billetes para las salidas.
-        // TODO: Implementar guardado de desglose_entrega en tabla prestamos para cálculo preciso.
-        // Por ahora, el arqueo solo considera entradas (capitalizaciones y pagos).
+        // Ya contamos con la columna desglose_entrega en la tabla prestamos.
+        
+        $prestamosEntregados = Prestamo::where('estado', 'entregado')
+            ->whereNotNull('desglose_entrega') 
+            ->get();
+            
+        foreach ($prestamosEntregados as $p) {
+             $sumarAlArqueo($p->desglose_entrega, -1); // Restar salida
+        }
 
         return $caja;
     }
