@@ -60,6 +60,7 @@
                 
                 // Listen for generic alerts directly
                 window.Livewire.on('alert', toastHandler);
+                window.Livewire.on('toast', toastHandler);
             }
 
             // Fallback: native DOM CustomEvent dispatched on window
@@ -72,6 +73,13 @@
                 // also listen for miembroGuardado CustomEvent (fallback)
                 window.addEventListener('miembroGuardado', function (e) {
                     var data = (e && e.detail) ? e.detail : (e || {});
+                    toastHandler(data);
+                });
+
+                window.addEventListener('toast', function (e) {
+                    var data = (e && e.detail) ? e.detail : (e || {});
+                    // Sometimes Livewire wraps detail in an array if explicitly dispatched that way, but usually it's object
+                    if (Array.isArray(data) && data.length > 0) data = data[0];
                     toastHandler(data);
                 });
             }

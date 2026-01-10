@@ -27,7 +27,7 @@ class SumarCapital extends Component
     ];
 
     public $comentarios = '';
-    public $showModal = false;
+    public $showSuccessModal = false;
 
     public function getTotalBilletesProperty()
     {
@@ -75,9 +75,7 @@ class SumarCapital extends Component
 
         $this->reset(['billetes', 'monedas', 'comentarios']);
         
-        $this->dispatch('toast', message: 'Capital agregado correctamente.', type: 'success');
-        
-        // Redirigir o quedarse aquí? Por ahora resetear.
+        $this->showSuccessModal = true;
     }
 
     public function render()

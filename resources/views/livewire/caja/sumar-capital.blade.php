@@ -133,4 +133,23 @@
             </button>
         </div>
     </div>
+
+    <flux:modal name="success-modal" class="min-w-[22rem]" wire:model="showSuccessModal">
+        <div class="space-y-6">
+            <div>
+                <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mx-auto">
+                    <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <div class="text-center">
+                    <flux:heading size="lg">¡Capital Guardado!</flux:heading>
+                    <flux:subheading>El capital se ha registrado correctamente en el sistema.</flux:subheading>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <flux:button variant="primary" wire:click="$set('showSuccessModal', false)">Aceptar</flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>
