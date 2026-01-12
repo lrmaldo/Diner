@@ -115,9 +115,10 @@ class RoleAndPermissionSeeder extends Seeder
         $admin = User::where('email', 'admin@diner.com')->first();
 
         if (! $admin) {
-            $admin = User::factory()->create([
+            $admin = User::forceCreate([
                 'name' => 'Administrador',
                 'email' => 'admin@diner.com',
+                'email_verified_at' => now(),
                 'password' => bcrypt('password'),
             ]);
         }
@@ -128,21 +129,23 @@ class RoleAndPermissionSeeder extends Seeder
         $cashier = User::where('email', 'cajero@diner.com')->first();
 
         if (! $cashier) {
-            $cashier = User::factory()->create([
+            $cashier = User::forceCreate([
                 'name' => 'Cajero',
                 'email' => 'cajero@diner.com',
+                'email_verified_at' => now(),
                 'password' => bcrypt('password'),
             ]);
-        }
+        } 
 
         $cashier->assignRole('Cajero');
 
         // crear un usuario asesor por defecto
         $asesor = User::where('email', 'asesor@diner.com')->first();
         if (! $asesor) {
-            $asesor = User::factory()->create([
+            $asesor = User::forceCreate([
                 'name' => 'Asesor',
                 'email' => 'asesor@diner.com',
+                'email_verified_at' => now(),
                 'password' => bcrypt('password'),
             ]);
         }
