@@ -144,10 +144,10 @@ class ArqueoCaja extends Component
 
         // 3. Restar Entregas de Crédito (Salidas)
         // Ya contamos con la columna desglose_entrega en la tabla prestamos.
+        // Usamos whereNotNull('desglose_entrega') para incluir todos los préstamos que han salido,
+        // independientemente de si su estado actual ha cambiado a 'activo', 'vencido' o 'pagado'.
         
-        $prestamosEntregados = Prestamo::where('estado', 'entregado')
-            ->whereNotNull('desglose_entrega') 
-            ->get();
+        $prestamosEntregados = Prestamo::whereNotNull('desglose_entrega')->get();
             
         foreach ($prestamosEntregados as $p) {
              $sumarAlArqueo($p->desglose_entrega, -1); // Restar salida
