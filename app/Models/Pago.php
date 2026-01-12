@@ -13,6 +13,7 @@ class Pago extends Model
     protected $table = 'pagos';
 
     protected $fillable = [
+        'pago_uuid',
         'prestamo_id',
         'cliente_id',
         'registrado_por',
@@ -27,6 +28,7 @@ class Pago extends Model
         'moratorio_pagado',
         'notas',
         'desglose_efectivo',
+        'desglose_cambio',
     ];
 
     protected $casts = [
@@ -38,6 +40,7 @@ class Pago extends Model
         'capital_pagado' => 'decimal:2',
         'moratorio_pagado' => 'decimal:2',
         'desglose_efectivo' => 'array',
+        'desglose_cambio' => 'array',
     ];
 
     public function prestamo(): BelongsTo

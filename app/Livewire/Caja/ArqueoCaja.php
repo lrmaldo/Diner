@@ -138,8 +138,41 @@ class ArqueoCaja extends Component
         // 2. Sumar Pagos Recibidos (Entradas)
         // Solo pagos con desglose_efectivo guardado
         $pagos = Pago::whereNotNull('desglose_efectivo')->get();
+        
+        // Mantener registro de transacciones procesadas para evitar duplicados en pagos grupales
+        $processedUuids = [];
+        $processedLegacyHashes = [];
+
         foreach ($pagos as $pago) {
+            // Lógica para nuevas transacciones con UUID (Sistema robusto)
+            if (!empty($pago->pago_uuid)) {
+                if (in_array($pago->pago_uuid, $processedUuids)) {
+                    continue; // Ya procesamos esta transacción física
+                }
+                $processedUuids[] = $pago->pago_uuid;
+                
+                // Sumar lo recibido
+                $sumarAlArqueo($pago->desglose_efectivo, 1);
+                
+                // Restar el cambio entregado (si existe)
+                if (!empty($pago->desglose_cambio)) {
+                    $sumarAlArqueo($pago->desglose_cambio, -1);
+                }
+                
+                continue;
+            }
+
+            // Lógica para pagos antiguos (Heurística: agrupar por préstamo, fecha exacta y desglose idéntico)
+            // Esto corrige el problema de duplicidad en pagos grupales anteriores
+            $hash = $pago->prestamo_id . '_' . ($pago->created_at ? $pago->created_at->format('Y-m-d H:i:s') : '') . '_' . json_encode($pago->desglose_efectivo);
+            
+            if (in_array($hash, $processedLegacyHashes)) {
+                 continue; // Posible duplicado de registro por pago grupal
+            }
+            $processedLegacyHashes[] = $hash;
+            
             $sumarAlArqueo($pago->desglose_efectivo, 1);
+            // Pagos antiguos no guardaban desglose_cambio, así que no se resta nada
         }
 
         // 3. Restar Entregas de Crédito (Salidas)

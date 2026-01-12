@@ -5,6 +5,7 @@ namespace App\Livewire\Pagos;
 use App\Models\Pago;
 use App\Models\Prestamo;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -367,9 +368,17 @@ class DesgloseEfectivo extends Component
         try {
             DB::beginTransaction();
 
+            // Generar un UUID único para este lote de pagos (transacción física)
+            $pagoUuid = (string) Str::uuid();
+
             $desglose = [
                 'billetes' => array_filter($this->desgloseBilletes, fn ($cantidad) => $cantidad > 0),
                 'monedas' => array_filter($this->desgloseMonedas, fn ($cantidad) => $cantidad > 0),
+            ];
+
+            $desgloseCambio = [
+                'billetes' => array_filter($this->desgloseCambioBilletes, fn ($cantidad) => $cantidad > 0),
+                'monedas' => array_filter($this->desgloseCambioMonedas, fn ($cantidad) => $cantidad > 0),
             ];
 
             foreach ($this->clientesSeleccionados as $clienteId => $seleccionado) {
@@ -387,6 +396,7 @@ class DesgloseEfectivo extends Component
                         $numeroPago = $ultimoPago ? $ultimoPago + 1 : 1;
 
                         Pago::create([
+                            'pago_uuid' => $pagoUuid,
                             'prestamo_id' => $this->prestamo->id,
                             'cliente_id' => $clienteId,
                             'registrado_por' => auth()->id(),
@@ -399,6 +409,7 @@ class DesgloseEfectivo extends Component
                             'moratorio_pagado' => $moratorio,
                             'notas' => $this->notas,
                             'desglose_efectivo' => $desglose,
+                            'desglose_cambio' => $desgloseCambio,
                         ]);
                     }
                 }
