@@ -392,6 +392,10 @@
             '4meses_catorcenal' => ['meses_interes' => 4, 'total_pagos' => 8],
             '4 meses_quincenal' => ['meses_interes' => 4, 'total_pagos' => 8],
             '4meses_quincenal' => ['meses_interes' => 4, 'total_pagos' => 8],
+            '16 semanas_semanal' => ['meses_interes' => 4, 'total_pagos' => 16],
+            '16semanas_semanal' => ['meses_interes' => 4, 'total_pagos' => 16],
+            '24 semanas_semanal' => ['meses_interes' => 6, 'total_pagos' => 24],
+            '24semanas_semanal' => ['meses_interes' => 6, 'total_pagos' => 24],
 
             // Caso 2: 4 meses D
             '4 meses d_semanal' => ['meses_interes' => 4, 'total_pagos' => 14],
@@ -1269,15 +1273,9 @@
                             // $pagosFuturosCliente = count($clientSchedule) - $pagosTranscurridosCliente;
                             
                             // Capital vigente del cliente
-                            $capitalVigenteCliente = $montoCliente;
-                            if ($pagoPeriodicoCliente > 0) {
-                                $capitalVigenteCliente = $montoCliente - (($sumatoriaPagosCliente / $pagoPeriodicoCliente) * ($montoCliente / $numeroPagosSaldos));
-                            }
+                            // Se calcula usando las proporciones reales abajo, esta lógica anterior era incorrecta y causaba confusión
                             
                             // Interés e IVA base del cliente
-                            $interesBaseCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
-                            $ivaBaseCliente = ($interesBaseCliente / 100) * $ivaPorcentajeSaldos;
-                            
                             $interesBaseCliente = (($montoCliente / 100) * ($prestamo->tasa_interes ?? 0)) * $mesesInteresSaldos;
                             $ivaBaseCliente = ($interesBaseCliente / 100) * $ivaPorcentajeSaldos;
 
