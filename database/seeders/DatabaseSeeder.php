@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
             /*  ClientSeeder::class,
             LoanSeeder::class,
             PaymentSeeder::class, */
-            \Database\Seeders\ClienteSeeder::class,
+            //\Database\Seeders\ClienteSeeder::class,
         ]);
     }
 }
