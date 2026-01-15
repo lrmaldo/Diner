@@ -379,8 +379,8 @@ class CobroGrupal extends Component
                 'message' => 'Pagos registrados exitosamente.',
             ]);
 
-            // Redirigir al detalle del préstamo
-            return redirect()->route('prestamos.show', $this->prestamo->id);
+            // Redirigir a la lista de pagos/busqueda
+            return redirect()->route('pagos.index');
         } catch (\Exception $e) {
             DB::rollBack();
 

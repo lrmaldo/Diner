@@ -440,7 +440,7 @@ class DesgloseEfectivo extends Component
             DB::commit();
 
             $this->dispatch('alert', type: 'success', message: 'Pagos registrados exitosamente.');
-            return redirect()->route('prestamos.show', $this->prestamo->id);
+            return redirect()->route('pagos.index');
 
         } catch (\Exception $e) {
             DB::rollBack();
