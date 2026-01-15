@@ -29,7 +29,7 @@ class EntregaCredito extends Component
         '5' => 0,
         '2' => 0,
         '1' => 0,
-        '0.5' => 0,
+        '0_5' => 0,
     ];
 
     public $totalEntregar = 0;
@@ -136,17 +136,19 @@ class EntregaCredito extends Component
             if (round($resto, 2) >= $valor) {
                 $cantidad = floor(round($resto, 2) / $valor);
                 $strValor = (string)$valor;
+                // Fix for 0.5 key
+                $key = $strValor === '0.5' ? '0_5' : $strValor;
 
                 if ($valor >= 20) {
                     if (isset($this->desgloseBilletes[$strValor])) {
                         $this->desgloseBilletes[$strValor] = $cantidad;
-                    } elseif (isset($this->desgloseMonedas[$strValor])) {
+                    } elseif (isset($this->desgloseMonedas[$key])) {
                         // Caso especial moneda de 20
-                        $this->desgloseMonedas[$strValor] = $cantidad;
+                        $this->desgloseMonedas[$key] = $cantidad;
                     }
                 } else {
-                    if (isset($this->desgloseMonedas[$strValor])) {
-                        $this->desgloseMonedas[$strValor] = $cantidad;
+                    if (isset($this->desgloseMonedas[$key])) {
+                        $this->desgloseMonedas[$key] = $cantidad;
                     }
                 }
                 
@@ -172,7 +174,8 @@ class EntregaCredito extends Component
             $this->totalSeleccionado += (float) $denominacion * (int) $cantidad;
         }
         foreach ($this->desgloseMonedas as $denominacion => $cantidad) {
-            $this->totalSeleccionado += (float) $denominacion * (int) $cantidad;
+            $val = $denominacion === '0_5' ? 0.5 : (float) $denominacion;
+            $this->totalSeleccionado += $val * (int) $cantidad;
         }
         
         $this->diferencia = round($this->totalSeleccionado - $this->totalEntregar, 2);

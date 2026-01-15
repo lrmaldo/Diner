@@ -149,12 +149,13 @@
                             </span>
                         </div>
                         <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
-                            @foreach(['20', '10', '5', '2', '1', '0.5'] as $moneda)
+                            @foreach(['20', '10', '5', '2', '1', '0_5'] as $monedaKey)
                                 @php
-                                    $imagen = match($moneda) {
+                                    $valor = $monedaKey === '0_5' ? 0.5 : (float)$monedaKey;
+                                    $imagen = match($monedaKey) {
                                         '1' => '1peso.png',
-                                        '0.5' => '50centavos.png',
-                                        default => $moneda . 'pesos.png'
+                                        '0_5' => '50centavos.png',
+                                        default => $monedaKey . 'pesos.png'
                                     };
                                 @endphp
                                 <div class="relative group">
@@ -168,12 +169,12 @@
                                         </div>
                                         <input type="number" 
                                                min="0"
-                                               wire:model.live.debounce.500ms="desgloseMonedas.{{ $moneda }}"
+                                               wire:model.live.debounce.500ms="desgloseMonedas.{{ $monedaKey }}"
                                                class="block w-full pl-8 pr-3 py-3 border-gray-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 text-center text-lg font-semibold shadow-sm transition-colors"
                                                placeholder="0">
                                     </div>
                                     <div class="mt-1 text-center text-xs text-gray-400 font-medium">
-                                        = ${{ number_format($moneda * (float)($desgloseMonedas[$moneda] ?? 0), 2) }}
+                                        = ${{ number_format($valor * (float)($desgloseMonedas[$monedaKey] ?? 0), 2) }}
                                     </div>
                                 </div>
                             @endforeach
