@@ -75,7 +75,7 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Grupo</th>
-                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Fecha de solicitud</th>
+                            <th class="px-3 py-3 text-sm font-medium text-gray-700">Fecha de entrega</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Tipo de Producto</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Integrantes</th>
                             <th class="px-3 py-3 text-sm font-medium text-gray-700">Monto</th>
@@ -89,7 +89,7 @@
                         @foreach($prestamos as $p)
                             <tr class="border-t hover:bg-gray-50 transition-colors">
                                 <td class="px-3 py-3 font-medium text-sm">{{ $p->id }}</td>
-                                <td class="px-3 py-3 text-sm">{{ $p->created_at->format('d/m/Y H:i') }}</td>
+                                <td class="px-3 py-3 text-sm">{{ $p->fecha_entrega ? $p->fecha_entrega->format('d/m/Y') : 'N/A' }}</td>
                                 <td class="px-3 py-3 text-sm">
                                     <span class="capitalize">{{ $p->producto ?? 'N/A' }}</span>
                                 </td>
