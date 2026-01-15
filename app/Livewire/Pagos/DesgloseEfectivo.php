@@ -40,7 +40,7 @@ class DesgloseEfectivo extends Component
         '5' => 0,
         '2' => 0,
         '1' => 0,
-        '0.5' => 0,
+        '0_5' => 0,
     ];
 
     // Desglose de cambio (billetes y monedas)
@@ -59,7 +59,7 @@ class DesgloseEfectivo extends Component
         '5' => 0,
         '2' => 0,
         '1' => 0,
-        '0.5' => 0,
+        '0_5' => 0,
     ];
 
     public $totalEfectivo = 0;
@@ -268,7 +268,8 @@ class DesgloseEfectivo extends Component
             $this->totalCambioManual += (float) $denominacion * (int) $cantidad;
         }
         foreach ($this->desgloseCambioMonedas as $denominacion => $cantidad) {
-            $this->totalCambioManual += (float) $denominacion * (int) $cantidad;
+            $val = $denominacion === '0_5' ? 0.5 : (float) $denominacion;
+            $this->totalCambioManual += $val * (int) $cantidad;
         }
     }
 
@@ -292,7 +293,8 @@ class DesgloseEfectivo extends Component
             $this->totalEfectivo += (float) $denominacion * (int) $cantidad;
         }
         foreach ($this->desgloseMonedas as $denominacion => $cantidad) {
-            $this->totalEfectivo += (float) $denominacion * (int) $cantidad;
+            $val = $denominacion === '0_5' ? 0.5 : (float) $denominacion;
+            $this->totalEfectivo += $val * (int) $cantidad;
         }
         $this->calcularDiferencia();
     }

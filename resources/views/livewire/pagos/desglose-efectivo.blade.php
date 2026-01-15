@@ -74,30 +74,31 @@
                             </span>
                         </div>
                         <div class="p-2 space-y-1">
-                            @foreach(['20', '10', '5', '2', '1', '0.5'] as $moneda)
+                            @foreach(['20', '10', '5', '2', '1', '0_5'] as $monedaKey)
                                 @php
-                                    $imagen = match($moneda) {
+                                    $valor = $monedaKey === '0_5' ? 0.5 : (float)$monedaKey;
+                                    $imagen = match($monedaKey) {
                                         '1' => '1peso.png',
-                                        '0.5' => '50centavos.png',
-                                        default => $moneda . 'pesos.png'
+                                        '0_5' => '50centavos.png',
+                                        default => $monedaKey . 'pesos.png'
                                     };
                                 @endphp
                                 <div class="flex items-center justify-between p-1 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 transition-colors">
                                     <div class="flex items-center gap-2 w-1/3">
                                         <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" 
-                                             alt="${{ $moneda }}" 
+                                             alt="${{ $valor }}" 
                                              class="h-8 w-8 object-contain rounded-full">
-                                        <span class="text-xs font-bold text-gray-500 hidden sm:inline">${{ $moneda }}</span>
+                                        <span class="text-xs font-bold text-gray-500 hidden sm:inline">${{ $valor }}</span>
                                     </div>
                                     <div class="w-1/3 px-2">
                                         <input type="number" 
                                                min="0"
-                                               wire:model.live.debounce.500ms="desgloseMonedas.{{ $moneda }}"
+                                               wire:model.live.debounce.500ms="desgloseMonedas.{{ $monedaKey }}"
                                                class="block w-full text-center border-gray-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500 text-sm font-semibold py-1"
                                                placeholder="0">
                                     </div>
                                     <div class="w-1/3 text-right text-xs text-gray-600 font-medium">
-                                        ${{ number_format($moneda * (float)($desgloseMonedas[$moneda] ?? 0), 2) }}
+                                        ${{ number_format($valor * (float)($desgloseMonedas[$monedaKey] ?? 0), 2) }}
                                     </div>
                                 </div>
                             @endforeach
@@ -296,29 +297,30 @@
                                 <div>
                                     <h5 class="text-xs font-semibold text-gray-500 mb-2 border-b pb-1">Monedas</h5>
                                     <div class="space-y-1">
-                                        @foreach(['20', '10', '5', '2', '1', '0.5'] as $moneda)
+                                        @foreach(['20', '10', '5', '2', '1', '0_5'] as $monedaKey)
                                              @php
-                                                $imagen = match($moneda) {
+                                                $valor = $monedaKey === '0_5' ? 0.5 : (float)$monedaKey;
+                                                $imagen = match($monedaKey) {
                                                     '1' => '1peso.png',
-                                                    '0.5' => '50centavos.png',
-                                                    default => $moneda . 'pesos.png'
+                                                    '0_5' => '50centavos.png',
+                                                    default => $monedaKey . 'pesos.png'
                                                 };
                                             @endphp
                                             <div class="flex items-center justify-between p-1 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100">
                                                 <div class="flex items-center gap-2 w-1/3">
                                                     <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" 
                                                          class="h-6 w-6 object-contain rounded-full">
-                                                    <span class="text-xs font-bold text-gray-500">${{ $moneda }}</span>
+                                                    <span class="text-xs font-bold text-gray-500">${{ $valor }}</span>
                                                 </div>
                                                 <div class="w-1/3 px-2">
                                                     <input type="number" 
                                                            min="0" 
-                                                           wire:model.live.debounce.500ms="desgloseCambioMonedas.{{ $moneda }}" 
+                                                           wire:model.live.debounce.500ms="desgloseCambioMonedas.{{ $monedaKey }}" 
                                                            class="block w-full text-center border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold py-1 h-8"
                                                            placeholder="0">
                                                 </div>
                                                 <div class="w-1/3 text-right text-xs text-gray-400">
-                                                    ${{ number_format($moneda * (float)($desgloseCambioMonedas[$moneda] ?? 0), 2) }}
+                                                    ${{ number_format($valor * (float)($desgloseCambioMonedas[$monedaKey] ?? 0), 2) }}
                                                 </div>
                                             </div>
                                         @endforeach
