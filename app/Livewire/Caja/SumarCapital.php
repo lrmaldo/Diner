@@ -23,7 +23,7 @@ class SumarCapital extends Component
         '5' => 0,
         '2' => 0,
         '1' => 0,
-        '0.5' => 0,
+        '0_5' => 0,
     ];
 
     public $comentarios = '';
@@ -42,7 +42,8 @@ class SumarCapital extends Component
     {
         $total = 0;
         foreach ($this->monedas as $denom => $qty) {
-            $total += (float)$denom * (int)$qty;
+            $val = $denom === '0_5' ? 0.5 : (float)$denom;
+            $total += $val * (int)$qty;
         }
         return $total;
     }

@@ -1,12 +1,13 @@
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8" x-data="{
     fisico: {
         '1000': 0, '500': 0, '200': 0, '100': 0, '50': 0, '20': 0,
-        '10': 0, '5': 0, '2': 0, '1': 0, '0.5': 0
+        '10': 0, '5': 0, '2': 0, '1': 0, '0_5': 0
     },
     calcularTotalFisico() {
         let total = 0;
         for (const [denom, cant] of Object.entries(this.fisico)) {
-            total += parseFloat(denom) * (parseInt(cant) || 0);
+            let val = denom === '0_5' ? 0.5 : parseFloat(denom);
+            total += val * (parseInt(cant) || 0);
         }
         return total;
     },
@@ -92,18 +93,19 @@
                     </thead>
                     <tbody class="bg-white dark:bg-zinc-800 divide-y divide-gray-200 dark:divide-gray-700">
                         @php
-                            $denoms = ['1000', '500', '200', '100', '50', '20', '10', '5', '2', '1', '0.5'];
+                            $denoms = ['1000', '500', '200', '100', '50', '20', '10', '5', '2', '1', '0_5'];
                         @endphp
                         
-                        @foreach($denoms as $denom)
+                        @foreach($denoms as $denomKey)
                             @php
-                                $cantSistema = $denominaciones[$denom] ?? 0;
-                                $totalSistema = $cantSistema * (float)$denom;
+                                $cantSistema = $denominaciones[$denomKey] ?? 0;
+                                $valor = $denomKey === '0_5' ? 0.5 : (float)$denomKey;
+                                $totalSistema = $cantSistema * $valor;
                             @endphp
                             <tr class="hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors">
                                 <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                                    <div class="w-2 h-2 rounded-full {{ (float)$denom >= 20 ? 'bg-green-500' : 'bg-yellow-500' }}"></div>
-                                    ${{ number_format((float)$denom, 2) }}
+                                    <div class="w-2 h-2 rounded-full {{ $valor >= 20 ? 'bg-green-500' : 'bg-yellow-500' }}"></div>
+                                    ${{ number_format($valor, 2) }}
                                 </td>
                                 <td class="px-6 py-3 whitespace-nowrap text-center text-sm text-gray-600 dark:text-gray-300 font-mono">
                                     {{ number_format($cantSistema) }}
@@ -114,12 +116,12 @@
                                 <td class="px-6 py-2 whitespace-nowrap text-center bg-blue-50/30 dark:bg-blue-900/5">
                                     <input type="number" 
                                            min="0" 
-                                           x-model.number="fisico['{{ $denom }}']" 
+                                           x-model.number="fisico['{{ $denomKey }}']" 
                                            class="w-24 text-center text-sm border-gray-300 dark:border-gray-600 rounded-md py-1 focus:ring-blue-500 focus:border-blue-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100"
                                            placeholder="0">
                                 </td>
                                 <td class="px-6 py-3 whitespace-nowrap text-right text-sm font-bold text-blue-700 dark:text-blue-300 bg-blue-50/30 dark:bg-blue-900/5">
-                                    <span x-text="formatMoney(parseFloat('{{ $denom }}') * (parseInt(fisico['{{ $denom }}']) || 0))"></span>
+                                    <span x-text="formatMoney({{ $valor }} * (parseInt(fisico['{{ $denomKey }}']) || 0))"></span>
                                 </td>
                             </tr>
                         @endforeach
@@ -181,14 +183,17 @@
                         <span class="ml-auto text-sm font-bold text-yellow-600">${{ number_format($this->totalMonedasCapital, 2) }}</span>
                     </div>
 
-                    @foreach($monedasCapital as $denom => $val)
+                    @foreach($monedasCapital as $denomKey => $val)
+                        @php
+                            $valor = $denomKey === '0_5' ? 0.5 : (float)$denomKey;
+                        @endphp
                     <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-zinc-700/50 rounded-lg border border-gray-100 dark:border-gray-600">
-                        <div class="w-20 font-bold text-yellow-700 dark:text-yellow-400 text-sm">${{ $denom }}</div>
+                        <div class="w-20 font-bold text-yellow-700 dark:text-yellow-400 text-sm">${{ $valor }}</div>
                         <div class="flex-1 px-4">
-                            <input type="number" min="0" wire:model.live="monedasCapital.{{ $denom }}" class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-yellow-500 shadow-sm" placeholder="0">
+                            <input type="number" min="0" wire:model.live="monedasCapital.{{ $denomKey }}" class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-yellow-500 shadow-sm" placeholder="0">
                         </div>
                         <div class="w-20 text-right text-sm font-medium text-gray-600 dark:text-gray-400">
-                            ${{ number_format((float)$denom * (int)$val, 2) }}
+                            ${{ number_format($valor * (int)$val, 2) }}
                         </div>
                     </div>
                     @endforeach

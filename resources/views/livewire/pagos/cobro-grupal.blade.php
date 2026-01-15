@@ -229,18 +229,21 @@
             <div class="mb-6">
                 <h3 class="text-sm font-medium text-gray-700 mb-3">Monedas</h3>
                 <div class="space-y-2">
-                    @foreach(['20', '10', '5', '2', '1', '0.5'] as $moneda)
+                    @foreach(['20', '10', '5', '2', '1', '0_5'] as $monedaKey)
+                        @php
+                            $valor = $monedaKey === '0_5' ? 0.5 : (float)$monedaKey;
+                        @endphp
                         <div class="flex items-center gap-3">
                             <div class="w-16 h-10 bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-full flex items-center justify-center border border-yellow-300">
-                                <span class="text-xs font-bold text-yellow-800">${{ $moneda }}</span>
+                                <span class="text-xs font-bold text-yellow-800">${{ $valor }}</span>
                             </div>
                             <input type="number" 
                                    min="0"
-                                   wire:model.live="desgloseMonedas.{{ $moneda }}"
+                                   wire:model.live="desgloseMonedas.{{ $monedaKey }}"
                                    placeholder="0"
                                    class="w-20 text-center rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                             <span class="text-sm text-gray-600 ml-auto">
-                                ${{ number_format($moneda * ($desgloseMonedas[$moneda] ?? 0), 2) }}
+                                ${{ number_format($valor * ($desgloseMonedas[$monedaKey] ?? 0), 2) }}
                             </span>
                         </div>
                     @endforeach

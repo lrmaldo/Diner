@@ -21,7 +21,7 @@ class ArqueoCaja extends Component
     ];
 
     public $monedasCapital = [
-        '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0.5' => 0,
+        '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
     ];
 
     public function mount()
@@ -45,7 +45,8 @@ class ArqueoCaja extends Component
     {
         $total = 0;
         foreach ($this->monedasCapital as $denom => $qty) {
-            $total += (float)$denom * (int)$qty;
+            $val = $denom === '0_5' ? 0.5 : (float)$denom;
+            $total += $val * (int)$qty;
         }
         return $total;
     }
@@ -97,7 +98,7 @@ class ArqueoCaja extends Component
         // Inicializar contadores en 0
         $caja = [
             '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
-            '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0.5' => 0
+            '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0
         ];
 
         // Helper para sumar al arqueo
@@ -123,8 +124,14 @@ class ArqueoCaja extends Component
             
             // Sumar monedas
             foreach ($monedas as $denom => $cant) {
-                if (isset($caja[(string)$denom]) && is_numeric($cant)) {
-                    $caja[(string)$denom] += ((int)$cant * $factor);
+                $denomStr = (string)$denom;
+                // Normalizar clave antigua 0.5 a nueva 0_5
+                if ($denomStr === '0.5') {
+                    $denomStr = '0_5';
+                }
+
+                if (isset($caja[$denomStr]) && is_numeric($cant)) {
+                    $caja[$denomStr] += ((int)$cant * $factor);
                 }
             }
         };
@@ -195,7 +202,8 @@ class ArqueoCaja extends Component
         $denominaciones = $this->getDenominacionesProperty();
         
         foreach ($denominaciones as $denom => $cantidad) {
-            $total += (float)$denom * (int)$cantidad;
+            $val = $denom === '0_5' ? 0.5 : (float)$denom;
+            $total += $val * (int)$cantidad;
         }
         
         return $total;

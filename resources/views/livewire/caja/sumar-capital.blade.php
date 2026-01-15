@@ -81,8 +81,11 @@
                     ['denom' => '5', 'img' => null, 'label' => '$5'],
                     ['denom' => '2', 'img' => null, 'label' => '$2'],
                     ['denom' => '1', 'img' => null, 'label' => '$1'],
-                    ['denom' => '0.5', 'img' => null, 'label' => '$0.50'],
+                    ['denom' => '0_5', 'img' => null, 'label' => '$0.50'],
                 ] as $moneda)
+                @php
+                    $valor = $moneda['denom'] === '0_5' ? 0.5 : (float)$moneda['denom'];
+                @endphp
                 <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
                      <div class="flex items-center gap-4 w-1/3">
                         {{-- Placeholder para imagen de moneda --}}
@@ -100,7 +103,7 @@
                     </div>
 
                     <div class="w-1/3 text-right font-medium text-gray-700">
-                        ${{ number_format((float)$monedas[$moneda['denom']] * (float)$moneda['denom'], 2) }}
+                        ${{ number_format((float)($monedas[$moneda['denom']] ?? 0) * $valor, 2) }}
                     </div>
                 </div>
                 @endforeach
