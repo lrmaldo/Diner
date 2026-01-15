@@ -99,40 +99,11 @@ class Index extends Component
                 }
                 
                 $this->saldosRestantes[$cliente->id] = $saldoRestante;
-                
-                $pendiente = 0;
-                if ($saldoRestante <= 0.01) {
-                    $pendiente = 0;
-                } elseif ($pagoSugerido > 0) {
-                    $pagoSugeridoCentavos = (int) round($pagoSugerido * 100);
-                    $totalPagadoCentavos = (int) round($totalPagado * 100);
-                    
-                    $restoCentavos = $totalPagadoCentavos % $pagoSugeridoCentavos;
-                    
-                    if ($restoCentavos == 0) {
-                        $pendiente = $pagoSugerido;
-                    } else {
-                        $pendiente = ($pagoSugeridoCentavos - $restoCentavos) / 100;
-                    }
 
-                    // Cap pendiente at saldo restante
-                    if ($pendiente > $saldoRestante) {
-                        $pendiente = $saldoRestante;
-                    }
-                }
-
-                // Calcular Moratorio (Usando lógica robusta del modelo)
-                try {
-                    $moratorio = $this->prestamo->calcularMoratorioVigente($cliente->id, $montoAutorizado);
-                } catch (\Exception $e) {
-                    $moratorio = $this->calcularMoratorio($cliente->id, $montoAutorizado, $pagoSugerido); // Fallback old logic
-                }
-
-                $this->pendientes[$cliente->id] = $pendiente;
-                $this->moratorios[$cliente->id] = $moratorio;
-                
                 // Calcular siguiente número de pago basado en monto pagado acumulado (Bucket Logic)
                 $numPagoCalculado = 1;
+                $totalPagosEsperados = 1000; // Valor seguro por defecto
+
                 if ($pagoSugerido > 0) {
                     $pagosAcumulados = $totalPagado;
                     // Cuántos pagos enteros caben en lo pagado
@@ -154,6 +125,42 @@ class Index extends Component
                         }
                     }
                 }
+                
+                $pendiente = 0;
+                if ($saldoRestante <= 0.01) {
+                    $pendiente = 0;
+                } elseif ($pagoSugerido > 0) {
+                    // Si estamos en el último pago (o más allá), sugerir liquidar todo el saldo restante
+                    if ($numPagoCalculado >= $totalPagosEsperados && $totalPagosEsperados > 0) {
+                        $pendiente = $saldoRestante;
+                    } else {
+                        $pagoSugeridoCentavos = (int) round($pagoSugerido * 100);
+                        $totalPagadoCentavos = (int) round($totalPagado * 100);
+                        
+                        $restoCentavos = ($pagoSugeridoCentavos > 0) ? $totalPagadoCentavos % $pagoSugeridoCentavos : 0;
+                        
+                        if ($restoCentavos == 0) {
+                            $pendiente = $pagoSugerido;
+                        } else {
+                            $pendiente = ($pagoSugeridoCentavos - $restoCentavos) / 100;
+                        }
+
+                        // Cap pendiente at saldo restante
+                        if ($pendiente > $saldoRestante) {
+                            $pendiente = $saldoRestante;
+                        }
+                    }
+                }
+
+                // Calcular Moratorio (Usando lógica robusta del modelo)
+                try {
+                    $moratorio = $this->prestamo->calcularMoratorioVigente($cliente->id, $montoAutorizado);
+                } catch (\Exception $e) {
+                    $moratorio = $this->calcularMoratorio($cliente->id, $montoAutorizado, $pagoSugerido); // Fallback old logic
+                }
+
+                $this->pendientes[$cliente->id] = $pendiente;
+                $this->moratorios[$cliente->id] = $moratorio;
                 $this->siguientesPagos[$cliente->id] = $numPagoCalculado;
                 
                 $this->abonos[$cliente->id] = $pendiente; // Sugerir pagar el pendiente exacto
