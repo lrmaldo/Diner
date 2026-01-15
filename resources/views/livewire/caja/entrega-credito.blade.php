@@ -194,11 +194,34 @@
                         <div class="bg-indigo-900 px-6 py-4">
                             <h3 class="text-lg font-bold text-white">Resumen de Entrega</h3>
                         </div>
-                        <div class="p-6 space-y-4">
+                        <div class="p-6 space-y-2">
                             
-                            <div class="flex justify-between items-center pb-4 border-b border-gray-100">
-                                <span class="text-gray-600">Monto a Entregar</span>
-                                <span class="text-2xl font-bold text-gray-900">${{ number_format($totalEntregar, 2) }}</span>
+                            @if($prestamo)
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600 text-sm">Monto Autorizado</span>
+                                    <span class="text-base font-semibold text-gray-900">${{ number_format($prestamo->monto_total ?? 0, 2) }}</span>
+                                </div>
+
+                                @if(isset($montoGarantia) && $montoGarantia > 0)
+                                    <div class="flex justify-between items-center text-red-600">
+                                        <span class="text-sm">(-) Garantía</span>
+                                        <span class="text-sm font-medium">- ${{ number_format($montoGarantia, 2) }}</span>
+                                    </div>
+                                @endif
+
+                                @if(isset($montoSeguro) && $montoSeguro > 0)
+                                    <div class="flex justify-between items-center text-red-600 pb-2">
+                                        <span class="text-sm">(-) Seguro</span>
+                                        <span class="text-sm font-medium">- ${{ number_format($montoSeguro, 2) }}</span>
+                                    </div>
+                                @endif
+                                
+                                <div class="border-b border-gray-200 my-1"></div>
+                            @endif
+
+                            <div class="flex justify-between items-center pb-4 border-b border-gray-100 pt-1">
+                                <span class="text-gray-800 font-bold text-lg">Monto a Entregar</span>
+                                <span class="text-3xl font-bold text-indigo-900">${{ number_format($totalEntregar, 2) }}</span>
                             </div>
 
                             <div class="flex justify-between items-center pb-4 border-b border-gray-100">

@@ -33,6 +33,8 @@ class EntregaCredito extends Component
     ];
 
     public $totalEntregar = 0;
+    public $montoGarantia = 0;
+    public $montoSeguro = 0;
     public $totalSeleccionado = 0;
     public $diferencia = 0;
     public $notas = '';
@@ -42,7 +44,7 @@ class EntregaCredito extends Component
 
     public function updatedBusqueda()
     {
-        $this->reset(['prestamo', 'mostrarDesglose', 'totalEntregar', 'totalSeleccionado', 'diferencia', 'feedback']);
+        $this->reset(['prestamo', 'mostrarDesglose', 'totalEntregar', 'totalSeleccionado', 'diferencia', 'feedback', 'montoGarantia', 'montoSeguro']);
         
         // Búsqueda en tiempo real si hay input
         if (strlen($this->busqueda) > 0) {
@@ -103,7 +105,14 @@ class EntregaCredito extends Component
         }
 
         // Si pasa validaciones, mostrar desglose
-        $this->totalEntregar = (float) $prestamo->monto_total; 
+        $montoAutorizado = (float) $prestamo->monto_total;
+        $pctGarantia = (float) ($prestamo->garantia ?? 0);
+        $pctSeguro = 1.0; // 1% seguro
+
+        $this->montoGarantia = round($montoAutorizado * ($pctGarantia / 100), 2);
+        $this->montoSeguro = round($montoAutorizado * ($pctSeguro / 100), 2);
+        
+        $this->totalEntregar = $montoAutorizado - $this->montoGarantia - $this->montoSeguro;
         
         // Inicializar desglose en ceros
         foreach ($this->desgloseBilletes as $k => $v) $this->desgloseBilletes[$k] = 0;
