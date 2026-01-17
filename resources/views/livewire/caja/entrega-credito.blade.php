@@ -145,7 +145,7 @@
                                 Monedas a Entregar
                             </h2>
                             <span class="text-sm font-medium text-yellow-600 bg-yellow-100 px-3 py-1 rounded-full">
-                                Subtotal: ${{ number_format(collect($desgloseMonedas)->map(fn($cant, $val) => (float)$cant * $val)->sum(), 2) }}
+                                Subtotal: ${{ number_format(collect($desgloseMonedas)->map(fn($cant, $val) => (float)$cant * ($val === '0_5' ? 0.5 : $val))->sum(), 2) }}
                             </span>
                         </div>
                         <div class="p-6 grid grid-cols-2 sm:grid-cols-3 gap-6">

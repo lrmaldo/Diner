@@ -70,7 +70,7 @@
                                 Monedas
                             </h2>
                             <span class="text-xs font-medium text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-full">
-                                ${{ number_format(collect($desgloseMonedas)->map(fn($cant, $val) => (float)$cant * $val)->sum(), 2) }}
+                                ${{ number_format(collect($desgloseMonedas)->map(fn($cant, $val) => (float)$cant * ($val === '0_5' ? 0.5 : $val))->sum(), 2) }}
                             </span>
                         </div>
                         <div class="p-2 space-y-1">
