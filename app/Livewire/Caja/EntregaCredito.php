@@ -107,10 +107,9 @@ class EntregaCredito extends Component
         // Si pasa validaciones, mostrar desglose
         $montoAutorizado = (float) $prestamo->monto_total;
         $pctGarantia = (float) ($prestamo->garantia ?? 0);
-        $pctSeguro = 1.0; // 1% seguro
 
         $this->montoGarantia = round($montoAutorizado * ($pctGarantia / 100), 2);
-        $this->montoSeguro = round($montoAutorizado * ($pctSeguro / 100), 2);
+        $this->montoSeguro = $this->calcularSeguro($montoAutorizado);
         
         $this->totalEntregar = $montoAutorizado - $this->montoGarantia - $this->montoSeguro;
         
@@ -227,6 +226,35 @@ class EntregaCredito extends Component
         } catch (\Exception $e) {
             DB::rollBack();
             $this->dispatch('alert', type: 'error', message: 'Error al entregar crédito: ' . $e->getMessage());
+        }
+    }
+
+    protected function calcularSeguro($monto)
+    {
+        if ($monto < 3000) {
+            return 0;
+        } elseif ($monto >= 3000 && $monto <= 10000) {
+            return 50;
+        } elseif ($monto > 10000 && $monto <= 20000) {
+            return 100;
+        } elseif ($monto > 20000 && $monto <= 30000) {
+            return 150;
+        } elseif ($monto > 30000 && $monto <= 40000) {
+            return 200;
+        } elseif ($monto > 40000 && $monto <= 50000) {
+            return 250;
+        } elseif ($monto > 50000 && $monto <= 60000) {
+            return 300;
+        } elseif ($monto > 60000 && $monto <= 70000) {
+            return 350;
+        } elseif ($monto > 70000 && $monto <= 80000) {
+            return 400;
+        } elseif ($monto > 80000 && $monto <= 90000) {
+            return 450;
+        } elseif ($monto > 90000 && $monto <= 100000) {
+            return 500;
+        } else {
+            return 500;
         }
     }
 
