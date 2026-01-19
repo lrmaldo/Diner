@@ -213,13 +213,13 @@
                                             {{ $siguientePago }}
                                         </td>
                                         <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                                            ${{ number_format($pagoSugerido, 2) }}
+                                            ${{ number_format($pagoSugerido, 0) }}
                                         </td>
                                         <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                                            ${{ number_format($pendiente, 2) }}
+                                            ${{ number_format($pendiente, 0) }}
                                         </td>
                                         <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-red-600">
-                                            ${{ number_format($moratorio, 2) }}
+                                            ${{ number_format($moratorio, 0) }}
                                         </td>
                                         @if($prestamo->producto === 'grupal')
                                             <td class="px-3 py-4 whitespace-nowrap text-center">
@@ -234,8 +234,8 @@
                                                 <input type="number" wire:model.live.debounce.500ms="abonos.{{ $cliente->id }}" class="focus:ring-red-500 focus:border-red-500 block w-full pl-6 pr-2 sm:text-sm border-gray-300 rounded-md text-right" placeholder="0.00">
                                             </div>
                                         </td>
-                                        <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-500">
-                                            ${{ number_format($saldoRestante, 2) }}
+                                        <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                                            ${{ number_format($saldoRestante, 0) }}
                                         </td>
                                     </tr>
                                 @endforeach
@@ -244,14 +244,14 @@
                                 <tr>
                                     <td class="px-3 py-4 text-right text-gray-900">Total:</td>
                                     <td class="px-3 py-4"></td>
-                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalMonto, 2) }}</td>
-                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalPendiente, 2) }}</td>
+                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalMonto, 0) }}</td>
+                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalPendiente, 0) }}</td>
                                     <td class="px-3 py-4 text-right text-gray-900">$0.00</td>
                                     @if($prestamo->producto === 'grupal')
                                         <td class="px-3 py-4"></td>
                                     @endif
-                                    <td class="px-3 py-4 text-right text-red-600 text-lg">${{ number_format($totalAbono, 2) }}</td>
-                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalSaldoRestante, 2) }}</td>
+                                    <td class="px-3 py-4 text-right text-red-600 text-lg">${{ number_format($totalAbono, 0) }}</td>
+                                    <td class="px-3 py-4 text-right text-gray-900">${{ number_format($totalSaldoRestante, 0) }}</td>
                                 </tr>
                             </tfoot>
                         </table>
@@ -282,7 +282,7 @@
                                 </div>
                                 <div class="ml-3">
                                     <p class="text-sm text-yellow-700">
-                                        <strong>Atención:</strong> El préstamo aparece como liquidado, pero aún tiene un saldo restante de <strong>${{ number_format($totalSaldoRestante, 2) }}</strong>. Puede proceder con el cobro.
+                                        <strong>Atención:</strong> El préstamo aparece como liquidado, pero aún tiene un saldo restante de <strong>${{ number_format($totalSaldoRestante, 0) }}</strong>. Puede proceder con el cobro.
                                     </p>
                                 </div>
                             </div>

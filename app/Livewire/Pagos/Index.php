@@ -95,7 +95,7 @@ class Index extends Component
                 try {
                     $saldoRestante = $this->prestamo->calcularSaldoLiquidarParaCliente($cliente->id, $montoAutorizado);
                 } catch (\Exception $e) {
-                    $saldoRestante = max(0, $totalAdeudo - $totalPagado);
+                    $saldoRestante = floor(max(0, $totalAdeudo - $totalPagado));
                 }
                 
                 $this->saldosRestantes[$cliente->id] = $saldoRestante;

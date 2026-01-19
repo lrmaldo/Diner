@@ -566,6 +566,6 @@ class Prestamo extends Model
         
         $saldoLiquidar = $totalDeudaOriginal - ($totalPagadoReal - $moratoriosPagados) + $saldoMoratorio;
         
-        return max(0, $saldoLiquidar);
+        return floor(max(0, $saldoLiquidar));
     }
 }
