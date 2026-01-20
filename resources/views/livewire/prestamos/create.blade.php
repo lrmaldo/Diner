@@ -333,7 +333,7 @@
                                 {{-- Campo destacado: Crédito solicitado --}}
                                 <div class="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                                     <label class="block text-base font-semibold text-blue-900 mb-2">Crédito solicitado *</label>
-                                    <input wire:model.defer="new_credito_solicitado" type="number" step="1000" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
+                                    <input wire:model.blur="new_credito_solicitado" type="number" step="1000" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
                                     @error('new_credito_solicitado')
                                         <span class="text-red-500 text-sm font-bold mt-1 block">{{ $message }}</span>
                                     @enderror
@@ -852,7 +852,10 @@
                 {{-- Campo destacado: Crédito solicitado --}}
                 <div class="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                     <label class="block text-base font-semibold text-blue-900 mb-2">Crédito solicitado *</label>
-                    <input wire:model.defer="edit_credito_solicitado" type="number" step="1000" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
+                    <input wire:model.blur="edit_credito_solicitado" type="number" step="1000" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
+                    @error('edit_credito_solicitado')
+                        <span class="text-red-500 text-sm font-bold mt-1 block">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 {{-- Sección: Datos Personales --}}

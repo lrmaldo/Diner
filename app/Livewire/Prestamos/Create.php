@@ -1449,4 +1449,22 @@ class Create extends Component
             $this->asesorSelected = null;
         }
     }
+    
+    public function updatedNewCreditoSolicitado()
+    {
+        $this->validateOnly('new_credito_solicitado', [
+            'new_credito_solicitado' => ['required', 'integer', 'multiple_of:1000', 'min:1000'],
+        ], [
+            'new_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+        ]);
+    }
+
+    public function updatedEditCreditoSolicitado()
+    {
+        $this->validateOnly('edit_credito_solicitado', [
+            'edit_credito_solicitado' => ['nullable', 'integer', 'multiple_of:1000', 'min:1000'],
+        ], [
+            'edit_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+        ]);
+    }
 }
