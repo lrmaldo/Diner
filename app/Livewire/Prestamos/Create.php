@@ -911,6 +911,7 @@ class Create extends Component
             'new_curp.size' => 'La CURP debe tener exactamente 18 caracteres.',
             'new_calle_numero.required' => 'La calle y número son obligatorios.',
             'new_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
+            'new_credito_solicitado.integer' => 'El monto debe ser un número entero.',
             'new_telefono_celular.regex' => 'El formato del teléfono celular no es válido.',
             'new_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
             'new_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
@@ -1167,6 +1168,8 @@ class Create extends Component
             'edit_telefono_celular' => ['required', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
             'edit_telefono_casa' => ['nullable', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
         ], [
+            'edit_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
+            'edit_credito_solicitado.integer' => 'El monto debe ser un número entero.',
             'edit_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
             'edit_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
         ]);
@@ -1462,7 +1465,10 @@ class Create extends Component
         $this->validateOnly('new_credito_solicitado', [
             'new_credito_solicitado' => ['required', 'integer', 'multiple_of:1000', 'min:1000'],
         ], [
+            'new_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
+            'new_credito_solicitado.integer' => 'El monto debe ser un número entero.',
             'new_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+            'new_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
         ]);
     }
 
@@ -1471,7 +1477,10 @@ class Create extends Component
         $this->validateOnly('edit_credito_solicitado', [
             'edit_credito_solicitado' => ['required', 'integer', 'multiple_of:1000', 'min:1000'],
         ], [
+            'edit_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
+            'edit_credito_solicitado.integer' => 'El monto debe ser un número entero.',
             'edit_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+            'edit_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
         ]);
     }
 }

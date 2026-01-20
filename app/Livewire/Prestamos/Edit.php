@@ -517,8 +517,12 @@ class Edit extends Component
 
         // validation: monto must be numeric and greater than zero
         if (! is_numeric($monto) || (float) $monto <= 0) {
-            $this->addError('miembro', 'El monto solicitado debe ser un número mayor a 0.');
+            $this->addError("clientesAgregados.{$index}.monto_solicitado", 'El monto debe ser > 0.');
+            return;
+        }
 
+        if ((float) $monto % 1000 !== 0.0) {
+            $this->addError("clientesAgregados.{$index}.monto_solicitado", 'El monto debe ser en miles (ej. 1000, 2000).');
             return;
         }
 
@@ -745,11 +749,21 @@ class Edit extends Component
             'new_anios_experiencia' => ['nullable', 'integer', 'min:0'],
             'new_ingreso_mensual' => ['nullable', 'numeric'],
             'new_gasto_mensual_familiar' => ['nullable', 'numeric'],
-            'new_credito_solicitado' => ['nullable', 'numeric'],
+            'new_credito_solicitado' => ['required', 'integer', 'multiple_of:1000', 'min:1000'],
             'new_estado' => ['nullable', 'string', 'max:255'],
             'new_municipio' => ['nullable', 'string', 'max:255'],
             'new_colonia' => ['nullable', 'string', 'max:255'],
             'new_codigo_postal' => ['nullable', 'string', 'max:20'],
+        ], [
+            'new_apellido_paterno.required' => 'El apellido paterno es obligatorio.',
+            'new_nombres.required' => 'El nombre es obligatorio.',
+            'new_curp.required' => 'La CURP es obligatoria.',
+            'new_curp.size' => 'La CURP debe tener exactamente 18 caracteres.',
+            'new_calle_numero.required' => 'La calle y número son obligatorios.',
+            'new_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
+            'new_credito_solicitado.integer' => 'El monto debe ser un número entero.',
+            'new_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+            'new_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
         ]);
 
         $cliente = Cliente::create([
@@ -898,6 +912,10 @@ class Edit extends Component
 
     public $edit_codigo_postal;
 
+    public $edit_telefono_celular;
+
+    public $edit_telefono_casa;
+
     public function openEditCliente(int $id): void
     {
         $c = Cliente::findOrFail($id);
@@ -909,6 +927,11 @@ class Edit extends Component
         $this->edit_email = $c->email;
         $this->edit_pais_nacimiento = $c->pais_nacimiento;
         $this->edit_nombre_conyuge = $c->nombre_conyuge;
+        
+        // Cargar teléfonos
+        $this->edit_telefono_celular = $c->telefonos()->where('tipo', 'celular')->value('numero');
+        $this->edit_telefono_casa = $c->telefonos()->where('tipo', 'casa')->value('numero');
+
         $this->edit_calle_numero = $c->calle_numero;
         $this->edit_referencia_domiciliaria = $c->referencia_domiciliaria;
         $this->edit_estado_civil = $c->estado_civil;
@@ -949,11 +972,24 @@ class Edit extends Component
             'edit_anios_experiencia' => ['nullable', 'integer', 'min:0'],
             'edit_ingreso_mensual' => ['nullable', 'numeric'],
             'edit_gasto_mensual_familiar' => ['nullable', 'numeric'],
-            'edit_credito_solicitado' => ['nullable', 'numeric'],
+            'edit_credito_solicitado' => ['required', 'integer', 'multiple_of:1000', 'min:1000'],
             'edit_estado' => ['nullable', 'string', 'max:255'],
             'edit_municipio' => ['nullable', 'string', 'max:255'],
             'edit_colonia' => ['nullable', 'string', 'max:255'],
             'edit_codigo_postal' => ['nullable', 'string', 'max:20'],
+            'edit_telefono_celular' => ['required', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
+            'edit_telefono_casa' => ['nullable', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
+        ], [
+            'edit_apellido_paterno.required' => 'El apellido paterno es obligatorio.',
+            'edit_nombres.required' => 'El nombre es obligatorio.',
+            'edit_curp.required' => 'La CURP es obligatoria.',
+            'edit_curp.size' => 'La CURP debe tener exactamente 18 caracteres.',
+            'edit_calle_numero.required' => 'La calle y número son obligatorios.',
+            'edit_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
+            'edit_credito_solicitado.integer' => 'El monto debe ser un número entero.',
+            'edit_telefono_celular.regex' => 'El formato del teléfono celular no es válido.',
+            'edit_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+            'edit_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
         ]);
 
         $c = Cliente::findOrFail($this->edit_cliente_id);
@@ -980,6 +1016,17 @@ class Edit extends Component
             'colonia' => $this->edit_colonia,
             'codigo_postal' => $this->edit_codigo_postal,
         ]);
+
+        // Actualizar teléfonos
+        $c->telefonos()->where('tipo', 'celular')->delete();
+        if ($this->edit_telefono_celular) {
+            $c->telefonos()->create(['tipo' => 'celular', 'numero' => $this->edit_telefono_celular]);
+        }
+        
+        $c->telefonos()->where('tipo', 'casa')->delete();
+        if ($this->edit_telefono_casa) {
+            $c->telefonos()->create(['tipo' => 'casa', 'numero' => $this->edit_telefono_casa]);
+        }
 
         // Ajustar según producto
         if ($this->producto === 'individual') {
@@ -1135,5 +1182,45 @@ class Edit extends Component
         if (empty($this->asesorSearch) && ! $this->asesorSelected) {
             $this->asesores = [];
         }
+    }
+
+    public function updatedAsesorId(): void
+    {
+        if ($this->asesor_id) {
+            $asesor = $this->asesores->firstWhere('id', $this->asesor_id);
+            if ($asesor) {
+                $this->asesorSelected = [
+                    'id' => $asesor->id,
+                    'name' => $asesor->name,
+                    'email' => $asesor->email,
+                ];
+            }
+        } else {
+            $this->asesorSelected = null;
+        }
+    }
+    
+    public function updatedNewCreditoSolicitado()
+    {
+        $this->validateOnly('new_credito_solicitado', [
+            'new_credito_solicitado' => ['required', 'integer', 'multiple_of:1000', 'min:1000'],
+        ], [
+            'new_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
+            'new_credito_solicitado.integer' => 'El monto debe ser un número entero.',
+            'new_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+            'new_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
+        ]);
+    }
+
+    public function updatedEditCreditoSolicitado()
+    {
+        $this->validateOnly('edit_credito_solicitado', [
+            'edit_credito_solicitado' => ['required', 'integer', 'multiple_of:1000', 'min:1000'],
+        ], [
+            'edit_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
+            'edit_credito_solicitado.integer' => 'El monto debe ser un número entero.',
+            'edit_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+            'edit_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
+        ]);
     }
 }
