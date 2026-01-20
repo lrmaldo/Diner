@@ -647,10 +647,14 @@ class Create extends Component
         $clienteId = $row['cliente_id'] ?? null;
         $monto = $row['monto_solicitado'] ?? 0;
 
-        // validation: monto must be numeric and greater than zero
+        // validation: monto must be numeric and greater than zero, and multiple of 1000
         if (! is_numeric($monto) || (float) $monto <= 0) {
-            $this->addError('miembro', 'El monto solicitado debe ser un número mayor a 0.');
+            $this->addError("clientesAgregados.{$index}.monto_solicitado", 'El monto debe ser > 0.');
+            return;
+        }
 
+        if ((float) $monto % 1000 !== 0.0) {
+            $this->addError("clientesAgregados.{$index}.monto_solicitado", 'El monto debe ser en miles (ej. 1000, 2000).');
             return;
         }
 

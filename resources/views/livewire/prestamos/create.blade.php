@@ -546,9 +546,9 @@
                                     {{-- Crédito solicitado destacado --}}
                                     <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                         <label class="field-label text-blue-900">Crédito solicitado *</label>
-                                        <input wire:model.defer="new_credito_solicitado" type="number" step="0.01" class="input-project" />
+                                        <input wire:model.blur="new_credito_solicitado" type="number" step="1000" class="input-project" />
                                         @error('new_credito_solicitado')
-                                            <span class="text-red-500 text-sm font-bold mt-1 block">No se ha definido el monto a solicitar</span>
+                                            <span class="text-red-500 text-sm font-bold mt-1 block">{{ $message }}</span>
                                         @enderror
                                     </div>
 
@@ -736,7 +736,8 @@
                                             <tr class="border-t" wire:key="miembro-{{ $row['cliente_id'] ?? $index }}">
                                                 <td class="p-2">{{ $row['nombre'] ?? 'Cliente #' . $row['cliente_id'] }}</td>
                                                 <td class="p-2">
-                                                    <input type="number" step="0.01" wire:model.lazy="clientesAgregados.{{ $index }}.monto_solicitado" wire:change="guardarMiembro({{ $index }})" wire:blur="guardarMiembro({{ $index }})" class="input-project w-32" />
+                                                    <input type="number" step="1000" wire:model.lazy="clientesAgregados.{{ $index }}.monto_solicitado" wire:change="guardarMiembro({{ $index }})" wire:blur="guardarMiembro({{ $index }})" class="input-project w-32" />
+                                                    @error("clientesAgregados.{$index}.monto_solicitado") <span class="text-red-600 text-xs block">{{ $message }}</span> @enderror
                                                 </td>
                                                 <td class="p-2 text-center">
                                                     <input type="radio" name="representante" value="{{ $row['cliente_id'] }}" wire:click="selectRepresentante({{ $row['cliente_id'] }})" @checked((int)$representante_id === (int)($row['cliente_id'] ?? 0)) />
