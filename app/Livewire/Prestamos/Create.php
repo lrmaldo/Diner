@@ -911,9 +911,9 @@ class Create extends Component
             'new_curp.size' => 'La CURP debe tener exactamente 18 caracteres.',
             'new_calle_numero.required' => 'La calle y número son obligatorios.',
             'new_credito_solicitado.required' => 'El monto solicitado es obligatorio.',
-            'new_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
-            'new_telefono_celular.required' => 'El teléfono celular es obligatorio.',
             'new_telefono_celular.regex' => 'El formato del teléfono celular no es válido.',
+            'new_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+            'new_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
         ]);
 
         $cliente = Cliente::create([
@@ -1158,14 +1158,17 @@ class Create extends Component
             'edit_actividad_productiva' => ['nullable', 'string', 'max:255'],
             'edit_anios_experiencia' => ['nullable', 'integer', 'min:0'],
             'edit_ingreso_mensual' => ['nullable', 'numeric'],
-            'edit_gasto_mensual_familiar' => ['nullableinteger', 'multiple_of:1000eric'],
-            'edit_credito_solicitado' => ['nullable', 'numeric'],
+            'edit_gasto_mensual_familiar' => ['nullable', 'numeric'],
+            'edit_credito_solicitado' => ['nullable', 'integer', 'multiple_of:1000', 'min:1000'],
             'edit_estado' => ['nullable', 'string', 'max:255'],
             'edit_municipio' => ['nullable', 'string', 'max:255'],
             'edit_colonia' => ['nullable', 'string', 'max:255'],
             'edit_codigo_postal' => ['nullable', 'string', 'max:20'],
             'edit_telefono_celular' => ['required', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
             'edit_telefono_casa' => ['nullable', 'string', 'max:30', 'regex:/^[0-9\s()+-]{7,20}$/'],
+        ], [
+            'edit_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
+            'edit_credito_solicitado.min' => 'El crédito solicitado debe ser al menos 1000.',
         ]);
 
         $c = Cliente::findOrFail($this->edit_cliente_id);
