@@ -120,7 +120,7 @@
 
             <div>
                 <label class="field-label">Crédito solicitado</label>
-                <input wire:model.defer="credito_solicitado" type="number" step="0.01" class="input-project" />
+                <input wire:model.defer="credito_solicitado" type="number" step="1000" class="input-project" />
                 @error('credito_solicitado') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
             </div>
 
