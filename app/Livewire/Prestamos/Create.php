@@ -1159,7 +1159,7 @@ class Create extends Component
             'edit_anios_experiencia' => ['nullable', 'integer', 'min:0'],
             'edit_ingreso_mensual' => ['nullable', 'numeric'],
             'edit_gasto_mensual_familiar' => ['nullable', 'numeric'],
-            'edit_credito_solicitado' => ['nullable', 'integer', 'multiple_of:1000', 'min:1000'],
+            'edit_credito_solicitado' => ['required', 'integer', 'multiple_of:1000', 'min:1000'],
             'edit_estado' => ['nullable', 'string', 'max:255'],
             'edit_municipio' => ['nullable', 'string', 'max:255'],
             'edit_colonia' => ['nullable', 'string', 'max:255'],
@@ -1469,7 +1469,7 @@ class Create extends Component
     public function updatedEditCreditoSolicitado()
     {
         $this->validateOnly('edit_credito_solicitado', [
-            'edit_credito_solicitado' => ['nullable', 'integer', 'multiple_of:1000', 'min:1000'],
+            'edit_credito_solicitado' => ['required', 'integer', 'multiple_of:1000', 'min:1000'],
         ], [
             'edit_credito_solicitado.multiple_of' => 'El crédito solicitado debe ser en miles (ej. 1000, 2000, 3000).',
         ]);
