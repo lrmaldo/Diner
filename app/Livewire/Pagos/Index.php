@@ -321,8 +321,8 @@ class Index extends Component
             }
         }
 
-        // Cargo por atraso: $50 por pago vencido (Configurable)
-        $cargoPorAtraso = 50; 
+        // Cargo por atraso: 5% por pago vencido
+        $cargoPorAtraso = $cuota * 0.05;
         
         return $pagosVencidos * $cargoPorAtraso;
     }

@@ -512,20 +512,9 @@ class Prestamo extends Model
 
         if ($atrasos <= 0) return 0;
 
-        $tasaInteres = (float) $this->tasa_interes;
-        $config = $this->determinarConfiguracionPago(
-            strtolower(trim($this->plazo)), 
-            strtolower(trim($this->periodicidad))
-        );
-        
-        $mesesInteres = $config ? $config['meses_interes'] : 4;
-        
-        $interesTotalMulta = ($montoAutorizado / 100) * $tasaInteres * $mesesInteres;
-        $configPagos = $config ? $config['total_pagos'] : count($calendario);
-        
-        $capitalPorPagoMulta = $configPagos > 0 ? $montoAutorizado / $configPagos : 0;
-        $baseMulta = $interesTotalMulta + $capitalPorPagoMulta;
-        $multaUnitaria = $baseMulta * 0.05;
+        // Multa unitaria: 5% del valor del pago
+        $montoPago = !empty($calendario) ? $calendario[0]['monto'] : 0;
+        $multaUnitaria = $montoPago * 0.05;
         
         return $atrasos * $multaUnitaria;
     }

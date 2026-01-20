@@ -1316,13 +1316,10 @@
                                 1
                             );
                             
-                            // Calcular multa cliente
+                            // Calcular multa cliente (5% del pago periódico)
                             $multaUnitariaCliente = 0;
-                            if ($numeroPagosSaldos > 0) {
-                                $interesTotalMultaCliente = ($montoCliente / 100) * ($prestamo->tasa_interes ?? 0) * $mesesInteresSaldos;
-                                $capitalPorPagoMultaCliente = $montoCliente / $numeroPagosSaldos;
-                                $baseMultaCliente = $interesTotalMultaCliente + $capitalPorPagoMultaCliente;
-                                $multaUnitariaCliente = $baseMultaCliente * 0.05;
+                            if ($pagoPeriodicoCliente > 0) {
+                                $multaUnitariaCliente = $pagoPeriodicoCliente * 0.05;
                             }
 
                             $saldoMoratorioCliente = $atrasosCliente * $multaUnitariaCliente;
@@ -1378,13 +1375,10 @@
                             // Calcular atrasos del cliente (individual)
                             $atrasosCliente = $atrasos; // Usamos el cálculo global ya que es individual
                             
-                            // Calcular multa cliente (individual)
+                            // Calcular multa cliente (individual) (5% del pago periódico)
                             $multaUnitariaCliente = 0;
-                            if ($numeroPagosSaldos > 0) {
-                                $interesTotalMultaCliente = ($montoCliente / 100) * ($prestamo->tasa_interes ?? 0) * $mesesInteresSaldos;
-                                $capitalPorPagoMultaCliente = $montoCliente / $numeroPagosSaldos;
-                                $baseMultaCliente = $interesTotalMultaCliente + $capitalPorPagoMultaCliente;
-                                $multaUnitariaCliente = $baseMultaCliente * 0.05;
+                            if ($pagosPorMil > 0) {
+                                $multaUnitariaCliente = $pagosPorMil * 0.05;
                             }
 
                             $saldoMoratorioCliente = $atrasosCliente * $multaUnitariaCliente;
