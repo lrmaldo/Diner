@@ -129,6 +129,7 @@
                                 <td class="px-3 py-3 text-sm">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                         @if($p->estado === 'autorizado') bg-green-100 text-green-800
+                                        @elseif($p->estado === 'entregado') bg-indigo-100 text-indigo-800
                                         @elseif($p->estado === 'liquidado') bg-blue-100 text-blue-800
                                         @else bg-gray-100 text-gray-800 @endif">
                                         {{ ucfirst($p->estado) }}

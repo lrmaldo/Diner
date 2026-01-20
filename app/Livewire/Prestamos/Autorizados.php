@@ -103,7 +103,7 @@ class Autorizados extends Component
     {
         $query = Prestamo::query()
             ->with(['cliente', 'representante', 'autorizador'])
-            ->whereIn('estado', ['autorizado', 'liquidado']); // Préstamos autorizados y liquidados
+            ->whereIn('estado', ['autorizado', 'entregado', 'liquidado']); // Préstamos autorizados, entregados y liquidados
 
         // Búsqueda por folio o nombre del cliente
         if (! empty($this->search)) {
