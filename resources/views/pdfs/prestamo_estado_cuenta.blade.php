@@ -773,6 +773,15 @@
                             $interesCliente = (($montoCliente / 100) * $tasaCliente) * $mesesInteresCliente;
                             $ivaPorcentajeCliente = \App\Models\Configuration::get('iva_percentage', 16);
                             $ivaCliente = ($interesCliente / 100) * $ivaPorcentajeCliente;
+                            
+                            // Calcular monto exigible (Monto por pago) usando la misma lógica que detalles
+                            if ($configCliente) {
+                                $totalConInteresesCliente = $montoCliente + $interesCliente + $ivaCliente;
+                                $pagoConDecimalesCliente = $totalConInteresesCliente / $configCliente['total_pagos'];
+                                $montoExigibleCliente = floor($pagoConDecimalesCliente);
+                            } else {
+                                $montoExigibleCliente = 0; // Fallback
+                            }
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($cliente->nombres . ' ' . $cliente->apellido_paterno . ' ' . $cliente->apellido_materno)) }}</td>
@@ -780,7 +789,7 @@
                             <td>{{ number_format($garantiaCliente, 0) }}</td>
                             <td>{{ number_format($seguroCliente, 0) }}</td>
                             <td>{{ number_format($efectivoCliente, 0) }}</td>
-                            <td>{{ number_format((float)$tasaCliente, 1) }}%</td>
+                            <td>{{ number_format($tasaCliente, 0) }}%</td>
                             <td>{{ number_format($interesCliente, 0) }}</td>
                             <td>{{ number_format((float)$ivaPorcentajeCliente, 1) }}%</td>
                             <td>{{ number_format($ivaCliente, 0) }}</td>
@@ -809,6 +818,15 @@
                             $interesCliente = (($montoCliente / 100) * $tasaCliente) * $mesesInteresCliente;
                             $ivaPorcentajeCliente = \App\Models\Configuration::get('iva_percentage', 16);
                             $ivaCliente = ($interesCliente / 100) * $ivaPorcentajeCliente;
+
+                            // Calcular monto exigible
+                            if ($configCliente) {
+                                $totalConInteresesCliente = $montoCliente + $interesCliente + $ivaCliente;
+                                $pagoConDecimalesCliente = $totalConInteresesCliente / $configCliente['total_pagos'];
+                                $montoExigibleCliente = floor($pagoConDecimalesCliente);
+                            } else {
+                                $montoExigibleCliente = 0; 
+                            }
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($prestamo->cliente->nombres . ' ' . $prestamo->cliente->apellido_paterno . ' ' . $prestamo->cliente->apellido_materno)) }}</td>
@@ -816,7 +834,7 @@
                             <td>{{ number_format($garantiaCliente, 0) }}</td>
                             <td>{{ number_format($seguroCliente, 0) }}</td>
                             <td>{{ number_format($efectivoCliente, 0) }}</td>
-                            <td>{{ number_format((float)$tasaCliente, 1) }}%</td>
+                            <td>{{ number_format($tasaCliente, 0) }}%</td>
                             <td>{{ number_format($interesCliente, 0) }}</td>
                             <td>{{ number_format((float)$ivaPorcentajeCliente, 1) }}%</td>
                             <td>{{ number_format($ivaCliente, 0) }}</td>
@@ -999,6 +1017,25 @@
                                 $ultimoPago,
                                 'martes'
                             );
+                        }
+                    }
+
+                    // Recalcular montos de cuotas para grupos sumando los individuales
+                    // Esto asegura que la suma de exigibles coincida con la lógica de prestamo_detalle
+                    if ($prestamo->producto === 'grupal') {
+                        foreach ($calendarioPagos as $key => $pago) {
+                            $sumaExigibles = 0;
+                            foreach ($clientSchedules as $schedule) {
+                                foreach ($schedule as $item) {
+                                    if ($item['numero'] == $pago['numero']) {
+                                        $sumaExigibles += $item['monto'];
+                                        break;
+                                    }
+                                }
+                            }
+                            if ($sumaExigibles > 0) {
+                                $calendarioPagos[$key]['monto'] = $sumaExigibles;
+                            }
                         }
                     }
                 @endphp
