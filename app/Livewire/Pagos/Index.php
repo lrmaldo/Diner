@@ -59,8 +59,9 @@ class Index extends Component
         if (! $this->prestamo) {
             $this->notFound = true;
         } else {
-            // Validar estado del préstamo
-            if (!in_array($this->prestamo->estado, ['autorizado', 'entregado', 'liquidado'])) {
+            // Validar estado del préstamo (Solo se puede cobrar si está entregado)
+            if (!in_array($this->prestamo->estado, ['entregado'])) {
+                $this->notFound = true; // Tratamos como no encontrado o mostramos mensaje
                 return;
             }
 
