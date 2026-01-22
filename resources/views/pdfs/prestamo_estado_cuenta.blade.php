@@ -1219,7 +1219,12 @@
                     $totalMultasGeneradasMonto = 0;
                     $acumuladoCuotas = 0;
                     // Reutilizar $todosLosPagos definido anteriormente
-                    $pagosOrdenados = $todosLosPagos->sortBy('fecha_pago')->values();
+                    // FILTRAR para no contar pagos de garantía como abonos a cuotas
+                    $pagosOrdenados = $todosLosPagos->filter(function($p) {
+                         // Normalizar tipo de pago
+                         $tipo = strtolower($p->tipo_pago ?? '');
+                         return $tipo !== 'garantia' && $tipo !== 'garantía' && $tipo !== 'seguro';
+                    })->sortBy('fecha_pago')->values();
                     
                     // Crear línea de tiempo de saldo acumulado pagado
                     $timelinePagos = [];
@@ -1228,7 +1233,8 @@
                         $acumuladoPagosDinero += $p->monto;
                         $timelinePagos[] = [
                             'monto_acumulado' => $acumuladoPagosDinero,
-                            'fecha' => \Carbon\Carbon::parse($p->fecha_pago)
+                            'fecha' => \Carbon\Carbon::parse($p->fecha_pago),
+                            'tipo' => $p->tipo_pago // Para debug
                         ];
                     }
 
@@ -1299,9 +1305,21 @@
                              else echo "[OK]";
                              echo "<br>";
                          }
-                         echo "Timeline Pagos: <br>";
+                         echo "Timeline Pagos (Filtrado): <br>";
                          foreach($timelinePagos as $tp) {
-                             echo "  Fecha: " . $tp['fecha']->format('Y-m-d') . " Acum: " . $tp['monto_acumulado'] . "<br>";
+                             echo "  Fecha: " . $tp['fecha']->format('Y-m-d') . " Acum: " . $tp['monto_acumulado'] . " Tipo: " . ($tp['tipo'] ?? 'N/A') . "<br>";
+                         }
+                         
+                         // Mostrar pagos ignorados para verificación
+                         $ignorados = $todosLosPagos->filter(function($p) {
+                             $tipo = strtolower($p->tipo_pago ?? '');
+                             return $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+                         });
+                         if ($ignorados->isNotEmpty()) {
+                             echo "<br>Pagos Ignorados (Garantía/Seguro): <br>";
+                             foreach($ignorados as $pi) {
+                                 echo "  Fecha: " . $pi->fecha_pago->format('Y-m-d') . " Monto: " . $pi->monto . " Tipo: " . $pi->tipo_pago . "<br>";
+                             }
                          }
                          echo "</div>";
                     }
@@ -1439,8 +1457,15 @@
                             $totalMultasGeneradasMontoCliente = 0;
                             $acumuladoCuotasCliente = 0;
                             
-                            // Obtener pagos del cliente ordenados
-                            $pagosOrdenadosCliente = $todosLosPagos->where('cliente_id', $cliente->id)->sortBy('fecha_pago')->values();
+                            // Obtener pagos del cliente ordenados Y FILTRADOS
+                            $pagosOrdenadosCliente = $todosLosPagos
+                                ->where('cliente_id', $cliente->id)
+                                ->filter(function($p) {
+                                     $tipo = strtolower($p->tipo_pago ?? '');
+                                     return $tipo !== 'garantia' && $tipo !== 'garantía' && $tipo !== 'seguro';
+                                })
+                                ->sortBy('fecha_pago')
+                                ->values();
                             
                             // Timeline cliente
                             $timelinePagosCliente = [];
