@@ -1295,58 +1295,6 @@
                     // Sobrescribir atrasos con el conteo histórico
                     $atrasos = $multasGeneradasCount;
 
-                    // DEBUG VISIBLE
-                    if (!$forPdf) {
-                         echo "<div style='background:#ffa; padding:10px; border:1px solid #aaa; font-family:monospace; white-space:pre-wrap; font-size: 10px;'>";
-                         echo "<strong>DEBUG INFO:</strong><br>";
-                         echo "Total Multas Count: $multasGeneradasCount<br>";
-                         
-                         $acumDebug = 0;
-                         foreach ($calendarioPagos as $idx => $pProg) {
-                             if ($idx > 3) break; 
-                             $mDebug = $pProg['monto'];
-                             $targetDebug = $acumDebug + $mDebug;
-                             $acumDebug += $mDebug;
-                             $fvDebug = \Carbon\Carbon::createFromFormat('d-m-y', $pProg['fecha']);
-                             
-                             $fcDebug = 'NULL';
-                             foreach ($timelinePagos as $tp) {
-                                if ($tp['monto_acumulado'] >= $targetDebug - 0.1) {
-                                    $fcDebug = $tp['fecha']->format('Y-m-d');
-                                    break;
-                                }
-                             }
-                             
-                             echo "Pago #".($idx+1)." Vence: ".$fvDebug->format('Y-m-d')." AcumReq: $targetDebug. Cubierto: $fcDebug. ";
-                             if ($fcDebug == 'NULL') echo "[MULTA: No cubierto]";
-                             elseif ($fcDebug > $fvDebug->format('Y-m-d')) echo "[MULTA: Tardío]";
-                             else echo "[OK]";
-                             echo "<br>";
-                         }
-                         echo "Timeline Pagos (Filtrado por Tipo y Fecha Corte: ".($fechaCorte ? $fechaCorte->format('Y-m-d') : 'Ninguna')."): <br>";
-                         foreach($timelinePagos as $tp) {
-                             echo "  Fecha: " . $tp['fecha']->format('Y-m-d') . " Acum: " . $tp['monto_acumulado'] . " Tipo: " . ($tp['tipo'] ?? 'N/A') . "<br>";
-                         }
-                         
-                         // Mostrar pagos ignorados para verificación
-                         $ignorados = $todosLosPagos->filter(function($p) use ($fechaCorteStr) {
-                             $tipo = strtolower($p->tipo_pago ?? '');
-                             $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
-                             
-                             $pagoDateStr = $p->fecha_pago->format('Y-m-d');
-                             $esDiaCero = $fechaCorteStr && $pagoDateStr <= $fechaCorteStr;
-                             
-                             return $esGarantia || $esDiaCero;
-                         });
-                         if ($ignorados->isNotEmpty()) {
-                             echo "<br>Pagos Ignorados (Garantía/Seguro/Día Cero): <br>";
-                             foreach($ignorados as $pi) {
-                                 echo "  Fecha: " . $pi->fecha_pago->format('Y-m-d') . " Monto: " . $pi->monto . " Tipo: " . $pi->tipo_pago . "<br>";
-                             }
-                         }
-                         echo "</div>";
-                    }
-
                     $adeudoTotal = $capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido + $saldoTotal;
                     
                     $garantiaSaldos = $totalGarantia;
