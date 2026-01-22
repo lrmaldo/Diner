@@ -941,7 +941,7 @@ class Edit extends Component
         $this->edit_anios_experiencia = $c->anios_experiencia;
         $this->edit_ingreso_mensual = $c->ingreso_mensual;
         $this->edit_gasto_mensual_familiar = $c->gasto_mensual_familiar;
-        $this->edit_credito_solicitado = $c->credito_solicitado;
+        $this->edit_credito_solicitado = (int) $c->credito_solicitado;
         $this->edit_estado = $c->estado;
         $this->edit_municipio = $c->municipio;
         $this->edit_colonia = $c->colonia;
