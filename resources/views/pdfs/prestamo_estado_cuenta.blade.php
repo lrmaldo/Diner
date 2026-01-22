@@ -1229,15 +1229,17 @@
                     
                     $timestampCorte = !empty($fechasRef) ? min($fechasRef) : null;
                     $fechaCorte = $timestampCorte ? \Carbon\Carbon::createFromTimestamp($timestampCorte)->startOfDay() : null;
+                    $fechaCorteStr = $fechaCorte ? $fechaCorte->format('Y-m-d') : null;
 
-                    $pagosOrdenados = $todosLosPagos->filter(function($p) use ($fechaCorte) {
+                    $pagosOrdenados = $todosLosPagos->filter(function($p) use ($fechaCorteStr) {
                          // Normalizar tipo de pago
                          $tipo = strtolower($p->tipo_pago ?? '');
                          $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
                          
                          // Ignorar pagos realizados el mismo día (o antes) de la autorización/creación/entrega más antigua
-                         // Esto suele capturar los depósitos iniciales mal clasificados como abonos
-                         $esDiaCero = $fechaCorte && $p->fecha_pago->startOfDay()->lte($fechaCorte);
+                         // Comparación por string para evitar problemas de horas/timezones
+                         $pagoDateStr = $p->fecha_pago->format('Y-m-d');
+                         $esDiaCero = $fechaCorteStr && $pagoDateStr <= $fechaCorteStr;
                          
                          return !$esGarantia && !$esDiaCero;
                     })->sortBy('fecha_pago')->values();
@@ -1327,10 +1329,13 @@
                          }
                          
                          // Mostrar pagos ignorados para verificación
-                         $ignorados = $todosLosPagos->filter(function($p) use ($fechaCorte) {
+                         $ignorados = $todosLosPagos->filter(function($p) use ($fechaCorteStr) {
                              $tipo = strtolower($p->tipo_pago ?? '');
                              $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
-                             $esDiaCero = $fechaCorte && $p->fecha_pago->startOfDay()->lte($fechaCorte);
+                             
+                             $pagoDateStr = $p->fecha_pago->format('Y-m-d');
+                             $esDiaCero = $fechaCorteStr && $pagoDateStr <= $fechaCorteStr;
+                             
                              return $esGarantia || $esDiaCero;
                          });
                          if ($ignorados->isNotEmpty()) {
@@ -1477,10 +1482,13 @@
                             
                             $pagosOrdenadosCliente = $todosLosPagos
                                 ->where('cliente_id', $cliente->id)
-                                ->filter(function($p) use ($fechaCorte) {
+                                ->filter(function($p) use ($fechaCorteStr) {
                                      $tipo = strtolower($p->tipo_pago ?? '');
                                      $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
-                                     $esDiaCero = $fechaCorte && $p->fecha_pago->startOfDay()->lte($fechaCorte);
+                                     
+                                     $pagoDateStr = $p->fecha_pago->format('Y-m-d');
+                                     $esDiaCero = $fechaCorteStr && $pagoDateStr <= $fechaCorteStr;
+                                     
                                      return !$esGarantia && !$esDiaCero;
                                 })
                                 ->sortBy('fecha_pago')
