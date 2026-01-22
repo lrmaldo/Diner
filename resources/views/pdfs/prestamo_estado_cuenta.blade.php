@@ -1224,7 +1224,58 @@
                         $multaUnitaria = $baseMulta * 0.05;
                     }
 
-                    $saldoTotal = $atrasos * $multaUnitaria; // Saldo Moratorio (Multas)
+                    // Calcular saldo moratorio acumulativo (Histórico de multas - Pagos a moratorio)
+                    $multasGeneradasCount = 0;
+                    $acumuladoCuotas = 0;
+                    // Reutilizar $todosLosPagos definido anteriormente
+                    $pagosOrdenados = $todosLosPagos->sortBy('fecha_pago')->values();
+                    
+                    // Crear línea de tiempo de saldo acumulado pagado
+                    $timelinePagos = [];
+                    $acumuladoPagosDinero = 0;
+                    foreach($pagosOrdenados as $p) {
+                        $acumuladoPagosDinero += $p->monto;
+                        $timelinePagos[] = [
+                            'monto_acumulado' => $acumuladoPagosDinero,
+                            'fecha' => \Carbon\Carbon::parse($p->fecha_pago)
+                        ];
+                    }
+
+                    foreach ($calendarioPagos as $pagoProg) {
+                        $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->endOfDay();
+                        
+                        // Si la cuota vence en el futuro, no genera multa aún
+                        if ($fechaVenc->isFuture()) {
+                             continue;
+                        }
+
+                        $montoCuota = $pagoProg['monto'];
+                        $targetAcumulado = $acumuladoCuotas + $montoCuota; 
+                        $acumuladoCuotas += $montoCuota;
+                        
+                        // Buscar cuándo se cubrió este monto
+                        $fechaCobertura = null;
+                        foreach ($timelinePagos as $tp) {
+                            if ($tp['monto_acumulado'] >= $targetAcumulado - 0.1) { 
+                                $fechaCobertura = $tp['fecha'];
+                                break;
+                            }
+                        }
+                        
+                        // Multa si no se ha cubierto o se cubrió tarde
+                        // Comparamos startOfDay para ignorar horas
+                        if ($fechaCobertura === null) {
+                            $multasGeneradasCount++;
+                        } elseif ($fechaCobertura->startOfDay()->gt($fechaVenc->startOfDay())) {
+                             $multasGeneradasCount++;
+                        }
+                    }
+
+                    $totalMultasGeneradasMonto = $multasGeneradasCount * $multaUnitaria;
+                    $moratorioPagadoTotal = $prestamo->pagos()->sum('moratorio_pagado');
+
+                    $saldoTotal = max(0, $totalMultasGeneradasMonto - $moratorioPagadoTotal); // Saldo Moratorio Real
+
                     $adeudoTotal = $capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido + $saldoTotal;
                     
                     $garantiaSaldos = $totalGarantia;
@@ -1359,7 +1410,53 @@
                                 $multaUnitariaCliente = $pagoPeriodicoCliente * 0.05;
                             }
 
-                            $saldoMoratorioCliente = $atrasosCliente * $multaUnitariaCliente;
+                            // NUEVA LÓGICA ACUMULATIVA PARA CLIENTES GRUPALES
+                            $multasGeneradasCountCliente = 0;
+                            $acumuladoCuotasCliente = 0;
+                            
+                            // Obtener pagos del cliente ordenados
+                            $pagosOrdenadosCliente = $todosLosPagos->where('cliente_id', $cliente->id)->sortBy('fecha_pago')->values();
+                            
+                            // Timeline cliente
+                            $timelinePagosCliente = [];
+                            $acumuladoPagosDineroCliente = 0;
+                            foreach($pagosOrdenadosCliente as $p) {
+                                $acumuladoPagosDineroCliente += $p->monto;
+                                $timelinePagosCliente[] = [
+                                    'monto_acumulado' => $acumuladoPagosDineroCliente,
+                                    'fecha' => \Carbon\Carbon::parse($p->fecha_pago)
+                                ];
+                            }
+                            
+                            foreach ($clientSchedule as $pagoProgCliente) {
+                                $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProgCliente['fecha'])->endOfDay();
+                                
+                                if ($fechaVenc->isFuture()) continue;
+
+                                $montoCuota = $pagoProgCliente['monto'];
+                                $targetAcumulado = $acumuladoCuotasCliente + $montoCuota;
+                                $acumuladoCuotasCliente += $montoCuota;
+                                
+                                $fechaCobertura = null;
+                                foreach ($timelinePagosCliente as $tp) {
+                                    if ($tp['monto_acumulado'] >= $targetAcumulado - 0.1) {
+                                        $fechaCobertura = $tp['fecha'];
+                                        break;
+                                    }
+                                }
+                                
+                                if ($fechaCobertura === null) {
+                                    $multasGeneradasCountCliente++;
+                                } elseif ($fechaCobertura->startOfDay()->gt($fechaVenc->startOfDay())) {
+                                     $multasGeneradasCountCliente++;
+                                }
+                            }
+                            
+                            $totalMultasGeneradasMontoCliente = $multasGeneradasCountCliente * $multaUnitariaCliente;
+                            $moratorioPagadoTotalCliente = $prestamo->pagos()->where('cliente_id', $cliente->id)->sum('moratorio_pagado');
+
+                            $saldoMoratorioCliente = max(0, $totalMultasGeneradasMontoCliente - $moratorioPagadoTotalCliente);
+
                             $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente + $saldoMoratorioCliente;
                         @endphp
                         <tr>
@@ -1412,13 +1509,10 @@
                             // Calcular atrasos del cliente (individual)
                             $atrasosCliente = $atrasos; // Usamos el cálculo global ya que es individual
                             
-                            // Calcular multa cliente (individual) (5% del pago periódico)
-                            $multaUnitariaCliente = 0;
-                            if ($pagosPorMil > 0) {
-                                $multaUnitariaCliente = $pagosPorMil * 0.05;
-                            }
-
-                            $saldoMoratorioCliente = $atrasosCliente * $multaUnitariaCliente;
+                            // calcular multa cliente (individual)
+                            // Usamos el saldo moratorio acumulativo global calculado previamente
+                            $saldoMoratorioCliente = $saldoTotal;
+                            
                             $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente + $saldoMoratorioCliente;
                         @endphp
                         <tr>
