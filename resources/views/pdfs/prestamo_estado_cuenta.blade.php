@@ -1214,18 +1214,9 @@
                         1
                     );
 
-                    // Calcular totales
-                    // Fórmula de multa: (((((monto del credito)/100)* interes)plazo)+(monto del credito/numero de pagos)) 5%
-                    $multaUnitaria = 0;
-                    if ($numeroPagosSaldos > 0) {
-                        $interesTotalMulta = ($montoCredito / 100) * ($prestamo->tasa_interes ?? 0) * $mesesInteresSaldos;
-                        $capitalPorPagoMulta = $montoCredito / $numeroPagosSaldos;
-                        $baseMulta = $interesTotalMulta + $capitalPorPagoMulta;
-                        $multaUnitaria = $baseMulta * 0.05;
-                    }
-
                     // Calcular saldo moratorio acumulativo (Histórico de multas - Pagos a moratorio)
                     $multasGeneradasCount = 0;
+                    $totalMultasGeneradasMonto = 0;
                     $acumuladoCuotas = 0;
                     // Reutilizar $todosLosPagos definido anteriormente
                     $pagosOrdenados = $todosLosPagos->sortBy('fecha_pago')->values();
@@ -1266,15 +1257,19 @@
                         // Comparamos startOfDay para ignorar horas
                         if ($fechaCobertura === null) {
                             $multasGeneradasCount++;
+                            $totalMultasGeneradasMonto += ($montoCuota * 0.05);
                         } elseif ($fechaCobertura->startOfDay()->gt($fechaVenc->startOfDay())) {
                              $multasGeneradasCount++;
+                             $totalMultasGeneradasMonto += ($montoCuota * 0.05);
                         }
                     }
 
-                    $totalMultasGeneradasMonto = $multasGeneradasCount * $multaUnitaria;
                     $moratorioPagadoTotal = $prestamo->pagos()->sum('moratorio_pagado');
 
                     $saldoTotal = max(0, $totalMultasGeneradasMonto - $moratorioPagadoTotal); // Saldo Moratorio Real
+
+                    // Sobrescribir atrasos con el conteo histórico
+                    $atrasos = $multasGeneradasCount;
 
                     $adeudoTotal = $capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido + $saldoTotal;
                     
@@ -1404,14 +1399,9 @@
                                 1
                             );
                             
-                            // Calcular multa cliente (5% del pago periódico)
-                            $multaUnitariaCliente = 0;
-                            if ($pagoPeriodicoCliente > 0) {
-                                $multaUnitariaCliente = $pagoPeriodicoCliente * 0.05;
-                            }
-
                             // NUEVA LÓGICA ACUMULATIVA PARA CLIENTES GRUPALES
                             $multasGeneradasCountCliente = 0;
+                            $totalMultasGeneradasMontoCliente = 0;
                             $acumuladoCuotasCliente = 0;
                             
                             // Obtener pagos del cliente ordenados
@@ -1447,15 +1437,19 @@
                                 
                                 if ($fechaCobertura === null) {
                                     $multasGeneradasCountCliente++;
+                                    $totalMultasGeneradasMontoCliente += ($montoCuota * 0.05);
                                 } elseif ($fechaCobertura->startOfDay()->gt($fechaVenc->startOfDay())) {
                                      $multasGeneradasCountCliente++;
+                                     $totalMultasGeneradasMontoCliente += ($montoCuota * 0.05);
                                 }
                             }
                             
-                            $totalMultasGeneradasMontoCliente = $multasGeneradasCountCliente * $multaUnitariaCliente;
                             $moratorioPagadoTotalCliente = $prestamo->pagos()->where('cliente_id', $cliente->id)->sum('moratorio_pagado');
 
                             $saldoMoratorioCliente = max(0, $totalMultasGeneradasMontoCliente - $moratorioPagadoTotalCliente);
+                            
+                            // Sobrescribir atrasos con el conteo histórico
+                            $atrasosCliente = $multasGeneradasCountCliente;
 
                             $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente + $saldoMoratorioCliente;
                         @endphp
