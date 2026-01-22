@@ -1220,10 +1220,19 @@
                     $acumuladoCuotas = 0;
                     // Reutilizar $todosLosPagos definido anteriormente
                     // FILTRAR para no contar pagos de garantía como abonos a cuotas
-                    $pagosOrdenados = $todosLosPagos->filter(function($p) {
+                    $fechaEntrega = $prestamo->fecha_entrega ? $prestamo->fecha_entrega->startOfDay() : null;
+                    
+                    $pagosOrdenados = $todosLosPagos->filter(function($p) use ($fechaEntrega) {
                          // Normalizar tipo de pago
                          $tipo = strtolower($p->tipo_pago ?? '');
-                         return $tipo !== 'garantia' && $tipo !== 'garantía' && $tipo !== 'seguro';
+                         $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+                         
+                         // Ignorar pagos realizados el mismo día de la entrega (o antes), ya que suelen ser
+                         // retenciones de garantía/seguro y no abonos a capital futuro.
+                         // Solo si tenemos fecha de entrega definida.
+                         $esDiaCero = $fechaEntrega && $p->fecha_pago->startOfDay()->lte($fechaEntrega);
+                         
+                         return !$esGarantia && !$esDiaCero;
                     })->sortBy('fecha_pago')->values();
                     
                     // Crear línea de tiempo de saldo acumulado pagado
@@ -1305,18 +1314,20 @@
                              else echo "[OK]";
                              echo "<br>";
                          }
-                         echo "Timeline Pagos (Filtrado): <br>";
+                         echo "Timeline Pagos (Filtrado por Tipo y Fecha Entrega): <br>";
                          foreach($timelinePagos as $tp) {
                              echo "  Fecha: " . $tp['fecha']->format('Y-m-d') . " Acum: " . $tp['monto_acumulado'] . " Tipo: " . ($tp['tipo'] ?? 'N/A') . "<br>";
                          }
                          
                          // Mostrar pagos ignorados para verificación
-                         $ignorados = $todosLosPagos->filter(function($p) {
+                         $ignorados = $todosLosPagos->filter(function($p) use ($fechaEntrega) {
                              $tipo = strtolower($p->tipo_pago ?? '');
-                             return $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+                             $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+                             $esDiaCero = $fechaEntrega && $p->fecha_pago->startOfDay()->lte($fechaEntrega);
+                             return $esGarantia || $esDiaCero;
                          });
                          if ($ignorados->isNotEmpty()) {
-                             echo "<br>Pagos Ignorados (Garantía/Seguro): <br>";
+                             echo "<br>Pagos Ignorados (Garantía/Seguro/Día Cero): <br>";
                              foreach($ignorados as $pi) {
                                  echo "  Fecha: " . $pi->fecha_pago->format('Y-m-d') . " Monto: " . $pi->monto . " Tipo: " . $pi->tipo_pago . "<br>";
                              }
@@ -1457,12 +1468,13 @@
                             $totalMultasGeneradasMontoCliente = 0;
                             $acumuladoCuotasCliente = 0;
                             
-                            // Obtener pagos del cliente ordenados Y FILTRADOS
                             $pagosOrdenadosCliente = $todosLosPagos
                                 ->where('cliente_id', $cliente->id)
-                                ->filter(function($p) {
+                                ->filter(function($p) use ($fechaEntrega) {
                                      $tipo = strtolower($p->tipo_pago ?? '');
-                                     return $tipo !== 'garantia' && $tipo !== 'garantía' && $tipo !== 'seguro';
+                                     $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+                                     $esDiaCero = $fechaEntrega && $p->fecha_pago->startOfDay()->lte($fechaEntrega);
+                                     return !$esGarantia && !$esDiaCero;
                                 })
                                 ->sortBy('fecha_pago')
                                 ->values();
