@@ -1254,11 +1254,11 @@
                         }
                         
                         // Multa si no se ha cubierto o se cubrió tarde
-                        // Comparamos startOfDay para ignorar horas
+                        // Comparamos usando strings Y-m-d para evitar problemas de horas/timezones
                         if ($fechaCobertura === null) {
                             $multasGeneradasCount++;
                             $totalMultasGeneradasMonto += ($montoCuota * 0.05);
-                        } elseif ($fechaCobertura->startOfDay()->gt($fechaVenc->startOfDay())) {
+                        } elseif ($fechaCobertura->format('Y-m-d') > $fechaVenc->format('Y-m-d')) {
                              $multasGeneradasCount++;
                              $totalMultasGeneradasMonto += ($montoCuota * 0.05);
                         }
@@ -1435,10 +1435,11 @@
                                     }
                                 }
                                 
+                                // Comparamos usando strings Y-m-d para evitar problemas de horas/timezones
                                 if ($fechaCobertura === null) {
                                     $multasGeneradasCountCliente++;
                                     $totalMultasGeneradasMontoCliente += ($montoCuota * 0.05);
-                                } elseif ($fechaCobertura->startOfDay()->gt($fechaVenc->startOfDay())) {
+                                } elseif ($fechaCobertura->format('Y-m-d') > $fechaVenc->format('Y-m-d')) {
                                      $multasGeneradasCountCliente++;
                                      $totalMultasGeneradasMontoCliente += ($montoCuota * 0.05);
                                 }
