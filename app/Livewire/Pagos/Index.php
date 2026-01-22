@@ -59,9 +59,8 @@ class Index extends Component
         if (! $this->prestamo) {
             $this->notFound = true;
         } else {
-            // Validar estado del préstamo (Solo se puede cobrar si está entregado)
-            if (!in_array($this->prestamo->estado, ['entregado'])) {
-                $this->notFound = true; // Tratamos como no encontrado o mostramos mensaje
+            // Validar estado del préstamo (Solo se puede cobrar si está entregado o liquidado)
+            if (!in_array($this->prestamo->estado, ['entregado', 'liquidado'])) {
                 return;
             }
 
@@ -393,7 +392,7 @@ class Index extends Component
 
     public function irACobrar()
     {
-        if ($this->prestamo) {
+        if ($this->prestamo && in_array($this->prestamo->estado, ['entregado', 'liquidado'])) {
             // Guardar estado en caché por 5 minutos para recuperarlo en la siguiente vista
             $cacheKey = 'cobro_data_' . auth()->id() . '_' . $this->prestamo->id;
             \Illuminate\Support\Facades\Cache::put($cacheKey, [
