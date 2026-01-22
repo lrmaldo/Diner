@@ -132,14 +132,14 @@
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-100 dark:border-gray-700">
                         <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">Préstamos por mes</h3>
                         <div class="h-64" style="height:16rem; max-height:400px;">
-                            <canvas x-ref="loansChart" class="w-full h-full" style="width:100%; height:100% !important; display:block;"></canvas>
+                            <canvas id="loansChart" class="w-full h-full" style="width:100%; height:100% !important; display:block;"></canvas>
                         </div>
                     </div>
 
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-100 dark:border-gray-700">
                         <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">Capital - 12 meses</h3>
                         <div class="h-64" style="height:16rem; max-height:400px;">
-                            <canvas x-ref="capitalChart" class="w-full h-full" style="width:100%; height:100% !important; display:block;"></canvas>
+                            <canvas id="capitalChart" class="w-full h-full" style="width:100%; height:100% !important; display:block;"></canvas>
                         </div>
                     </div>
                 </div>
@@ -204,7 +204,7 @@
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border border-gray-100 dark:border-gray-700 mb-6">
                     <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">Mis Préstamos por mes</h3>
                     <div class="h-64" style="height:16rem; max-height:400px;">
-                        <canvas x-ref="loansChart" class="w-full h-full" style="width:100%; height:100% !important; display:block;"></canvas>
+                        <canvas id="loansChart" class="w-full h-full" style="width:100%; height:100% !important; display:block;"></canvas>
                     </div>
                 </div>
 
@@ -272,7 +272,7 @@
             let capitalChartInstance = null;
 
             function createLoansChart() {
-                const canvas = document.querySelector('[x-ref="loansChart"]');
+                const canvas = document.getElementById('loansChart');
                 if (!canvas) return;
 
                 // Asegurar que el canvas tenga un tamaño antes de crear el gráfico
@@ -320,7 +320,7 @@
             }
 
             function createCapitalChart() {
-                const canvas = document.querySelector('[x-ref="capitalChart"]');
+                const canvas = document.getElementById('capitalChart');
                 if (!canvas) return;
 
                 // Asegurar que el canvas tenga un tamaño antes de crear el gráfico
