@@ -4,6 +4,26 @@
         <p class="text-sm text-gray-600">Registre las denominaciones de dinero físico que se ingresan como nuevo capital.</p>
     </div>
 
+    <!-- Source Selection -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6 border border-gray-200">
+        <span class="block text-sm font-medium text-gray-700 mb-2">Origen de los fondos:</span>
+        <div class="flex space-x-6">
+            <label class="inline-flex items-center">
+                <input type="radio" wire:model.live="origenFondos" value="banco" class="form-radio text-blue-600 h-5 w-5">
+                <span class="ml-2 text-gray-700">Cuenta Diner (Banco)</span>
+            </label>
+            <label class="inline-flex items-center">
+                <input type="radio" wire:model.live="origenFondos" value="externo" class="form-radio text-blue-600 h-5 w-5">
+                <span class="ml-2 text-gray-700">Cuenta Externa / Aportación</span>
+            </label>
+        </div>
+        @if($origenFondos === 'banco')
+            <div class="mt-2 text-sm text-blue-600">
+                Se restará del saldo acumulado en Banco proveniente de aclaraciones/transferencias.
+            </div>
+        @endif
+    </div>
+
     <!-- Panel Total -->
     <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 sticky top-0 z-10 shadow-md">
         <div class="flex justify-between items-center">
@@ -17,8 +37,19 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Billetes -->
-        <div class="bg-white shadow rounded-lg p-6 border-t-4 border-green-400">
+        @if($origenFondos === 'banco')
+            <div class="lg:col-span-2 bg-white shadow rounded-lg p-6 border-t-4 border-blue-400">
+                <label class="block text-lg font-medium text-gray-700 mb-2">Monto a retirar del Banco</label>
+                <div class="relative rounded-md shadow-sm max-w-xs">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">$</span>
+                    </div>
+                    <input type="number" wire:model.live="montoDirecto" step="0.01" class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-7 text-xl border-gray-300 rounded-md" placeholder="0.00">
+                </div>
+            </div>
+        @else
+            <!-- Billetes -->
+            <div class="bg-white shadow rounded-lg p-6 border-t-4 border-green-400">
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,6 +93,7 @@
             </div>
         </div>
 
+        @if($origenFondos === 'externo')
         <!-- Monedas -->
         <div class="bg-white shadow rounded-lg p-6 border-t-4 border-yellow-400">
             <div class="flex justify-between items-center mb-4">
@@ -109,6 +141,7 @@
                 @endforeach
             </div>
         </div>
+        @endif
     </div>
 
     <!-- Comentarios y Botón -->

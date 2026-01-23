@@ -22,6 +22,9 @@
             <p class="text-sm text-gray-600 dark:text-gray-400">Control y cuadre de efectivo físico vs sistema</p>
         </div>
         <div class="flex items-center gap-4">
+            <div class="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-100 px-4 py-1 rounded-lg font-bold border border-indigo-200 dark:border-indigo-700 shadow-sm text-sm">
+                BANCO: ${{ number_format($saldoBanco ?? 0, 2) }}
+            </div>
             <span class="text-sm text-gray-500 dark:text-gray-400 font-medium bg-gray-100 dark:bg-zinc-700 px-3 py-1 rounded-full">
                 {{ now()->format('d/m/Y H:i') }}
             </span>

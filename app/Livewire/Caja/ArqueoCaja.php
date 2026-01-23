@@ -209,10 +209,20 @@ class ArqueoCaja extends Component
         return $total;
     }
 
+    public function getSaldoBancoProperty()
+    {
+        $ingresosBanco = Pago::where('metodo_pago', 'banco')->sum('monto');
+        $ingresosBancoMoratorio = Pago::where('metodo_pago', 'banco')->sum('moratorio_pagado');
+        $egresosBanco = Capitalizacion::where('origen_fondos', 'banco')->sum('monto');
+        
+        return ($ingresosBanco + $ingresosBancoMoratorio) - $egresosBanco;
+    }
+
     public function render()
     {
         return view('livewire.caja.arqueo-caja', [
-            'denominaciones' => $this->getDenominacionesProperty()
+            'denominaciones' => $this->getDenominacionesProperty(),
+            'saldoBanco' => $this->getSaldoBancoProperty()
         ]);
     }
 }
