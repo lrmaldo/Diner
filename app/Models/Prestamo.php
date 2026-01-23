@@ -303,7 +303,7 @@ class Prestamo extends Model
                 $fechaVenc = Carbon::parse($fecha)->startOfDay();
             }
 
-            if ($fechaVenc->lte($fechaHoy)) {
+            if ($fechaVenc->lt($fechaHoy)) {
                 $pagadoCuota = (float) ($pagado[$numero] ?? 0);
                 if ($pagadoCuota < $monto) {
                     $montoVencido += ($monto - $pagadoCuota);
