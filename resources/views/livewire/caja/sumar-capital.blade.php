@@ -142,6 +142,7 @@
             </div>
         </div>
         @endif
+    @endif
     </div>
 
     <!-- Comentarios y Botón -->
