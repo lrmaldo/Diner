@@ -55,7 +55,7 @@
                     <tr>
                         <th scope="col" class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider border-r border-red-500">Nombre</th>
                         <th scope="col" class="px-3 py-2 text-center text-xs font-medium uppercase tracking-wider border-r border-red-500">N. Pago</th>
-                        <th scope="col" class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider border-r border-red-500">Importa</th>
+                        <th scope="col" class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider border-r border-red-500">Importe</th>
                         <th scope="col" class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider border-r border-red-500">Pendiente</th>
                         <th scope="col" class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider border-r border-red-500">Saldo</th>
                         <th scope="col" class="px-3 py-2 text-right text-xs font-medium uppercase tracking-wider border-r border-red-500">Moratorio</th> <!-- Accrued fine? -->
