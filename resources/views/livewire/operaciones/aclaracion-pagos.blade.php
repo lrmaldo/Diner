@@ -22,9 +22,9 @@
             </button>
         </form>
 
-        @if($notFound)
-            <div class="mt-4 text-red-600 font-semibold">
-                No se encontró un grupo o préstamo activo con ese criterio.
+        @if($errorMessage)
+            <div class="mt-4 p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 font-semibold" role="alert">
+                <span class="font-medium">Error:</span> {{ $errorMessage }}
             </div>
         @endif
         

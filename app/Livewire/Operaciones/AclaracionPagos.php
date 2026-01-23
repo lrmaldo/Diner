@@ -22,7 +22,7 @@ class AclaracionPagos extends Component
     public $clientData = []; // Array to store calculated data per client
     public $inputs = []; // Array to store user inputs [client_id => ['efectivo' => 0, 'moratorio' => 0]]
 
-    public $notFound = false;
+    public $errorMessage = '';
 
     public function updatedFullPayment($value)
     {
@@ -44,7 +44,7 @@ class AclaracionPagos extends Component
 
     public function search()
     {
-        $this->reset(['prestamo', 'groupName', 'clientData', 'inputs', 'notFound', 'fullPayment']);
+        $this->reset(['prestamo', 'groupName', 'clientData', 'inputs', 'errorMessage', 'fullPayment']);
 
         if (empty($this->grupoSearch)) {
             return;
@@ -56,23 +56,30 @@ class AclaracionPagos extends Component
             ->first();
 
         if (!$grupo) {
-            $this->notFound = true;
+            $this->errorMessage = "No se encontró un grupo con ese criterio.";
             return;
         }
 
         $this->groupName = $grupo->nombre . ' (' . $grupo->id . ')';
 
-        // Find active loan for this group
-        // Prioritize 'entregado'
-        $this->prestamo = Prestamo::where('grupo_id', $grupo->id)
-            ->whereIn('estado', ['entregado', 'Entregado']) 
+        // Find query for latest loan
+        $possiblePrestamo = Prestamo::where('grupo_id', $grupo->id)
             ->orderBy('id', 'desc')
             ->first();
 
-        if (!$this->prestamo) {
-            $this->notFound = true;
+        if (!$possiblePrestamo) {
+            $this->errorMessage = "El grupo '{$this->groupName}' no tiene préstamos registrados.";
             return;
         }
+
+        // Validate Status
+        $estadoReal = trim($possiblePrestamo->estado);
+        if (strtolower($estadoReal) !== 'entregado') {
+            $this->errorMessage = "El préstamo actual del grupo está en estado '{$estadoReal}'. Solo se pueden aclarar pagos de préstamos en estado 'Entregado'.";
+            return;
+        }
+
+        $this->prestamo = $possiblePrestamo;
 
         $this->prepareClientData();
     }
@@ -387,7 +394,7 @@ class AclaracionPagos extends Component
 
     public function cancel()
     {
-        $this->reset(['prestamo', 'groupName', 'clientData', 'inputs', 'notFound', 'fullPayment', 'grupoSearch']);
+        $this->reset(['prestamo', 'groupName', 'clientData', 'inputs', 'errorMessage', 'fullPayment', 'grupoSearch']);
     }
 
     public function render()
