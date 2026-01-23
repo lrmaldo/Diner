@@ -65,7 +65,7 @@ class AclaracionPagos extends Component
         // Find active loan for this group
         // Prioritize 'entregado'
         $this->prestamo = Prestamo::where('grupo_id', $grupo->id)
-            ->whereIn('estado', ['entregado', 'Entregado', 'vencido', 'Vencido', 'en_curso', 'En_curso', 'activo', 'Activo']) 
+            ->whereIn('estado', ['entregado', 'Entregado']) 
             ->orderBy('id', 'desc')
             ->first();
 
