@@ -948,10 +948,31 @@
                     );
 
                     // Obtener todos los pagos registrados del préstamo ordenados por fecha
-                    $todosLosPagos = $prestamo->pagos()
+                    $todosLosPagosRaw = $prestamo->pagos()
                         ->orderBy('fecha_pago')
                         ->orderBy('id')
                         ->get();
+
+                    // Logic to define cut-off date (Day Zero for guarantees)
+                    $fechasRef = array_filter([
+                        $prestamo->fecha_autorizacion ? $prestamo->fecha_autorizacion->startOfDay()->timestamp : null,
+                        $prestamo->fecha_entrega ? $prestamo->fecha_entrega->startOfDay()->timestamp : null,
+                        $prestamo->created_at ? $prestamo->created_at->startOfDay()->timestamp : null
+                    ]);
+                    $timestampCorte = !empty($fechasRef) ? min($fechasRef) : null;
+                    $fechaCorteDate = $timestampCorte ? \Carbon\Carbon::createFromTimestamp($timestampCorte)->startOfDay() : null;
+                    $fechaCorteStr = $fechaCorteDate ? $fechaCorteDate->format('Y-m-d') : null;
+
+                    // Filter payments efficiently
+                    $todosLosPagos = $todosLosPagosRaw->filter(function($p) use ($fechaCorteStr) {
+                         $tipo = strtolower($p->tipo_pago ?? '');
+                         $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+                         
+                         $pagoDateStr = $p->fecha_pago->format('Y-m-d');
+                         $esDiaCero = $fechaCorteStr && $pagoDateStr <= $fechaCorteStr;
+                         
+                         return !$esGarantia && !$esDiaCero;
+                    });
 
                     // Función para simular desglose de pagos (Bucket Logic)
                     $distribuirPagos = function($calendario, $pagosDisponibles) {
@@ -1080,7 +1101,7 @@
                                 $clientPago = collect($clientSchedule)->firstWhere('numero', $pago['numero']);
                                 $montoClientePago = $clientPago['monto'] ?? 0;
 
-                                $pagoCliente = $pagoRealizado ? $pagoRealizado->where('cliente_id', $cliente->id)->first() : null;
+                                $pagoCliente = $pagoRealizado ? $pagoRealizado->where('cliente_id', $cliente->id)->sortByDesc('fecha_pago')->first() : null;
                                 $fechaPagoCliente = $pagoCliente ? $pagoCliente->fecha_pago->format('d-m-y') : '';
                             @endphp
                             <tr class="accordion-row-{{ $pago['numero'] }} group-detail-row" style="display: none; background-color: #fff;">
@@ -1218,31 +1239,7 @@
                     $multasGeneradasCount = 0;
                     $totalMultasGeneradasMonto = 0;
                     $acumuladoCuotas = 0;
-                    // Reutilizar $todosLosPagos definido anteriormente
-                    // FILTRAR para no contar pagos de garantía como abonos a cuotas
-                    // Usamos la fecha más antigua registrada como referencia del "Día Cero"
-                    $fechasRef = array_filter([
-                        $prestamo->fecha_autorizacion ? $prestamo->fecha_autorizacion->startOfDay()->timestamp : null,
-                        $prestamo->fecha_entrega ? $prestamo->fecha_entrega->startOfDay()->timestamp : null,
-                        $prestamo->created_at ? $prestamo->created_at->startOfDay()->timestamp : null
-                    ]);
-                    
-                    $timestampCorte = !empty($fechasRef) ? min($fechasRef) : null;
-                    $fechaCorte = $timestampCorte ? \Carbon\Carbon::createFromTimestamp($timestampCorte)->startOfDay() : null;
-                    $fechaCorteStr = $fechaCorte ? $fechaCorte->format('Y-m-d') : null;
-
-                    $pagosOrdenados = $todosLosPagos->filter(function($p) use ($fechaCorteStr) {
-                         // Normalizar tipo de pago
-                         $tipo = strtolower($p->tipo_pago ?? '');
-                         $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
-                         
-                         // Ignorar pagos realizados el mismo día (o antes) de la autorización/creación/entrega más antigua
-                         // Comparación por string para evitar problemas de horas/timezones
-                         $pagoDateStr = $p->fecha_pago->format('Y-m-d');
-                         $esDiaCero = $fechaCorteStr && $pagoDateStr <= $fechaCorteStr;
-                         
-                         return !$esGarantia && !$esDiaCero;
-                    })->sortBy('fecha_pago')->values();
+                    $pagosOrdenados = $todosLosPagos->sortBy('fecha_pago')->values();
                     
                     // Crear línea de tiempo de saldo acumulado pagado
                     $timelinePagos = [];
