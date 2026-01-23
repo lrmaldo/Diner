@@ -969,7 +969,9 @@
                          $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
                          
                          $pagoDateStr = $p->fecha_pago->format('Y-m-d');
-                         $esDiaCero = $fechaCorteStr && $pagoDateStr <= $fechaCorteStr;
+                         // Solo considerarlo día cero si es estrictamente menor a la fecha de corte
+                         // Permitiendo pagos el mismo día de la entrega
+                         $esDiaCero = $fechaCorteStr && $pagoDateStr < $fechaCorteStr;
                          
                          return !$esGarantia && !$esDiaCero;
                     });
