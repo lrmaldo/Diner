@@ -47,6 +47,9 @@ Route::middleware(['auth'])->group(function () {
     // Rutas para consultas
     Route::get('/consultas/estados-cuenta', \App\Livewire\Consultas\EstadosCuenta::class)->name('consultas.estados-cuenta');
 
+    // Rutas para operaciones
+    Route::get('/operaciones/aclaracion-pagos', \App\Livewire\Operaciones\AclaracionPagos::class)->name('operaciones.aclaracion-pagos');
+
     // Rutas para préstamos
     Route::middleware(['permission:ver prestamos'])->group(function () {
         Route::get('/prestamos/nuevo', \App\Livewire\Prestamos\Create::class)->name('prestamos.create');

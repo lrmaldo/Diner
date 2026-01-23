@@ -47,6 +47,29 @@
                     </div>
                 </div>
 
+                <!-- Operaciones -->
+                <div x-data="{ open: {{ request()->routeIs('operaciones.*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open" class="w-full group flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                        <div class="flex items-center">
+                            <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                            </svg>
+                            Operaciones
+                        </div>
+                        <svg :class="{'rotate-90': open}" class="h-4 w-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                    
+                    <div x-show="open" class="space-y-1 pl-10" x-cloak>
+                        <a href="{{ route('operaciones.aclaracion-pagos') }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('operaciones.aclaracion-pagos') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           wire:navigate>
+                            Aclaración de pagos
+                        </a>
+                    </div>
+                </div>
+
                 @can('ver prestamos')
                 <!-- Préstamos -->
                 <div class="space-y-1">
