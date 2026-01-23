@@ -50,36 +50,38 @@ class AclaracionPagos extends Component
             return;
         }
 
-        // Search by Group ID or Name
-        $grupo = Grupo::where('id', $this->grupoSearch)
-            ->orWhere('nombre', 'like', '%' . $this->grupoSearch . '%')
-            ->first();
-
-        if (!$grupo) {
-            $this->errorMessage = "No se encontró un grupo con ese criterio.";
-            return;
-        }
-
-        $this->groupName = $grupo->nombre . ' (' . $grupo->id . ')';
-
-        // Find query for latest loan
-        $possiblePrestamo = Prestamo::where('grupo_id', $grupo->id)
-            ->orderBy('id', 'desc')
-            ->first();
+        // Buscar directamente por ID de Préstamo (como en Pagos\Index)
+        $possiblePrestamo = Prestamo::with(['grupo', 'clientes', 'pagos'])->find($this->grupoSearch);
 
         if (!$possiblePrestamo) {
-            $this->errorMessage = "El grupo '{$this->groupName}' no tiene préstamos registrados.";
+            // Intento secundario: Si no es un número o no existe el préstamo, buscar por Nombre de Grupo (legacy support)
+            $grupo = Grupo::where('nombre', 'like', '%' . $this->grupoSearch . '%')->first();
+            
+            if ($grupo) {
+                $possiblePrestamo = Prestamo::where('grupo_id', $grupo->id)
+                    ->orderBy('id', 'desc')
+                    ->first();
+            }
+        }
+
+        if (!$possiblePrestamo) {
+            $this->errorMessage = "No se encontró un préstamo con el ID o criterio '{$this->grupoSearch}'.";
             return;
         }
 
-        // Validate Status
+        // Validar Estado
         $estadoReal = trim($possiblePrestamo->estado);
+        // Permitimos 'entregado' pero también 'liquidado' si quisieras ver historial, aunque para "Aclarar Pagos" suele ser activo.
+        // Pagos\Index permite 'entregado' y 'liquidado'. Aquí mantendré 'entregado' como principal requisito para pagar.
         if (strtolower($estadoReal) !== 'entregado') {
-            $this->errorMessage = "El préstamo actual del grupo está en estado '{$estadoReal}'. Solo se pueden aclarar pagos de préstamos en estado 'Entregado'.";
+            $this->errorMessage = "El préstamo #{$possiblePrestamo->id} está en estado '{$estadoReal}'. Solo se pueden aclarar pagos de préstamos en estado 'Entregado'.";
             return;
         }
 
         $this->prestamo = $possiblePrestamo;
+        $this->groupName = $this->prestamo->grupo 
+            ? ($this->prestamo->grupo->nombre . ' (G:' . $this->prestamo->grupo->id . ' - P:' . $this->prestamo->id . ')') 
+            : ('Préstamo Individual (P:' . $this->prestamo->id . ')');
 
         $this->prepareClientData();
     }
