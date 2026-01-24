@@ -53,7 +53,7 @@ class Pago extends Model
         return $this->belongsTo(Cliente::class, 'cliente_id');
     }
 
-    public function registrador(): BelongsTo
+    public function registradoPor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'registrado_por');
     }
