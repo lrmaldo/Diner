@@ -1,4 +1,8 @@
 @import 'tailwindcss';
+/* forms tailwindcss */
+@import 'tailwindcss/forms';
+/* typography tailwindcss */
+@import 'tailwindcss/typography';
 @import '../../vendor/livewire/flux/dist/flux.css';
 
 @source '../views';
