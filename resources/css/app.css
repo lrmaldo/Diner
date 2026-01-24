@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 /* forms tailwindcss */
-@import 'tailwindcss/forms';
+@plugin "@tailwindcss/forms";
 
 @import '../../vendor/livewire/flux/dist/flux.css';
 
