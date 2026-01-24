@@ -949,6 +949,7 @@
 
                     // Obtener todos los pagos registrados del préstamo ordenados por fecha
                     $todosLosPagosRaw = $prestamo->pagos()
+                        ->with('registradoPor')
                         ->orderBy('fecha_pago')
                         ->orderBy('id')
                         ->get();
@@ -1082,10 +1083,10 @@
                         }
                     @endphp
                     <tr @if($pago['numero'] % 2 == 0) style="background-color: #f3f4f6;" @endif
-                        @if($prestamo->producto === 'grupal' && !$forPdf) 
+                        @if(!$forPdf) 
                             onclick="toggleAccordion({{ $pago['numero'] }})" 
                             style="cursor: pointer;" 
-                            title="Click para ver detalles del grupo"
+                            title="Click para ver historial de pagos"
                         @endif>
                         <td>{{ $pago['numero'] }}</td>
                         <td>{{ $pago['fecha'] }}</td>
@@ -1095,6 +1096,37 @@
                         <td></td>
                         <td colspan="4"></td>
                     </tr>
+
+                    {{-- Historial de Pagos para esta cuota (Accordion) --}}
+                    @if(isset($pagoRealizado) && $pagoRealizado->isNotEmpty() && !$forPdf)
+                    <tr class="accordion-row-{{ $pago['numero'] }}" style="display: none;">
+                        <td colspan="10" style="padding: 0; border: none;">
+                            <div style="background-color: #f8f9fa; padding: 5px 10px; border-bottom: 1px solid #ddd; margin-left: 20px;">
+                                <div style="font-weight: bold; font-size: 9px; margin-bottom: 3px; color: #4b5563;">Historial de Pagos Aplicados:</div>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 9px; background: white;">
+                                    <thead>
+                                        <tr style="background-color: #e5e7eb; color: #374151;">
+                                            <th style="padding: 2px 4px; border: 1px solid #d1d5db; text-align: left;">Fecha</th>
+                                            <th style="padding: 2px 4px; border: 1px solid #d1d5db; text-align: right;">Monto</th>
+                                            <th style="padding: 2px 4px; border: 1px solid #d1d5db; text-align: center;">Método</th>
+                                            <th style="padding: 2px 4px; border: 1px solid #d1d5db; text-align: left;">Registrado por</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($pagoRealizado as $pagoDetalle)
+                                        <tr>
+                                            <td style="padding: 2px 4px; border: 1px solid #e5e7eb;">{{ $pagoDetalle->fecha_pago->format('d/m/Y H:i') }}</td>
+                                            <td style="padding: 2px 4px; border: 1px solid #e5e7eb; text-align: right;">${{ number_format($pagoDetalle->monto, 2) }}</td>
+                                            <td style="padding: 2px 4px; border: 1px solid #e5e7eb; text-align: center;">{{ ucfirst($pagoDetalle->metodo_pago ?? 'caja') }}</td>
+                                            <td style="padding: 2px 4px; border: 1px solid #e5e7eb;">{{ $pagoDetalle->registradoPor->name ?? 'Sistema' }}</td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    @endif
 
                     @if($prestamo->producto === 'grupal')
                         @foreach($prestamo->clientes as $cliente)
@@ -1302,9 +1334,9 @@
                     <td class="label">{{ number_format($capitalVigente, 0) }}</td>
                     <td>{{ number_format($interesVigente, 0) }}</td>
                     <td>{{ number_format($ivaVigente, 0) }}</td>
-                    <td>{{ number_format($capitalVencido, 0) }}</td>
-                    <td>{{ number_format($interesVencido, 0) }}</td>
-                    <td>{{ number_format($ivaVencido, 0) }}</td>
+                    <td>{{ $capitalVencido > 0.5 ? number_format($capitalVencido, 0) : '' }}</td>
+                    <td>{{ $interesVencido > 0.5 ? number_format($interesVencido, 0) : '' }}</td>
+                    <td>{{ $ivaVencido > 0.5 ? number_format($ivaVencido, 0) : '' }}</td>
                     <td>{{ $atrasos }}</td>
                     <td>{{ number_format($saldoTotal, 0) }}</td>
                     <td>{{ number_format($adeudoTotal, 0) }}</td>
@@ -1493,9 +1525,9 @@
                             <td>{{ number_format($capitalVigenteCliente, 0) }}</td>
                             <td>{{ number_format($interesVigenteCliente, 0) }}</td>
                             <td>{{ number_format($ivaVigenteCliente, 0) }}</td>
-                            <td>{{ number_format($capitalVencidoCliente, 0) }}</td>
-                            <td>{{ number_format($interesVencidoCliente, 0) }}</td>
-                            <td>{{ number_format($ivaVencidoCliente, 0) }}</td>
+                            <td>{{ $capitalVencidoCliente > 0.5 ? number_format($capitalVencidoCliente, 0) : '' }}</td>
+                            <td>{{ $interesVencidoCliente > 0.5 ? number_format($interesVencidoCliente, 0) : '' }}</td>
+                            <td>{{ $ivaVencidoCliente > 0.5 ? number_format($ivaVencidoCliente, 0) : '' }}</td>
                             <td>{{ $atrasosCliente }}</td>
                             <td>{{ number_format($saldoMoratorioCliente, 0) }}</td>
                             <td>{{ number_format($deudaTotalCliente, 0) }}</td>
@@ -1549,9 +1581,9 @@
                             <td>{{ number_format($capitalVigenteCliente, 0) }}</td>
                             <td>{{ number_format($interesVigenteCliente, 0) }}</td>
                             <td>{{ number_format($ivaVigenteCliente, 0) }}</td>
-                            <td>{{ number_format($capitalVencidoCliente, 0) }}</td>
-                            <td>{{ number_format($interesVencidoCliente, 0) }}</td>
-                            <td>{{ number_format($ivaVencidoCliente, 0) }}</td>
+                            <td>{{ $capitalVencidoCliente > 0.5 ? number_format($capitalVencidoCliente, 0) : '' }}</td>
+                            <td>{{ $interesVencidoCliente > 0.5 ? number_format($interesVencidoCliente, 0) : '' }}</td>
+                            <td>{{ $ivaVencidoCliente > 0.5 ? number_format($ivaVencidoCliente, 0) : '' }}</td>
                             <td>{{ $atrasosCliente }}</td>
                             <td>{{ number_format($saldoMoratorioCliente, 0) }}</td>
                             <td>{{ number_format($deudaTotalCliente, 0) }}</td>
