@@ -14,6 +14,7 @@ class ArqueoCaja extends Component
     public $showCapitalizarModal = false;
     public $showSuccessModal = false;
     public $comentariosCapital = '';
+    public $origenFondos = 'externo'; // externo, banco
     public $montoGuardado = 0;
 
     public $billetesCapital = [
@@ -58,14 +59,15 @@ class ArqueoCaja extends Component
 
     public function abrirCapitalizar()
     {
-        $this->reset(['billetesCapital', 'monedasCapital', 'comentariosCapital']);
+        $this->reset(['billetesCapital', 'monedasCapital', 'comentariosCapital', 'origenFondos']);
+        $this->origenFondos = 'externo';
         $this->showCapitalizarModal = true;
     }
 
     public function guardarCapital()
     {
         $this->validate([
-            'comentariosCapital' => 'nullable|string|max:255',
+            'origenFondos' => 'required|in:externo,banco',
         ]);
 
         if ($this->totalGeneralCapital <= 0) {
@@ -76,6 +78,8 @@ class ArqueoCaja extends Component
         $this->montoGuardado = $this->totalGeneralCapital;
 
         Capitalizacion::create([
+            'monto' => $this->totalGeneralCapital,
+            'origen_fondos' => $this->origenFondos
             'monto' => $this->totalGeneralCapital,
             'desglose_billetes' => [
                 'billetes' => $this->billetesCapital,

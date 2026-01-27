@@ -13,6 +13,7 @@ class Capitalizacion extends Model
 
     protected $fillable = [
         'monto',
+        'origen_fondos',
         'desglose_billetes',
         'user_id',
         'comentarios',

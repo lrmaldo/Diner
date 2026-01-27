@@ -142,6 +142,15 @@
                 <flux:subheading>Ingrese las denominaciones para sumar capital al sistema.</flux:subheading>
             </div>
 
+            <!-- Selección de Origen -->
+            <div class="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4">
+                <flux:label class="mb-2 block font-medium">Origen de los fondos:</flux:label>
+                <div class="flex flex-col sm:flex-row gap-4 sm:gap-8">
+                    <flux:radio wire:model.live="origenFondos" value="banco" label="Cuenta Diner (Banco)" />
+                    <flux:radio wire:model.live="origenFondos" value="externo" label="Cuenta Externa / Aportación" />
+                </div>
+            </div>
+
             <!-- Panel Total Modal -->
             <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-r-md">
                 <div class="flex justify-between items-center">
