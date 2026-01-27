@@ -949,7 +949,7 @@
 
                     // Obtener todos los pagos registrados del préstamo ordenados por fecha
                     $todosLosPagosRaw = $prestamo->pagos()
-                        ->with('registradoPor')
+                        ->with(['registradoPor', 'cliente'])
                         ->orderBy('fecha_pago')
                         ->orderBy('id')
                         ->get();
@@ -1105,20 +1105,38 @@
                                 <div style="font-weight: bold; font-size: 9px; margin-bottom: 3px; color: #4b5563;">Historial de Pagos Aplicados:</div>
                                 <table style="width: 100%; border-collapse: collapse; font-size: 9px; background: white;">
                                     <thead>
-                                        <tr style="background-color: #e5e7eb; color: #374151;">
-                                            <th style="padding: 2px 4px; border: 1px solid #d1d5db; text-align: left;">Fecha</th>
-                                            <th style="padding: 2px 4px; border: 1px solid #d1d5db; text-align: right;">Monto</th>
-                                            <th style="padding: 2px 4px; border: 1px solid #d1d5db; text-align: center;">Método</th>
-                                            <th style="padding: 2px 4px; border: 1px solid #d1d5db; text-align: left;">Registrado por</th>
+                                        <tr style="background-color: #e02424; color: white;">
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: left;">Cliente</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Fecha vencimiento</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Fecha de pago</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Recuperado</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Pagado con garantía</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Moratorio recuperado</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Moratorio con garantia</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach($pagoRealizado as $pagoDetalle)
                                         <tr>
-                                            <td style="padding: 2px 4px; border: 1px solid #e5e7eb;">{{ $pagoDetalle->fecha_pago->format('d/m/Y H:i') }}</td>
-                                            <td style="padding: 2px 4px; border: 1px solid #e5e7eb; text-align: right;">${{ number_format($pagoDetalle->monto, 2) }}</td>
-                                            <td style="padding: 2px 4px; border: 1px solid #e5e7eb; text-align: center;">{{ ucfirst($pagoDetalle->metodo_pago ?? 'caja') }}</td>
-                                            <td style="padding: 2px 4px; border: 1px solid #e5e7eb;">{{ $pagoDetalle->registradoPor->name ?? 'Sistema' }}</td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: left;">
+                                                {{ $pagoDetalle->cliente ? mb_strtoupper($pagoDetalle->cliente->nombre_completo) : 'CLIENTE DESCONOCIDO' }}
+                                            </td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pago['fecha'] }}</td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pagoDetalle->fecha_pago->format('d/m/Y') }}</td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">${{ number_format($pagoDetalle->monto, 2) }}</td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">
+                                                @if(in_array(strtolower($pagoDetalle->metodo_pago ?? ''), ['garantia', 'garantía']))
+                                                    ${{ number_format($pagoDetalle->monto, 2) }}
+                                                @endif
+                                            </td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">
+                                                @if($pagoDetalle->moratorio_pagado > 0)
+                                                    ${{ number_format($pagoDetalle->moratorio_pagado, 2) }}
+                                                @endif
+                                            </td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">
+                                                {{-- Lógica pendiente para Moratorio con Garantía --}}
+                                            </td>
                                         </tr>
                                         @endforeach
                                     </tbody>
