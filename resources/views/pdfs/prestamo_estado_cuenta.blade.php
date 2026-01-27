@@ -916,7 +916,6 @@
                     <th>Pagado con garantía</th>
                     <th>Multas recuperadas</th>
                     <th>Multas con garantía</th>
-                    <th colspan="2"></th>
                 </tr>
             </thead>
             <tbody>
@@ -1133,8 +1132,6 @@
                         {{-- Columnas de Multas Recuperadas --}}
                         <td style="text-align: center;">{{ $moratorioRow > 0 ? number_format($moratorioRow, 0) : '' }}</td>
                         <td style="text-align: center;">{{ $moratorioGarantiaRow > 0 ? number_format($moratorioGarantiaRow, 0) : '' }}</td>
-                        <td></td>
-                        <td></td>
                     </tr>
 
                     {{-- Historial de Pagos para esta cuota (Accordion) --}}
@@ -1142,7 +1139,7 @@
                     <tr class="accordion-row-{{ $pago['numero'] }}" style="display: none;">
                         <td colspan="10" style="padding: 0; border: none;">
                             <div style="background-color: #f8f9fa; padding: 5px 10px; border-bottom: 1px solid #ddd; margin-left: 20px;">
-                                <div style="font-weight: bold; font-size: 9px; margin-bottom: 3px; color: #4b5563;">Historial de Pagos Aplicados:</div>
+                                <div 8yle="font-weight: bold; font-size: 9px; margin-bottom: 3px; color: #4b5563;">Historial de Pagos Aplicados:</div>
                                 <table style="width: 100%; border-collapse: collapse; font-size: 9px; background: white;">
                                     <thead>
                                         <tr style="background-color: #e02424; color: white;">
