@@ -201,65 +201,9 @@ class AclaracionPagos extends Component
         try {
             $moratorio = $this->prestamo->calcularMoratorioVigente($cliente->id, $montoAutorizado);
         } catch (\Exception $e) {
-            // Fallback logic derived from Index.php::calcularMoratorio
-            $pagosVencidos = 0;
-            $fechaHoy = now()->startOfDay();
-            
-            foreach ($calendario as $pagoProg) {
-                // Parse format d-m-y
-                try {
-                    $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
-                } catch (\Exception $ex) {
-                    $fechaVenc = \Carbon\Carbon::parse($pagoProg['fecha'])->startOfDay();
-                }
-                
-                // If past due
-                if ($fechaVenc->lt($fechaHoy)) {
-                    $montoEsperado = $pagoProg['monto'];
-                    
-                    // We need to check if *this specific installment* was covered.
-                    // The bucket logic above ($pagadoRestante) is global, but here we need per-installment check.
-                    // However, Index.php uses specific logic: 
-                    // $pagadoParaEsteNumero = $pagosRealizados->where('numero_pago', $pagoProg['numero'])->sum('monto');
-                    // This relies on payments having 'numero_pago' assigned! 
-                    // If payments don't have numero_pago, this fallback fails.
-                    // Let's assume bucket logic for safety since we are "Aclarando" (fixing) payments often without numbers.
-                    
-                    // Better Fallback:
-                    // Count how many full payments fit in total Paid.
-                    // If current index < expected index based on date, we are late.
-                    // But to be precise to Index.php, we should use the model method if available.
-                    // If not, we use: 5% of quota per missed payment.
-                    
-                     $pagosVencidos++; // Conservative assume all past dates are checked below
-                }
-            }
-            
-            // Re-calculate strictly based on paid amount vs expected amount by date
-            $pagosVencidos = 0;
-            $fechaHoy = now()->startOfDay();
-            $acumuladoEsperado = 0;
-            
-            foreach($calendario as $pagoProg) {
-                try {
-                    $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
-                } catch (\Exception $ex) {
-                     $fechaVenc = \Carbon\Carbon::parse($pagoProg['fecha'])->startOfDay();
-                }
-
-                if ($fechaVenc->lt($fechaHoy)) {
-                    $acumuladoEsperado += $pagoProg['monto'];
-                    // If total paid is less than accumulated expected (with 1 peso tolerance)
-                    if ($totalPagadoCapitalInteres < ($acumuladoEsperado - 1)) {
-                         $pagosVencidos++; // increments for every period we are behind?
-                         // Actually Index logic counts individual missed payments.
-                         // Simple approximation:
-                    }
-                }
-            }
-            // If totalPaid covers up to N periods, and today is period N+3, we owe 3 moratorios?
-            // Let's stick to the Model method call which IS available in this project (as seen in Index.php)
-            // If it failed in try block, we return 0 to be safe or use simple math.
+            // Fallback logic derived from Pagos\Index.php::calcularMoratorio
+            // We use calculateMoratorioLocal which replicates the exact logic of Pagos\Index
+            $moratorio = $this->calculateMoratorioLocal($cliente->id, $montoAutorizado, $importe);
         }
 
         return [
@@ -270,6 +214,60 @@ class AclaracionPagos extends Component
             'saldo' => $saldoLiquidar,
             'moratorio' => $moratorio,
         ];
+    }
+
+    private function calculateMoratorioLocal($clienteId, $montoAutorizado, $cuota)
+    {
+        if ($cuota <= 0) return 0;
+
+        // Re-generate calendar for this specific client to check missed payments
+        $tasaInteres = $this->prestamo->tasa_interes ?? 0;
+        $plazo = $this->prestamo->plazo ?? '4meses'; 
+        $periodicidad = $this->prestamo->periodicidad ?? 'semanal';
+        $fechaPrimerPago = $this->prestamo->fecha_primer_pago ?? now();
+
+        $calendario = $this->calcularCalendarioPagos(
+            $montoAutorizado,
+            $tasaInteres,
+            $plazo,
+            $periodicidad,
+            $fechaPrimerPago
+        );
+
+        $pagosVencidos = 0;
+        $fechaHoy = now()->startOfDay();
+        
+        // Obtener pagos realizados por el cliente
+        $pagosRealizados = $this->prestamo->pagos->where('cliente_id', $clienteId);
+        
+        foreach ($calendario as $pagoProg) {
+            try {
+                $fechaVenc = Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
+            } catch (\Exception $e) {
+                $fechaVenc = Carbon::parse($pagoProg['fecha'])->startOfDay();
+            }
+            
+            // Si la fecha de vencimiento ya pasó (antes de hoy)
+            if ($fechaVenc->lt($fechaHoy)) {
+                $montoEsperado = $pagoProg['monto'];
+                
+                // Buscar pagos realizados para este número de pago
+                // NOTA IMPORTANTE: Pagos\Index asume que los pagos tienen 'numero_pago'. 
+                // Si estamos en un sistema donde los pagos a veces pierden ese dato, esta lógica falla, 
+                // pero "Estos datos son igual como el modulo de caja", así que replicamos.
+                $pagadoParaEsteNumero = $pagosRealizados->where('numero_pago', $pagoProg['numero'])->sum('monto');
+                
+                // Si no se ha cubierto el monto esperado (con tolerancia de 1 peso)
+                if ($pagadoParaEsteNumero < ($montoEsperado - 1)) {
+                    $pagosVencidos++;
+                }
+            }
+        }
+
+        // Cargo por atraso: 5% por pago vencido
+        $cargoPorAtraso = $cuota * 0.05;
+        
+        return $pagosVencidos * $cargoPorAtraso;
     }
 
     // --- Helper Methods migrated from Blade ---
