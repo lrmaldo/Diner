@@ -81,8 +81,8 @@
                         <td class="px-3 py-2 whitespace-nowrap text-right text-gray-700 dark:text-gray-300">
                             {{ number_format($data['saldo'], 0) }}
                         </td>
-                        <td class="px-3 py-2 whitespace-nowrap text-right text-gray-700 dark:text-gray-300">
-                            {{ number_format(0, 0) }} <!-- Placeholder for accrued fines -->
+                        <td class="px-3 py-2 whitespace-nowrap text-center text-gray-700 dark:text-gray-300 font-bold text-red-600">
+                            {{ number_format($data['moratorio'], 0) }}
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap text-right font-bold text-blue-600">
                             <input type="number" 
