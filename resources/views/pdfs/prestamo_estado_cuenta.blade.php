@@ -914,7 +914,7 @@
                     <th>Exigible</th>
                     <th>Pagado en efectivo</th>
                     <th>Pagado con garantía</th>
-                    <th colspan="4">Multas con recuperadas</th>
+                    <th colspan="4">Multas recuperadas</th>
                 </tr>
             </thead>
             <tbody>
@@ -1027,6 +1027,17 @@
                     // Aplicar la distribución
                     $pagosRegistrados = $distribuirPagos($calendarioPagos, $todosLosPagos);
 
+                    // Mapeo para determinar el último movimiento de cada pago (para mostrar moratorios)
+                    // PagoID => MaxInstallmentNumber
+                    $maxInstMap = [];
+                    foreach ($pagosRegistrados as $num => $pagos) {
+                        foreach ($pagos as $p) {
+                            $id = $p->id; // ID original del pago
+                            if (!isset($maxInstMap[$id])) $maxInstMap[$id] = $num;
+                            else $maxInstMap[$id] = max($maxInstMap[$id], $num);
+                        }
+                    }
+
                     // Pre-calcular calendarios individuales para préstamos grupales
                     $clientSchedules = [];
                     if ($prestamo->producto === 'grupal') {
@@ -1081,6 +1092,20 @@
                             // Lo estándar es mostrar la fecha en que se cubrió.
                             $fechaPagoReal = $pagoRealizado->sortByDesc('fecha_pago')->first()->fecha_pago->format('d-m-y');
                         }
+                        // Calcular Moratorios Recuperados para esta fila
+                        // Regla: Mostrar el moratorio total del pago SOLO si esta fila es el "último movimiento" de ese pago.
+                        $moratorioRow = 0;
+                        if ($pagoRealizado) {
+                            // Iterar sobre los pagos únicos que tocaron esta fila
+                            // Como $pagoRealizado puede tener fragmentos del mismo pago, usamos unique('id')
+                            $pagosUnicos = $pagoRealizado->unique('id');
+                            foreach($pagosUnicos as $p) {
+                                // Si esta fila es la última cuota que tocó este pago
+                                if (isset($maxInstMap[$p->id]) && $maxInstMap[$p->id] == $pago['numero']) {
+                                    $moratorioRow += $p->moratorio_pagado;
+                                }
+                            }
+                        }
                     @endphp
                     <tr @if($pago['numero'] % 2 == 0) style="background-color: #f3f4f6;" @endif
                         @if(!$forPdf) 
@@ -1094,7 +1119,11 @@
                         <td>{{ number_format($pago['monto'], 0) }}</td>
                         <td>{{ $montoPagado > 0 ? number_format($montoPagado, 0) : '' }}</td>
                         <td></td>
-                        <td colspan="4"></td>
+                        {{-- Columnas de Multas Recuperadas --}}
+                        <td style="text-align: center;">{{ $moratorioRow > 0 ? number_format($moratorioRow, 0) : '' }}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                     </tr>
 
                     {{-- Historial de Pagos para esta cuota (Accordion) --}}
