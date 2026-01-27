@@ -79,8 +79,7 @@ class ArqueoCaja extends Component
 
         Capitalizacion::create([
             'monto' => $this->totalGeneralCapital,
-            'origen_fondos' => $this->origenFondos
-            'monto' => $this->totalGeneralCapital,
+            'origen_fondos' => $this->origenFondos,
             'desglose_billetes' => [
                 'billetes' => $this->billetesCapital,
                 'monedas' => $this->monedasCapital,
