@@ -914,7 +914,9 @@
                     <th>Exigible</th>
                     <th>Pagado en efectivo</th>
                     <th>Pagado con garantía</th>
-                    <th colspan="4">Multas recuperadas</th>
+                    <th>Multas recuperadas</th>
+                    <th>Multas con garantía</th>
+                    <th colspan="2"></th>
                 </tr>
             </thead>
             <tbody>
@@ -1095,6 +1097,8 @@
                         // Calcular Moratorios Recuperados para esta fila
                         // Regla: Mostrar el moratorio total del pago SOLO si esta fila es el "último movimiento" de ese pago.
                         $moratorioRow = 0;
+                        $moratorioGarantiaRow = 0;
+
                         if ($pagoRealizado) {
                             // Iterar sobre los pagos únicos que tocaron esta fila
                             // Como $pagoRealizado puede tener fragmentos del mismo pago, usamos unique('id')
@@ -1102,7 +1106,14 @@
                             foreach($pagosUnicos as $p) {
                                 // Si esta fila es la última cuota que tocó este pago
                                 if (isset($maxInstMap[$p->id]) && $maxInstMap[$p->id] == $pago['numero']) {
-                                    $moratorioRow += $p->moratorio_pagado;
+                                    $tipo = strtolower($p->tipo_pago ?? '');
+                                    $esGarantia = $tipo === 'garantia' || $tipo === 'garantía';
+
+                                    if ($esGarantia) {
+                                        $moratorioGarantiaRow += $p->moratorio_pagado;
+                                    } else {
+                                        $moratorioRow += $p->moratorio_pagado;
+                                    }
                                 }
                             }
                         }
@@ -1121,7 +1132,7 @@
                         <td></td>
                         {{-- Columnas de Multas Recuperadas --}}
                         <td style="text-align: center;">{{ $moratorioRow > 0 ? number_format($moratorioRow, 0) : '' }}</td>
-                        <td></td>
+                        <td style="text-align: center;">{{ $moratorioGarantiaRow > 0 ? number_format($moratorioGarantiaRow, 0) : '' }}</td>
                         <td></td>
                         <td></td>
                     </tr>
