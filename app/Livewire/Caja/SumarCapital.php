@@ -8,8 +8,7 @@ use Livewire\Component;
 class SumarCapital extends Component
 {
     public $origenFondos = 'externo'; // 'externo' | 'banco'
-    public $montoDirecto = 0; // Para cuando es desde Banco
-
+    
     public $billetes = [
         '1000' => 0,
         '500' => 0,
@@ -53,20 +52,13 @@ class SumarCapital extends Component
 
     public function getTotalGeneralProperty()
     {
-        if ($this->origenFondos === 'banco') {
-            return (float)$this->montoDirecto;
-        }
         return $this->totalBilletes + $this->totalMonedas;
     }
 
-    public function updatedOrigenFondos($value)
-    {
-        if ($value === 'banco') {
-            $this->reset(['billetes', 'monedas']);
-        } else {
-            $this->montoDirecto = 0;
-        }
-    }
+    /* 
+     * Se elimina updatedOrigenFondos para mantener la captura de billetes 
+     * activa independientemente del origen seleccionado 
+     */
 
     private function getSaldoBanco()
     {
@@ -82,7 +74,6 @@ class SumarCapital extends Component
     {
         $this->validate([
             'comentarios' => 'nullable|string|max:255',
-            'montoDirecto' => 'numeric|min:0'
         ]);
 
         if ($this->totalGeneral <= 0) {
@@ -101,17 +92,16 @@ class SumarCapital extends Component
         Capitalizacion::create([
             'monto' => $this->totalGeneral,
             'origen_fondos' => $this->origenFondos,
-            // Guardar null en desglose si es de banco para no confundir con efectivo
-            'desglose_billetes' => $this->origenFondos === 'externo' ? [
+            // Siempre guardar el desglose de efectivo que ingresa a Caja
+            'desglose_billetes' => [
                 'billetes' => $this->billetes,
                 'monedas' => $this->monedas,
-            ] : null,
+            ],
             'user_id' => auth()->id(),
             'comentarios' => $this->comentarios,
         ]);
 
-        $this->reset(['billetes', 'monedas', 'comentarios', 'montoDirecto', 'origenFondos']);
-        // Default back to externo or keep selection? usually reset is safer.
+        $this->reset(['billetes', 'monedas', 'comentarios', 'origenFondos']);
         $this->origenFondos = 'externo';
         
         $this->showSuccessModal = true;

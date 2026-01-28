@@ -37,17 +37,6 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        @if($origenFondos === 'banco')
-            <div class="lg:col-span-2 bg-white shadow rounded-lg p-6 border-t-4 border-blue-400">
-                <label class="block text-lg font-medium text-gray-700 mb-2">Monto a retirar del Banco</label>
-                <div class="relative rounded-md shadow-sm max-w-xs">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span class="text-gray-500 sm:text-sm">$</span>
-                    </div>
-                    <input type="number" wire:model.live="montoDirecto" step="0.01" class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-7 text-xl border-gray-300 rounded-md" placeholder="0.00">
-                </div>
-            </div>
-        @else
             <!-- Billetes -->
             <div class="bg-white shadow rounded-lg p-6 border-t-4 border-green-400">
             <div class="flex justify-between items-center mb-4">
@@ -93,7 +82,6 @@
             </div>
         </div>
 
-        @if($origenFondos === 'externo')
         <!-- Monedas -->
         <div class="bg-white shadow rounded-lg p-6 border-t-4 border-yellow-400">
             <div class="flex justify-between items-center mb-4">
@@ -141,8 +129,6 @@
                 @endforeach
             </div>
         </div>
-        @endif
-    @endif
     </div>
 
     <!-- Comentarios y Botón -->
