@@ -29,9 +29,10 @@ class AclaracionPagos extends Component
     {
         if ($value) {
             foreach ($this->clientData as $clientId => $data) {
-                // Pre-fill with correct totals directly from columns
-                $this->inputs[$clientId]['efectivo'] = $data['pendiente'];
-                $this->inputs[$clientId]['moratorio'] = round($data['moratorio']); 
+                // Pre-fill with Importe (Cuota estándar) instead of Pendiente
+                // And do NOT autofill moratorios
+                $this->inputs[$clientId]['efectivo'] = $data['importe'];
+                $this->inputs[$clientId]['moratorio'] = 0; 
             }
         } else {
             foreach ($this->clientData as $clientId => $data) {
