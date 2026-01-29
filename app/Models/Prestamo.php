@@ -493,30 +493,57 @@ class Prestamo extends Model
     public function calcularMoratorioVigente($clienteId, $montoAutorizado)
     {
         $calendario = $this->simularCalendarioPago($montoAutorizado);
-        $fechaHoy = now();
+        $fechaHoy = now()->startOfDay();
         
+        // Obtener pagos del cliente
         $pagosCliente = $this->pagos->where('cliente_id', $clienteId);
-        $pagadoPorNumero = $pagosCliente->whereNotNull('numero_pago')
-            ->groupBy('numero_pago')
-            ->map(fn ($pagos) => (float) $pagos->sum('monto'))
-            ->toArray();
-        $pagosSinNumeroTotal = (float) $pagosCliente->whereNull('numero_pago')->sum('monto');
+        
+        // Total de moratorios pagados hasta la fecha
+        $moratorioPagadoTotal = $pagosCliente->sum('moratorio_pagado');
+        
+        // Calcular atrasos HISTÓRICOS (incluyendo pagados tarde)
+        $multasGeneradasCount = 0;
 
-        $atrasos = self::calcularAtrasosDesdeCalendario(
-            $calendario,
-            $fechaHoy,
-            $pagadoPorNumero,
-            $pagosSinNumeroTotal,
-            1
-        );
+        foreach ($calendario as $pagoProg) {
+            $fechaVenc = Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
+            $numero = $pagoProg['numero'];
+            $montoCuota = $pagoProg['monto'];
 
-        if ($atrasos <= 0) return 0;
+            // 1. Filtrar pagos que cubren esta cuota
+            // Usamos numero_pago exacto por consistencia con otros módulos
+            $pagosCuota = $pagosCliente->where('numero_pago', $numero);
+            $montoPagadoCuota = $pagosCuota->sum('monto');
+
+            // Caso A: Cuota NO pagada completamente
+            if ($montoPagadoCuota < ($montoCuota - 1)) { // Tolerancia $1
+                if ($fechaVenc->lt($fechaHoy)) {
+                    $multasGeneradasCount++;
+                }
+            } 
+            // Caso B: Cuota pagada, verificar si fue tardía
+            else {
+                // Verificar la fecha del pago que completó la cuota
+                // Tomamos la fecha del último pago registrado para este número
+                $ultimoPago = $pagosCuota->sortByDesc('fecha_pago')->first();
+                if ($ultimoPago && $ultimoPago->fecha_pago->startOfDay()->gt($fechaVenc)) {
+                    $multasGeneradasCount++;
+                }
+            }
+        }
+
+        if ($multasGeneradasCount <= 0) {
+            // Si no hay multas generadas, pero hay un saldo negativo por pagos excesivos a moratorio (error de captura?), retornamos 0
+            return 0;
+        }
 
         // Multa unitaria: 5% del valor del pago
         $montoPago = !empty($calendario) ? $calendario[0]['monto'] : 0;
         $multaUnitaria = $montoPago * 0.05;
         
-        return $atrasos * $multaUnitaria;
+        $totalGenerado = $multasGeneradasCount * $multaUnitaria;
+
+        // Saldo Moratorio = Generado - Pagado
+        return max(0, $totalGenerado - $moratorioPagadoTotal);
     }
 
     public function calcularSaldoLiquidarParaCliente($clienteId, $montoAutorizado)
