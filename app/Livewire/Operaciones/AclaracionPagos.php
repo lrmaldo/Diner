@@ -19,6 +19,7 @@ class AclaracionPagos extends Component
     
     // Form Data
     public $fullPayment = false;
+    public $showSuccessModal = false;
     public $clientData = []; // Array to store calculated data per client
     public $inputs = []; // Array to store user inputs [client_id => ['efectivo' => 0, 'moratorio' => 0]]
 
@@ -42,7 +43,7 @@ class AclaracionPagos extends Component
 
     public function search()
     {
-        $this->reset(['prestamo', 'groupName', 'clientData', 'inputs', 'errorMessage', 'fullPayment']);
+        $this->reset(['prestamo', 'groupName', 'clientData', 'inputs', 'errorMessage', 'fullPayment', 'showSuccessModal']);
 
         if (empty($this->grupoSearch)) {
             return;
@@ -501,8 +502,14 @@ class AclaracionPagos extends Component
             }
         });
 
-        session()->flash('success', 'Pagos aclarados correctamente en Banco.');
+        // session()->flash('success', 'Pagos aclarados correctamente en Banco.');
         $this->search(); // Refresh data
+        $this->showSuccessModal = true;
+    }
+
+    public function closeSuccessModal()
+    {
+        $this->showSuccessModal = false;
     }
 
     public function cancel()
