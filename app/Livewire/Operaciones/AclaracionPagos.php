@@ -28,11 +28,9 @@ class AclaracionPagos extends Component
     {
         if ($value) {
             foreach ($this->clientData as $clientId => $data) {
-                // Pre-fill with Total required (Importe + Pendiente)
-                $amountToPay = $data['importe'] + $data['pendiente'];
-                $this->inputs[$clientId]['efectivo'] = $amountToPay;
-                // Pre-fill moratorio if we had suggested logic, for now 0 or keep existing input
-                // $this->inputs[$clientId]['moratorio'] = 0; 
+                // Pre-fill with correct totals directly from columns
+                $this->inputs[$clientId]['efectivo'] = $data['pendiente'];
+                $this->inputs[$clientId]['moratorio'] = $data['moratorio']; 
             }
         } else {
             foreach ($this->clientData as $clientId => $data) {
