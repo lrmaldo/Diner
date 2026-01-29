@@ -30,7 +30,7 @@ class AclaracionPagos extends Component
             foreach ($this->clientData as $clientId => $data) {
                 // Pre-fill with correct totals directly from columns
                 $this->inputs[$clientId]['efectivo'] = $data['pendiente'];
-                $this->inputs[$clientId]['moratorio'] = $data['moratorio']; 
+                $this->inputs[$clientId]['moratorio'] = round($data['moratorio']); 
             }
         } else {
             foreach ($this->clientData as $clientId => $data) {
@@ -211,6 +211,20 @@ class AclaracionPagos extends Component
             // Fallback logic derived from Pagos\Index.php::calcularMoratorio
             // We use calculateMoratorioLocal which replicates the exact logic of Pagos\Index
             $moratorio = $this->calculateMoratorioLocal($cliente->id, $montoAutorizado, $importe);
+        }
+
+        // Ajuste: Si el pago sugerido es a futuro (> Hoy), el pendiente (exigible) es 0.
+        // Mantenemos sincronía con "Estado de Cuenta" que dice "Al día".
+        if ($numeroPagoActual <= count($calendario) && $numeroPagoActual > 0) {
+            $fechaCuotaStr = $calendario[$numeroPagoActual - 1]['fecha'] ?? null;
+            if ($fechaCuotaStr) {
+                 try {
+                     $fechaCuota = Carbon::createFromFormat('d-m-y', $fechaCuotaStr)->startOfDay();
+                     if ($fechaCuota->gt(now()->startOfDay())) {
+                         $pendiente = 0;
+                     }
+                 } catch (\Exception $ex) {}
+            }
         }
 
         return [
