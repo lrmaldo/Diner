@@ -55,7 +55,10 @@ class AclaracionPagos extends Component
 
         if (!$possiblePrestamo) {
             // Intento secundario: Si no es un número o no existe el préstamo, buscar por Nombre de Grupo (legacy support)
-            $grupo = Grupo::where('nombre', 'like', '%' . $this->grupoSearch . '%')->first();
+            // O buscar por ID de Grupo
+            $grupo = Grupo::where('id', $this->grupoSearch) // Intento por ID directo del grupo
+                ->orWhere('nombre', 'like', '%' . $this->grupoSearch . '%')
+                ->first();
             
             if ($grupo) {
                 $possiblePrestamo = Prestamo::where('grupo_id', $grupo->id)
@@ -94,6 +97,11 @@ class AclaracionPagos extends Component
         // Ensure we load clients properly
         $clientes = $this->prestamo->clientes;
 
+        // Fallback for individual loans that might not have pivot records populated correctly
+        if ($clientes->isEmpty() && $this->prestamo->cliente) {
+            $clientes = collect([$this->prestamo->cliente]);
+        }
+
         foreach ($clientes as $cliente) {
             $stats = $this->calculateClientStats($cliente);
             $this->clientData[$cliente->id] = $stats;
@@ -106,7 +114,8 @@ class AclaracionPagos extends Component
 
     private function calculateClientStats($cliente)
     {
-        $montoAutorizado = $cliente->pivot->monto_autorizado ?? 0;
+        // Safe access to pivot data (null safe operator) or fallback to loan total
+        $montoAutorizado = $cliente->pivot?->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
         
         $tasaInteres = $this->prestamo->tasa_interes ?? 0;
         $plazo = $this->prestamo->plazo ?? '4meses'; 
