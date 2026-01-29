@@ -214,9 +214,12 @@ class ArqueoCaja extends Component
 
     public function getSaldoBancoProperty()
     {
-        $ingresosBanco = Pago::where('metodo_pago', 'banco')->sum('monto');
-        $ingresosBancoMoratorio = Pago::where('metodo_pago', 'banco')->sum('moratorio_pagado');
-        $egresosBanco = Capitalizacion::where('origen_fondos', 'banco')->sum('monto');
+        // Consideramos 'banco', 'Banco', 'transferencia', etc.
+        $metodosBanco = ['banco', 'Banco', 'transferencia', 'Transferencia', 'deposito', 'Deposito'];
+
+        $ingresosBanco = Pago::whereIn('metodo_pago', $metodosBanco)->sum('monto');
+        $ingresosBancoMoratorio = Pago::whereIn('metodo_pago', $metodosBanco)->sum('moratorio_pagado');
+        $egresosBanco = Capitalizacion::whereIn('origen_fondos', ['banco', 'Banco'])->sum('monto');
         
         return ($ingresosBanco + $ingresosBancoMoratorio) - $egresosBanco;
     }

@@ -27,6 +27,7 @@ class Pago extends Model
         'capital_pagado',
         'moratorio_pagado',
         'notas',
+        'metodo_pago', // Added to allow mass assignment
         'desglose_efectivo',
         'desglose_cambio',
     ];
