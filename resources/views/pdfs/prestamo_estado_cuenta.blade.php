@@ -1028,6 +1028,48 @@
                     // Aplicar la distribución
                     $pagosRegistrados = $distribuirPagos($calendarioPagos, $todosLosPagos);
 
+                    // ===================================================================================
+                    // AJUSTE PARA PAGOS "SOLO MULTA" (Capital 0, Moratorio > 0)
+                    // Estos pagos son ignorados por distribuirPagos porque no tienen "remanente" de capital.
+                    // Debemos asignarlos manualmente a una cuota para que aparezcan en el historial.
+                    // ===================================================================================
+                    $pagosSoloMulta = $todosLosPagos->filter(function($p) {
+                         return ((float)$p->monto <= 0.001) && ((float)$p->moratorio_pagado > 0.001);
+                    });
+
+                    foreach($pagosSoloMulta as $pagoMulta) {
+                        $targetInst = null;
+                        
+                        // 1. Intentar usar el número de pago registrado en BD
+                        if (!empty($pagoMulta->numero_pago)) {
+                            $targetInst = (int)$pagoMulta->numero_pago;
+                        } 
+                        
+                        // 2. Si no hay, buscar la cuota cuya fecha de vencimiento sea más cercana (anterior) a la fecha de pago
+                        if (!$targetInst) {
+                            $fechaPago = Carbon::parse($pagoMulta->fecha_pago);
+                            foreach($calendarioPagos as $idx => $cuota) {
+                                $fechaVenc = Carbon::createFromFormat('d-m-y', $cuota['fecha']);
+                                // Si la fecha de vencimiento es <= a la fecha de pago, es candidata
+                                // Nos quedamos con la última que cumpla esto (la más cercana al pago)
+                                if ($fechaVenc->lte($fechaPago)) {
+                                    $targetInst = $cuota['numero'];
+                                }
+                            }
+                            // Si no encontró ninguna (pago antes de la primer cuota), asignar a la 1
+                            if (!$targetInst) $targetInst = 1;
+                        }
+
+                        // Agregar a pagosRegistrados
+                        if (!$pagosRegistrados->has($targetInst)) {
+                            $pagosRegistrados->put($targetInst, collect());
+                        }
+                        
+                        // Clonamos o usamos directo, no importa porque no tiene remanente que afectar
+                        $pagosRegistrados->get($targetInst)->push($pagoMulta);
+                    }
+                    // ===================================================================================
+
                     // Mapeo para determinar el último movimiento de cada pago (para mostrar moratorios)
                     // PagoID => MaxInstallmentNumber
                     $maxInstMap = [];
