@@ -1045,19 +1045,24 @@
                             $targetInst = (int)$pagoMulta->numero_pago;
                         } 
                         
-                        // 2. Si no hay, buscar la cuota cuya fecha de vencimiento sea más cercana (anterior) a la fecha de pago
+                        // 2. Si no hay, buscar el último pago de capital realizado antes o en el mismo momento que la multa
                         if (!$targetInst) {
                             $fechaPago = Carbon::parse($pagoMulta->fecha_pago);
-                            foreach($calendarioPagos as $idx => $cuota) {
-                                $fechaVenc = Carbon::createFromFormat('d-m-y', $cuota['fecha']);
-                                // Si la fecha de vencimiento es <= a la fecha de pago, es candidata
-                                // Nos quedamos con la última que cumpla esto (la más cercana al pago)
-                                if ($fechaVenc->lte($fechaPago)) {
-                                    $targetInst = $cuota['numero'];
+                            $targetInst = 1; // Default
+                            
+                            // Iterar sobre los buckets con actividad (capital)
+                            foreach($pagosRegistrados as $instNum => $pagos) {
+                                // Obtener la fecha del pago más reciente en este bucket
+                                $maxFecha = $pagos->max('fecha_pago');
+                                
+                                if ($maxFecha && $maxFecha->lte($fechaPago)) {
+                                    // Si este bucket se pagó antes de la multa, es candidato.
+                                    // Queremos el bucket con el número más alto (el más avanzado en el crédito).
+                                    if ($instNum > $targetInst) {
+                                        $targetInst = $instNum;
+                                    }
                                 }
                             }
-                            // Si no encontró ninguna (pago antes de la primer cuota), asignar a la 1
-                            if (!$targetInst) $targetInst = 1;
                         }
 
                         // Agregar a pagosRegistrados
