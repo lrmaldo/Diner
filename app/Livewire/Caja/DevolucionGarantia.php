@@ -62,8 +62,7 @@ class DevolucionGarantia extends Component
         // 1. Validar reglas de negocio según modo
         if ($this->modo === 'pagos' && $this->prestamo->estado !== 'liquidado') {
             $this->errorMessage = 'El crédito no está liquidado';
-            $this->prestamo = null; // No mostrar datos
-            return;
+            // No seteamos null para permitir ver los datos, aunque no se pueda operar
         }
 
         // 2. Cargar datos
