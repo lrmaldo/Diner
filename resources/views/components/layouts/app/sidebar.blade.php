@@ -228,6 +228,16 @@
                             Sumar Capital (Capitalizar)
                         </a>
 
+                        <!-- Devolución de Garantía -->
+                        <a href="{{ route('caja.devolucion-garantia') }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('caja.devolucion-garantia') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           wire:navigate>
+                            <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z" />
+                            </svg>
+                            Devolución de Garantía
+                        </a>
+
                         @role('Administrador')
                         <!-- Arqueo de Caja -->
                         <a href="{{ route('caja.arqueo') }}"

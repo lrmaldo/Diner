@@ -10,6 +10,8 @@ use Livewire\Component;
 
 class Index extends Component
 {
+    public $modo = null; // 'pagos' o 'multas'
+
     public $search = '';
 
     public $prestamo = null;
@@ -23,6 +25,12 @@ class Index extends Component
     public $siguientesPagos = [];
     public $selectedClients = [];
     public $selectAll = false;
+
+    public function seleccionarModo($modo)
+    {
+        $this->modo = $modo;
+        $this->reset(['search', 'prestamo', 'notFound']);
+    }
 
     public function updatedSelectAll($value)
     {
