@@ -1,85 +1,6 @@
 <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    @if(!$modo)
-        <div class="flex items-center justify-center min-h-[50vh]">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl">
-                {{-- Botón Pagos --}}
-                <button wire:click="seleccionarModo('pagos')" class="h-48 bg-red-600 hover:bg-red-700 text-white text-4xl font-bold rounded shadow-lg transform transition hover:scale-105 flex items-center justify-center">
-                    Pagos
-                </button>
-
-                {{-- Botón Multas --}}
-                <button wire:click="seleccionarModo('multas')" class="h-48 bg-red-600 hover:bg-red-700 text-white text-4xl font-bold rounded shadow-lg transform transition hover:scale-105 flex items-center justify-center">
-                    Multas
-                </button>
-            </div>
-        </div>
-    @else
-        {{-- Header con Botón de Regreso --}}
-        <div class="mb-6">
-            <button wire:click="$set('modo', null)" class="flex items-center text-gray-600 hover:text-red-600 font-medium transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
-                </svg>
-                Volver a Selección
-            </button>
-        </div>
-        
-        @if($modo === 'multas')
-            {{-- Interface específica para Multas --}}
-            <div class="bg-white shadow-xl sm:rounded-lg p-6 animate-fade-in-down">
-                <h1 class="text-2xl font-bold text-gray-900 mb-6">Cobro de Multas</h1>
-                
-                <div class="mb-8 flex flex-col md:flex-row gap-4 items-end">
-                    <div class="w-full md:w-1/3">
-                        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Grupo (ID Préstamo)</label>
-                        <div class="relative rounded-md shadow-sm">
-                            <input type="text" 
-                                wire:model.live.debounce.300ms="search" 
-                                wire:keydown.enter="buscarPrestamo"
-                                id="search" 
-                                class="focus:ring-red-500 focus:border-red-500 block w-full pl-4 pr-12 text-lg border-gray-300 rounded-md h-12 placeholder-gray-400" 
-                                placeholder="Ingrese ID..."
-                                autofocus>
-                        </div>
-                    </div>
-                    <div class="w-full md:w-auto">
-                        <button wire:click="buscarPrestamo" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-md transition duration-150 ease-in-out h-12 flex items-center justify-center">
-                            Buscar
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Loading --}}
-                <div wire:loading wire:target="search, buscarPrestamo" class="mb-4 text-center w-full">
-                    <span class="text-red-500 font-semibold">Buscando grupo...</span>
-                </div>
-
-                {{-- Feedback de no encontrado --}}
-                @if($notFound)
-                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
-                        <p class="text-sm text-red-700">No se encontró el grupo <strong>{{ $search }}</strong>.</p>
-                    </div>
-                @endif
-
-                {{-- Resultados para Multas --}}
-                @if($prestamo)
-                    <div class="mt-8 p-6 bg-gray-50 rounded border border-gray-200">
-                            <h3 class="font-bold text-xl mb-4 text-gray-800">Grupo Encontrado: <span class="text-red-600">{{ $prestamo->grupo->nombre ?? 'N/A' }}</span></h3>
-                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-                                <div class="flex">
-                                    <div class="ml-3">
-                                        <p class="text-sm text-yellow-700">
-                                            Módulo de cobro de multas en construcción. Aquí aparecerá la tabla de integrantes para aplicar penalizaciones.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                    </div>
-                @endif
-            </div>
-        @else
-            {{-- Interface Original de Pagos --}}
-            <div class="bg-white shadow-xl rounded-lg overflow-hidden">
+    {{-- Interface Original de Pagos --}}
+    <div class="bg-white shadow-xl rounded-lg overflow-hidden">
         <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -406,6 +327,5 @@
                 </div>
             @endif
         </div>
-    @endif
-    @endif
+    </div>
 </div>

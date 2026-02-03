@@ -1,8 +1,28 @@
 <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Devolución de Garantía</h1>
-        
-        {{-- Buscador --}}
+    @if(!$modo)
+        <div class="flex items-center justify-center min-h-[50vh]">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl">
+                {{-- Botón Pagos --}}
+                <button wire:click="seleccionarModo('pagos')" class="h-48 bg-red-600 hover:bg-red-700 text-white text-4xl font-bold rounded shadow-lg transform transition hover:scale-105 flex items-center justify-center">
+                    Pagos
+                </button>
+
+                {{-- Botón Multas --}}
+                <button wire:click="seleccionarModo('multas')" class="h-48 bg-red-600 hover:bg-red-700 text-white text-4xl font-bold rounded shadow-lg transform transition hover:scale-105 flex items-center justify-center">
+                    Multas
+                </button>
+            </div>
+        </div>
+    @elseif($modo === 'multas')
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 animate-fade-in-up">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Devolución de Garantía / Multas</h1>
+                <button wire:click="$set('modo', null)" class="text-gray-600 hover:text-red-600 font-medium">
+                    &larr; Volver
+                </button>
+            </div>
+            
+            {{-- Buscador --}}
         <div class="mb-8 flex flex-col md:flex-row gap-4 items-end">
              <div class="w-full md:w-1/3">
                  <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Grupo (ID Préstamo)</label>
@@ -125,5 +145,6 @@
                 </div>
             </div>
         @endif
-    </div>
+    @endif
+</div>
 </div>

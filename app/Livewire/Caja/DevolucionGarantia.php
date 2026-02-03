@@ -8,6 +8,8 @@ use Livewire\Component;
 
 class DevolucionGarantia extends Component
 {
+    public $modo = null; // null (selección), 'pagos' (redirige), 'multas' (pantalla actual)
+
     public $search = '';
     public $prestamo = null;
     public $notFound = false;
@@ -27,6 +29,14 @@ class DevolucionGarantia extends Component
     public function render()
     {
         return view('livewire.caja.devolucion-garantia');
+    }
+
+    public function seleccionarModo($modo)
+    {
+        if ($modo === 'pagos') {
+            return redirect()->route('pagos.index');
+        }
+        $this->modo = $modo;
     }
 
     public function updatedSearch()
