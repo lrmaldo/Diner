@@ -569,18 +569,15 @@ class Prestamo extends Model
         $moratoriosPagados = $pagosCliente->sum('moratorio_pagado');
         
         // 3. Calcular Moratorios Vigentes (generados hoy)
-        $saldoMoratorio = $this->calcularMoratorioVigente($clienteId, $montoAutorizado);
+        // Se calculan solo como referencia pero NO se suman al saldo para liquidar (petición de usuario)
+        // $saldoMoratorio = $this->calcularMoratorioVigente($clienteId, $montoAutorizado);
         
         // Formula Final:
-        // Saldo = (DeudaOriginal - (PagadoTotal - MoratoriosPagados)) + MoratoriosVigentes
-        // Explicación: Los pagos cubren moratorios primero. De lo que sobra, cubre deuda original.
-        // Si pagué $100 de moratorio, no bajó mi deuda original.
-        // Si pagué $1000 ($100 mora + $900 capital), mi deuda bajó $900.
-        // PagadoTotal - MoratoriosPagados = $900.
-        // DeudaOriginal - $900 = SaldoCapital.
-        // SaldoLiquidar = SaldoCapital + NuevosMoratorios.
+        // Saldo = (DeudaOriginal - (PagadoTotal - MoratoriosPagados))
+        // Explicación: Los pagos cubren moratorios primero en el registro, pero el saldo restante
+        // debe reflejar solo el capital + interes pendiente, sin sumar multas no pagadas.
         
-        $saldoLiquidar = $totalDeudaOriginal - ($totalPagadoReal - $moratoriosPagados) + $saldoMoratorio;
+        $saldoLiquidar = $totalDeudaOriginal - ($totalPagadoReal - $moratoriosPagados);
         
         return floor(max(0, $saldoLiquidar));
     }
