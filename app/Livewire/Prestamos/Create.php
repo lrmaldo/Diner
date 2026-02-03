@@ -208,6 +208,11 @@ class Create extends Component
         $this->asesores = User::whereHas('roles', function ($query) {
             $query->where('name', 'Asesor');
         })->orderBy('name')->get();
+
+        // Autoseleccionar asesor si el usuario actual es un asesor y no hay uno seleccionado
+        if (! $this->asesor_id && auth()->check() && auth()->user()->hasRole('Asesor')) {
+            $this->asesor_id = auth()->id();
+        }
     }
 
     public function render()
@@ -291,7 +296,7 @@ class Create extends Component
             'fecha_entrega' => ['required', 'date'],
             'fecha_primer_pago' => ['required', 'date'],
             'garantia' => ['required', 'numeric', 'min:0', 'max:100'],
-            'asesor_id' => ['nullable', 'exists:users,id'],
+            'asesor_id' => ['required', 'exists:users,id'],
             'comentarios_comite' => ['nullable', 'string', 'max:1000'],
         ];
 
@@ -355,9 +360,9 @@ class Create extends Component
             return;
         }
 
-        $maxAllowed = $entrega->copy()->addDays($periodDays + 2);
+        $maxAllowed = $entrega->copy()->addDays($periodDays + 5);
         if ($primer->gt($maxAllowed)) {
-            $this->addError('fecha_primer_pago', "La fecha del primer pago debe estar dentro de los {$periodDays} días desde la entrega más 2 días de gracia.");
+            $this->addError('fecha_primer_pago', "La fecha del primer pago debe estar dentro de los {$periodDays} días desde la entrega más 5 días de gracia.");
         }
     }
 

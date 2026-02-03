@@ -108,12 +108,11 @@ class Show extends Component
         $this->prestamo->registrarBitacora('autorizado', 'Préstamo autorizado por '.auth()->user()->name);
 
         // Recargar el préstamo
-        $this->loadPrestamo();
+        // $this->loadPrestamo(); No es necesario si redirigimos
 
-        $this->dispatch('alert', [
-            'type' => 'success',
-            'message' => 'Préstamo autorizado exitosamente.',
-        ]);
+        session()->flash('success', 'Préstamo autorizado exitosamente.');
+
+        return redirect()->route('prestamos.en-comite');
     }
 
     public function rechazar(): void

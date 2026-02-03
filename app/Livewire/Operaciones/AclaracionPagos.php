@@ -504,7 +504,10 @@ class AclaracionPagos extends Component
         });
 
         // session()->flash('success', 'Pagos aclarados correctamente en Banco.');
-        $this->search(); // Refresh data
+        
+        // Limpiar todo para dejar listo para la siguiente aclaración y evitar que quede la info anterior
+        $this->reset(['prestamo', 'groupName', 'clientData', 'inputs', 'errorMessage', 'fullPayment', 'grupoSearch']);
+
         $this->showSuccessModal = true;
     }
 

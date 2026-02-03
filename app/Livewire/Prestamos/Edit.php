@@ -339,9 +339,9 @@ class Edit extends Component
             return;
         }
 
-        $maxAllowed = $entrega->copy()->addDays($periodDays + 2);
+        $maxAllowed = $entrega->copy()->addDays($periodDays + 5);
         if ($primer->gt($maxAllowed)) {
-            $this->addError('fecha_primer_pago', "La fecha del primer pago debe estar dentro de los {$periodDays} días desde la entrega más 2 días de gracia.");
+            $this->addError('fecha_primer_pago', "La fecha del primer pago debe estar dentro de los {$periodDays} días desde la entrega más 5 días de gracia.");
         }
     }
 

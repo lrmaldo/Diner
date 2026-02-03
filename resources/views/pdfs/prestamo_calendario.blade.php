@@ -563,7 +563,7 @@
         <div class="footer-notes">
             <p><strong>GRACIAS POR SER CLIENTE DINER</strong></p>
             <p><strong>CUIDA TU HISTORIAL PAGANDO PUNTUALMENTE</strong></p>
-            <p><strong>PARA QUEJAS, ESCRÍBENOS AL: 9991097214, EN DINER NOS INTERESA ESTÁ BIEN CONTIGO</strong></p>
+            <p><strong>PARA QUEJAS, ESCRÍBENOS AL: 9991097214, EN DINER NOS INTERESA ESTAR BIEN CONTIGO</strong></p>
         </div>
 
         @if(!$loop->last)
@@ -706,7 +706,7 @@
         <div class="footer-notes">
             <p><strong>GRACIAS POR SER CLIENTE DINER</strong></p>
             <p><strong>CUIDA TU HISTORIAL PAGANDO PUNTUALMENTE</strong></p>
-            <p><strong>PARA QUEJAS, ESCRÍBENOS AL: 9991097214, EN DINER NOS INTERESA ESTÁ BIEN CONTIGO</strong></p>
+            <p><strong>PARA QUEJAS, ESCRÍBENOS AL: 9991097214, EN DINER NOS INTERESA ESTAR BIEN CONTIGO</strong></p>
         </div>
     @endif
 @endif

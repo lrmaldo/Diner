@@ -10,6 +10,14 @@
         </div>
     </div>
 
+    <!-- Mensaje de éxito (Flash Session) -->
+    @if(session()->has('success'))
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+            <p class="font-bold">¡Éxito!</p>
+            <p>{{ session('success') }}</p>
+        </div>
+    @endif
+
     <div class="bg-white shadow rounded-lg p-4 mb-4">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <!-- Búsqueda general -->
