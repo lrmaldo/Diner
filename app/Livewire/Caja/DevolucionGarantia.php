@@ -8,22 +8,15 @@ use Livewire\Component;
 
 class DevolucionGarantia extends Component
 {
-    public $modo = null; // null (selección), 'pagos' (redirige), 'multas' (pantalla actual)
-
     public $search = '';
     public $prestamo = null;
     public $notFound = false;
+    public $errorMessage = '';
     
-    // Arrays para el manejo de la tabla
-    public $garantias = [];
-    public $devueltos = [];
-    public $saldos = [];
-    public $montosDevolver = []; // Inputs de pago
-    public $selectedClients = [];
-    public $selectAll = false;
-
-    // Totales
-    public $totalDevolverInput = 0;
+    // Datos mostrados en la tarjeta
+    public $representanteName = '';
+    public $ejecutivoName = '';
+    public $montoGarantiaTotal = 0;
 
     #[Layout('components.layouts.app')]
     public function render()
@@ -31,49 +24,21 @@ class DevolucionGarantia extends Component
         return view('livewire.caja.devolucion-garantia');
     }
 
-    public function seleccionarModo($modo)
-    {
-        if ($modo === 'pagos') {
-            return redirect()->route('pagos.index');
-        }
-        $this->modo = $modo;
-    }
-
     public function updatedSearch()
     {
         $this->buscarPrestamo();
     }
 
-    public function updatedSelectAll($value)
-    {
-        foreach ($this->montosDevolver as $clienteId => $monto) {
-            $this->selectedClients[$clienteId] = $value;
-        }
-        $this->calcularTotal();
-    }
-
-    public function updatedMontosDevolver()
-    {
-        $this->calcularTotal();
-    }
-    
-    public function updatedSelectedClients()
-    {
-        $this->calcularTotal();
-    }
-
     public function buscarPrestamo()
     {
-        $this->notFound = false;
-        $this->prestamo = null;
-        $this->reset(['garantias', 'devueltos', 'saldos', 'montosDevolver', 'selectedClients', 'selectAll', 'totalDevolverInput']);
+        $this->reset(['prestamo', 'notFound', 'errorMessage', 'representanteName', 'ejecutivoName', 'montoGarantiaTotal']);
 
         if (empty($this->search)) {
             return;
         }
 
         // Buscar por ID de préstamo / Grupo
-        $this->prestamo = Prestamo::with(['cliente', 'representante', 'grupo', 'clientes'])
+        $this->prestamo = Prestamo::with(['cliente', 'representante', 'asesor', 'grupo', 'clientes'])
             ->find($this->search);
 
         if (! $this->prestamo) {
@@ -81,85 +46,70 @@ class DevolucionGarantia extends Component
             return;
         }
 
-        // Inicializar datos para cada cliente
+        // 1. Validar que esté liquidado
+        if ($this->prestamo->estado !== 'liquidado') {
+            $this->errorMessage = 'El crédito no está liquidado';
+            $this->prestamo = null; // No mostrar datos
+            return;
+        }
+
+        // 2. Cargar datos
+        $this->representanteName = $this->prestamo->representante->nombre_completo ?? ($this->prestamo->cliente->nombre_completo ?? 'N/A');
+        $this->ejecutivoName = $this->prestamo->asesor->name ?? 'N/A';
+        
+        // 3. Calcular Monto de Garantía Total
+        // Sumar garantías individuales ($monto_autorizado * %garantía)
+        $factorGarantia = ($this->prestamo->garantia ?? 10) / 100;
+        
         $clientes = $this->prestamo->producto === 'grupal' 
             ? $this->prestamo->clientes 
             : ($this->prestamo->clientes->isNotEmpty() ? $this->prestamo->clientes : collect([$this->prestamo->cliente]));
 
-        // Porcentaje de garantía configurado en el préstamo (default 10%)
-        $porcentajeGarantia = $this->prestamo->garantia ?? 10;
+        $totalGarantia = 0;
+        foreach ($clientes as $cliente) {
+            if (!$cliente) continue;
+            $montoAuth = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
+            $totalGarantia += ($montoAuth * $factorGarantia);
+        }
+
+        $this->montoGarantiaTotal = $totalGarantia;
+    }
+
+    public function iniciarDevolucion()
+    {
+        if (!$this->prestamo) return;
+
+        // Calcular desglose para enviar a DesgloseEfectivo
+        $montosDevolver = [];
+        $factorGarantia = ($this->prestamo->garantia ?? 10) / 100;
+        
+        $clientes = $this->prestamo->producto === 'grupal' 
+            ? $this->prestamo->clientes 
+            : ($this->prestamo->clientes->isNotEmpty() ? $this->prestamo->clientes : collect([$this->prestamo->cliente]));
+            
+        $selectedClients = [];
 
         foreach ($clientes as $cliente) {
             if (!$cliente) continue;
-
-            $montoAutorizado = 0;
-            if ($this->prestamo->producto === 'grupal') {
-                $montoAutorizado = $cliente->pivot->monto_autorizado ?? 0;
-            } else {
-                $montoAutorizado = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
-            }
-
-            // Cálculo de Multas/Penalizaciones (Modo Multas)
-            $pagosCliente = $this->prestamo->pagos->where('cliente_id', $cliente->id);
-            $recuperado = $pagosCliente->sum('moratorio_pagado');
-            
-            // Saldo pendiente de multa visualizado a hoy
-            $saldo = $this->prestamo->calcularMoratorioVigente($cliente->id, $montoAutorizado);
-            
-            // Penalización Total = Lo que ya pagó + Lo que debe
-            $penalizacionTotal = $recuperado + $saldo;
-
-            // Reutilizamos las variables de array:
-            // garantias -> Penalización Total
-            // devueltos -> Recuperado
-            // saldos -> Saldo Pendiente
-            $this->garantias[$cliente->id] = $penalizacionTotal;
-            $this->devueltos[$cliente->id] = $recuperado;
-            $this->saldos[$cliente->id] = $saldo;
-            
-            // Por defecto sugerimos cobrar el saldo pendiente
-            $this->montosDevolver[$cliente->id] = $saldo;
-            $this->selectedClients[$cliente->id] = true; // "seleccionar todo por defecto debe estar activa"
-        }
-        
-        $this->selectAll = true;
-        $this->calcularTotal();
-    }
-
-    public function calcularTotal()
-    {
-        $total = 0;
-        foreach ($this->selectedClients as $id => $isSelected) {
-            if ($isSelected) {
-                $total += (float) ($this->montosDevolver[$id] ?? 0);
-            }
-        }
-        $this->totalDevolverInput = $total;
-    }
-
-    public function procesarDevolucion()
-    {
-        if ($this->totalDevolverInput <= 0) {
-            $this->dispatch('notify', type: 'error', message: 'El monto total a cobrar debe ser mayor a 0');
-            return;
-        }
-
-        // Preparar datos para DesgloseEfectivo
-        $moratoriosInput = [];
-        foreach ($this->selectedClients as $clienteId => $seleccionado) {
-            if ($seleccionado) {
-                $moratoriosInput[$clienteId] = (float) ($this->montosDevolver[$clienteId] ?? 0);
-            }
+             $montoAuth = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
+             $garantia = round($montoAuth * $factorGarantia, 2);
+             
+             $montosDevolver[$cliente->id] = $garantia;
+             $selectedClients[$cliente->id] = true;
         }
 
         $cacheKey = 'cobro_data_' . auth()->id() . '_' . $this->prestamo->id;
         \Illuminate\Support\Facades\Cache::put($cacheKey, [
-            'abonos' => [], // No estamos cobrando capital/abonos aquí
-            'moratorios' => $moratoriosInput, // Pasamos los montos como moratorios
-            'selectedClients' => $this->selectedClients,
-        ], now()->addMinutes(60));
+            'abonos' => $montosDevolver, // Reutilizamos 'abonos' como el campo principal de monto
+            'moratorios' => [],
+            'selectedClients' => $selectedClients,
+            'tipo_operacion' => 'devolucion', // Flag para DesgloseEfectivo
+        ], now()->addMinutes(30));
 
-        // Redirigir al desglose de efectivo
-        return redirect()->route('pagos.desglose-efectivo', ['prestamoId' => $this->prestamo->id]);
+        // Redirigir
+        return redirect()->route('pagos.desglose-efectivo', [
+            'prestamoId' => $this->prestamo->id,
+            'mode' => 'devolucion' // Query param como respaldo
+        ]);
     }
 }

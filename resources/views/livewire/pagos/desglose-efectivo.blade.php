@@ -120,19 +120,19 @@
                 {{-- Tarjeta de Resumen Financiero --}}
                 <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden sticky top-6">
                     <div class="bg-gray-900 px-6 py-4">
-                        <h3 class="text-lg font-bold text-white">Resumen de Cobro</h3>
+                        <h3 class="text-lg font-bold text-white">Resumen de {{ $mode === 'devolucion' ? 'Devolución' : 'Cobro' }}</h3>
                     </div>
                     <div class="p-6 space-y-4">
                         
                         {{-- Total a Cobrar --}}
                         <div class="flex justify-between items-center pb-4 border-b border-gray-100">
-                            <span class="text-gray-600">Total a Cobrar</span>
+                            <span class="text-gray-600">Total a {{ $mode === 'devolucion' ? 'Devolver' : 'Cobrar' }}</span>
                             <span class="text-2xl font-bold text-gray-900">${{ number_format($totalSeleccionado, 2) }}</span>
                         </div>
 
                         {{-- Efectivo Recibido --}}
                         <div class="flex justify-between items-center pb-4 border-b border-gray-100">
-                            <span class="text-gray-600">Efectivo Recibido</span>
+                            <span class="text-gray-600">Efectivo {{ $mode === 'devolucion' ? 'Entregado' : 'Recibido' }}</span>
                             <span class="text-2xl font-bold text-blue-600">${{ number_format($totalEfectivo, 2) }}</span>
                         </div>
 
@@ -168,7 +168,7 @@
                                 wire:loading.attr="disabled"
                                 wire:target="validarRegistro"
                                 class="w-full flex justify-center py-4 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                            <span wire:loading.remove wire:target="validarRegistro">Confirmar y Registrar</span>
+                            <span wire:loading.remove wire:target="validarRegistro">Confirmar {{ $mode === 'devolucion' ? 'Devolución' : 'Pago' }}</span>
                             <span wire:loading wire:target="validarRegistro">Procesando...</span>
                         </button>
 
@@ -219,7 +219,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            Confirmar Pago y Cambio
+                            Confirmar {{ $mode === 'devolucion' ? 'Devolución' : 'Pago y Cambio' }}
                         </h3>
                         <button wire:click="$set('showModalCambio', false)" class="text-gray-400 hover:text-gray-500">
                             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -230,15 +230,15 @@
                     
                     <div class="bg-gray-50 p-3 rounded-md grid grid-cols-3 gap-4 text-center">
                         <div>
-                            <span class="block text-xs text-gray-500 uppercase">Total a Cobrar</span>
+                            <span class="block text-xs text-gray-500 uppercase">Total a {{ $mode === 'devolucion' ? 'Devolver' : 'Cobrar' }}</span>
                             <span class="block text-lg font-bold text-gray-900">${{ number_format($totalSeleccionado, 2) }}</span>
                         </div>
                         <div>
-                            <span class="block text-xs text-gray-500 uppercase">Efectivo Recibido</span>
+                            <span class="block text-xs text-gray-500 uppercase">Efectivo {{ $mode === 'devolucion' ? 'Entregado' : 'Recibido' }}</span>
                             <span class="block text-lg font-bold text-blue-600">${{ number_format($totalEfectivo, 2) }}</span>
                         </div>
                         <div>
-                            <span class="block text-xs text-gray-500 uppercase">Cambio a Entregar</span>
+                            <span class="block text-xs text-gray-500 uppercase">{{ $mode === 'devolucion' ? 'Cambio Recibido' : 'Cambio a Entregar' }}</span>
                             <span class="block text-lg font-bold text-green-600">${{ number_format($diferencia, 2) }}</span>
                         </div>
                     </div>

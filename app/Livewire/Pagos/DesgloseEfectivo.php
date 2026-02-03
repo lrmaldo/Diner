@@ -69,10 +69,12 @@ class DesgloseEfectivo extends Component
     public $notas = '';
     public $seleccionarTodos = true; // Por defecto seleccionamos todos
     public $showModalCambio = false;
+    public $mode = 'cobro'; // 'cobro' or 'devolucion'
 
-    public function mount($prestamoId)
+    public function mount($prestamoId, $mode = 'cobro')
     {
         $this->prestamoId = $prestamoId;
+        $this->mode = $mode;
         $this->fechaPago = now()->format('Y-m-d');
         $this->loadPrestamo();
     }
@@ -128,6 +130,11 @@ class DesgloseEfectivo extends Component
                 $this->clientesSeleccionados[$cliente->id] = $cachedData['selectedClients'][$cliente->id];
             } else {
                 $this->clientesSeleccionados[$cliente->id] = true; // Default selected
+            }
+
+            // Si es devolucion, usar parametros de cache para el modo
+            if ($cachedData && isset($cachedData['tipo_operacion'])) {
+                $this->mode = $cachedData['tipo_operacion'];
             }
         }
 
@@ -408,14 +415,14 @@ class DesgloseEfectivo extends Component
                             'prestamo_id' => $this->prestamo->id,
                             'cliente_id' => $clienteId,
                             'registrado_por' => auth()->id(),
-                            'monto' => $montoTotal,
+                            'monto' => $this->mode === 'devolucion' ? -abs($montoTotal) : $montoTotal,
                             'fecha_pago' => $this->fechaPago,
-                            'tipo_pago' => 'abono',
+                            'tipo_pago' => $this->mode === 'devolucion' ? 'devolucion_garantia' : 'abono',
                             'numero_pago' => $numeroPago,
                             'interes_pagado' => 0,
-                            'capital_pagado' => $monto,
-                            'moratorio_pagado' => $moratorio,
-                            'notas' => $this->notas,
+                            'capital_pagado' => $this->mode === 'devolucion' ? 0 : $monto,
+                            'moratorio_pagado' => $this->mode === 'devolucion' ? 0 : $moratorio,
+                            'notas' => $this->notas . ($this->mode === 'devolucion' ? ' (Devolución de Garantía)' : ''),
                             'desglose_efectivo' => $desglose,
                             'desglose_cambio' => $desgloseCambio,
                         ]);
@@ -425,15 +432,20 @@ class DesgloseEfectivo extends Component
 
             $clientesSeleccionadosCount = count(array_filter($this->clientesSeleccionados));
             $tipoPrestamo = $this->prestamo->producto === 'grupal' ? 'Cobro grupal' : 'Pago';
+            
+            if ($this->mode === 'devolucion') {
+                $tipoPrestamo = 'Devolución de Garantía';
+            }
+
             $detalleClientes = $clientesSeleccionadosCount > 1 ? "{$clientesSeleccionadosCount} clientes" : '1 cliente';
 
             $this->prestamo->registrarBitacora(
-                'pago_registrado',
+                $this->mode === 'devolucion' ? 'garantia_devuelta' : 'pago_registrado',
                 "{$tipoPrestamo} registrado: {$detalleClientes}, total: $".number_format($this->totalSeleccionado, 2)
             );
 
             // Verificar si el préstamo ha sido liquidado
-            if ($this->prestamo->calcularSaldoPendiente() <= 0.01) {
+            if ($this->mode !== 'devolucion' && $this->prestamo->calcularSaldoPendiente() <= 0.01) {
                 $this->prestamo->estado = 'liquidado';
                 $this->prestamo->save();
 
