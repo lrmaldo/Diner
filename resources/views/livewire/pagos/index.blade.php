@@ -1,33 +1,16 @@
 <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
     @if(!$modo)
-        <div class="max-w-4xl mx-auto mt-10">
-            <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
-                <div class="p-10 text-center">
-                    <h2 class="text-3xl font-extrabold text-gray-900 mb-8">Seleccione una Operación</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {{-- Botón Pagos --}}
-                        <button wire:click="seleccionarModo('pagos')" class="group relative flex flex-col items-center justify-center p-8 border-2 border-red-100 rounded-2xl hover:bg-red-50 hover:border-red-500 transition-all duration-300 ease-in-out">
-                            <div class="h-24 w-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6 group-hover:bg-red-600 group-hover:text-white transition-colors duration-300 shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                            <span class="text-2xl font-bold text-gray-800 group-hover:text-red-700">Pagos</span>
-                            <span class="mt-2 text-sm text-gray-500 text-center">Registrar abonos y liquidaciones de préstamos.</span>
-                        </button>
+        <div class="flex items-center justify-center min-h-[50vh]">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 w-full max-w-4xl">
+                {{-- Botón Pagos --}}
+                <button wire:click="seleccionarModo('pagos')" class="h-48 bg-red-600 hover:bg-red-700 text-white text-4xl font-bold rounded shadow-lg transform transition hover:scale-105 flex items-center justify-center">
+                    Pagos
+                </button>
 
-                        {{-- Botón Multas --}}
-                        <button wire:click="seleccionarModo('multas')" class="group relative flex flex-col items-center justify-center p-8 border-2 border-red-100 rounded-2xl hover:bg-red-50 hover:border-red-500 transition-all duration-300 ease-in-out">
-                            <div class="h-24 w-24 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6 group-hover:bg-red-600 group-hover:text-white transition-colors duration-300 shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                            </div>
-                            <span class="text-2xl font-bold text-gray-800 group-hover:text-red-700">Multas</span>
-                            <span class="mt-2 text-sm text-gray-500 text-center">Cobro de penalizaciones y cargos moratorios.</span>
-                        </button>
-                    </div>
-                </div>
+                {{-- Botón Multas --}}
+                <button wire:click="seleccionarModo('multas')" class="h-48 bg-red-600 hover:bg-red-700 text-white text-4xl font-bold rounded shadow-lg transform transition hover:scale-105 flex items-center justify-center">
+                    Multas
+                </button>
             </div>
         </div>
     @else
@@ -42,52 +25,57 @@
         </div>
         
         @if($modo === 'multas')
-            {{-- Interface específica para Multas (Estilo Acordeón/Simplificado) --}}
-            <div class="bg-white shadow-xl rounded-lg overflow-hidden animate-fade-in-down">
-                <div class="bg-red-600 px-6 py-4">
-                     <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        Cobro de Penalizaciones
-                    </h2>
-                </div>
-                <div class="p-8">
-                     <div class="flex items-end gap-x-0">
-                        <div class="w-full max-w-md">
-                            <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
+            {{-- Interface específica para Multas --}}
+            <div class="bg-white shadow-xl sm:rounded-lg p-6 animate-fade-in-down">
+                <h1 class="text-2xl font-bold text-gray-900 mb-6">Cobro de Multas</h1>
+                
+                <div class="mb-8 flex flex-col md:flex-row gap-4 items-end">
+                    <div class="w-full md:w-1/3">
+                        <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Grupo (ID Préstamo)</label>
+                        <div class="relative rounded-md shadow-sm">
                             <input type="text" 
                                 wire:model.live.debounce.300ms="search" 
+                                wire:keydown.enter="buscarPrestamo"
                                 id="search" 
-                                class="focus:ring-red-500 focus:border-red-500 block w-full pl-4 pr-12 text-lg border-gray-300 border-r-0 rounded-l-md h-12" 
-                                placeholder="ID Préstamo..."
+                                class="focus:ring-red-500 focus:border-red-500 block w-full pl-4 pr-12 text-lg border-gray-300 rounded-md h-12 placeholder-gray-400" 
+                                placeholder="Ingrese ID..."
                                 autofocus>
                         </div>
-                        <button wire:click="buscarPrestamo" class="h-12 bg-red-600 hover:bg-red-700 text-white font-bold px-6 rounded-r-md transition duration-150 ease-in-out flex items-center justify-center">
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <button wire:click="buscarPrestamo" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-md transition duration-150 ease-in-out h-12 flex items-center justify-center">
                             Buscar
                         </button>
                     </div>
-
-                    {{-- Loading --}}
-                    <div wire:loading wire:target="search, buscarPrestamo" class="mt-4 text-sm text-red-600 font-medium">
-                        Buscando grupo...
-                    </div>
-
-                    {{-- Feedback de no encontrado --}}
-                    @if($notFound)
-                        <div class="mt-4 text-red-600 font-medium">
-                            No se encontró el grupo {{ $search }}.
-                        </div>
-                    @endif
-
-                    {{-- Resultados para Multas (To be implemented) --}}
-                    @if($prestamo)
-                        <div class="mt-8 p-4 bg-gray-50 rounded border border-gray-200">
-                             <h3 class="font-bold text-lg mb-2">Grupo Encontrado: {{ $prestamo->grupo->nombre ?? 'N/A' }}</h3>
-                             <p>Módulo de cobro de multas en construcción...</p>
-                        </div>
-                    @endif
                 </div>
+
+                {{-- Loading --}}
+                <div wire:loading wire:target="search, buscarPrestamo" class="mb-4 text-center w-full">
+                    <span class="text-red-500 font-semibold">Buscando grupo...</span>
+                </div>
+
+                {{-- Feedback de no encontrado --}}
+                @if($notFound)
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                        <p class="text-sm text-red-700">No se encontró el grupo <strong>{{ $search }}</strong>.</p>
+                    </div>
+                @endif
+
+                {{-- Resultados para Multas --}}
+                @if($prestamo)
+                    <div class="mt-8 p-6 bg-gray-50 rounded border border-gray-200">
+                            <h3 class="font-bold text-xl mb-4 text-gray-800">Grupo Encontrado: <span class="text-red-600">{{ $prestamo->grupo->nombre ?? 'N/A' }}</span></h3>
+                            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                                <div class="flex">
+                                    <div class="ml-3">
+                                        <p class="text-sm text-yellow-700">
+                                            Módulo de cobro de multas en construcción. Aquí aparecerá la tabla de integrantes para aplicar penalizaciones.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+                @endif
             </div>
         @else
             {{-- Interface Original de Pagos --}}
