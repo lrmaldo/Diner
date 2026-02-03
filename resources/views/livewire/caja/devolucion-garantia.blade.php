@@ -78,8 +78,8 @@
                         <thead class="bg-red-600 text-white">
                             <tr>
                                 <th class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Nombre</th>
-                                <th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Garantía</th>
-                                <th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Devuelto</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Penalización</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Recuperado</th>
                                 <th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider">Saldo</th>
                                 <th class="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider w-10">
                                     <div class="flex flex-col items-center">
@@ -87,7 +87,7 @@
                                         <input type="checkbox" wire:model.live="selectAll" class="rounded border-white text-red-600 focus:ring-red-500 h-4 w-4">
                                     </div>
                                 </th>
-                                <th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider bg-red-700">Devolver</th>
+                                <th class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider bg-red-700">Pago</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
@@ -137,7 +137,7 @@
                 {{-- Acciones --}}
                 <div class="mt-8 flex justify-center gap-6">
                     <button wire:click="procesarDevolucion" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-12 rounded shadow-lg transform transition hover:scale-105">
-                        Cobrar/Devolver
+                        Cobrar
                     </button>
                     <button wire:click="$set('prestamo', null)" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-12 rounded shadow-lg transform transition hover:scale-105">
                         Cancelar

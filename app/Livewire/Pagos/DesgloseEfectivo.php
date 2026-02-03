@@ -115,7 +115,13 @@ class DesgloseEfectivo extends Component
             }
 
             $this->montosPorCliente[$cliente->id] = $montoSugerido;
-            $this->moratoriosPorCliente[$cliente->id] = 0;
+            
+            // Determinar moratorio: Prioridad a lo que viene de la vista anterior (caché)
+            if ($cachedData && isset($cachedData['moratorios'][$cliente->id])) {
+                $this->moratoriosPorCliente[$cliente->id] = (float) $cachedData['moratorios'][$cliente->id];
+            } else {
+                $this->moratoriosPorCliente[$cliente->id] = 0;
+            }
             
             // Determinar selección: Prioridad a caché, sino true por defecto
             if ($cachedData && isset($cachedData['selectedClients'][$cliente->id])) {

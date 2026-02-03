@@ -99,23 +99,30 @@ class DevolucionGarantia extends Component
                 $montoAutorizado = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
             }
 
-            // Cálculo de garantía
-            $garantiaTotal = $montoAutorizado * ($porcentajeGarantia / 100);
+            // Cálculo de Multas/Penalizaciones (Modo Multas)
+            $pagosCliente = $this->prestamo->pagos->where('cliente_id', $cliente->id);
+            $recuperado = $pagosCliente->sum('moratorio_pagado');
             
-            // TODO: Consultar si ya se ha devuelto algo de garantía en alguna tabla (placeholder 0)
-            $devuelto = 0; 
+            // Saldo pendiente de multa visualizado a hoy
+            $saldo = $this->prestamo->calcularMoratorioVigente($cliente->id, $montoAutorizado);
             
-            $saldo = max(0, $garantiaTotal - $devuelto);
+            // Penalización Total = Lo que ya pagó + Lo que debe
+            $penalizacionTotal = $recuperado + $saldo;
 
-            $this->garantias[$cliente->id] = $garantiaTotal;
-            $this->devueltos[$cliente->id] = $devuelto;
+            // Reutilizamos las variables de array:
+            // garantias -> Penalización Total
+            // devueltos -> Recuperado
+            // saldos -> Saldo Pendiente
+            $this->garantias[$cliente->id] = $penalizacionTotal;
+            $this->devueltos[$cliente->id] = $recuperado;
             $this->saldos[$cliente->id] = $saldo;
             
-            // Por defecto sugerimos devolver todo el saldo disponible
+            // Por defecto sugerimos cobrar el saldo pendiente
             $this->montosDevolver[$cliente->id] = $saldo;
-            $this->selectedClients[$cliente->id] = false;
+            $this->selectedClients[$cliente->id] = true; // "seleccionar todo por defecto debe estar activa"
         }
         
+        $this->selectAll = true;
         $this->calcularTotal();
     }
 
@@ -132,16 +139,27 @@ class DevolucionGarantia extends Component
 
     public function procesarDevolucion()
     {
-        // Validación básica
         if ($this->totalDevolverInput <= 0) {
-            $this->dispatch('notify', type: 'error', message: 'El monto total a devolver debe ser mayor a 0');
+            $this->dispatch('notify', type: 'error', message: 'El monto total a cobrar debe ser mayor a 0');
             return;
         }
 
-        // Lógica de guardado pendiente (placeholder)
-        $this->dispatch('notify', type: 'success', message: 'Devolución procesada correctamente (Simulación)');
-        
-        // Resetear o recargar
-        // $this->buscarPrestamo(); 
+        // Preparar datos para DesgloseEfectivo
+        $moratoriosInput = [];
+        foreach ($this->selectedClients as $clienteId => $seleccionado) {
+            if ($seleccionado) {
+                $moratoriosInput[$clienteId] = (float) ($this->montosDevolver[$clienteId] ?? 0);
+            }
+        }
+
+        $cacheKey = 'cobro_data_' . auth()->id() . '_' . $this->prestamo->id;
+        \Illuminate\Support\Facades\Cache::put($cacheKey, [
+            'abonos' => [], // No estamos cobrando capital/abonos aquí
+            'moratorios' => $moratoriosInput, // Pasamos los montos como moratorios
+            'selectedClients' => $this->selectedClients,
+        ], now()->addMinutes(60));
+
+        // Redirigir al desglose de efectivo
+        return redirect()->route('pagos.desglose-efectivo', ['prestamoId' => $this->prestamo->id]);
     }
 }
