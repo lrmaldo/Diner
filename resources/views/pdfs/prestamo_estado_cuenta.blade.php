@@ -599,7 +599,7 @@
             </div>
             <div class="info-header-item">
                 <div class="info-header-label">Garantía devuelta:</div>
-                <div class="info-header-value"></div>
+                <div class="info-header-value">${{ number_format(abs($prestamo->pagos->where('tipo_pago', 'devolucion_garantia')->sum('monto')), 2) }}</div>
                 <div class="info-header-label" style="margin-top: 6px;">Otros ingresos:</div>
                 <div class="info-header-value"></div>
             </div>
