@@ -1,6 +1,34 @@
 <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-        <h1 class="text-2xl font-bold text-gray-900 mb-6">Devolución de Garantías</h1>
+    
+    @if(!$modo)
+        {{-- Menú de Retiro: Pagos (Devoluciones) vs Multas --}}
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-12 flex justify-center items-center gap-16 min-h-[400px]">
+            <button wire:click="seleccionarModo('pagos')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-3xl py-12 px-16 rounded shadow-lg transform transition hover:scale-105">
+                Pagos
+            </button>
+            
+            <button wire:click="seleccionarModo('multas')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-3xl py-12 px-16 rounded shadow-lg transform transition hover:scale-105">
+                Multas
+            </button>
+        </div>
+    @elseif($modo === 'multas')
+        {{-- Vista de Multas: Placeholder o implementación futura --}}
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+            <button wire:click="seleccionarModo(null)" class="mb-4 text-gray-500 hover:text-gray-700 font-bold flex items-center">
+                &larr; Volver
+            </button>
+            <h1 class="text-2xl font-bold text-gray-900 mb-6">Retiro de Multas</h1>
+            <p class="text-gray-600">Módulo de multas en construcción.</p>
+        </div>
+    @else
+        {{-- Vista de Pagos (Devoluciones de Garantía) --}}
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">Devolución de Garantías</h1>
+                <button wire:click="seleccionarModo(null)" class="text-gray-500 hover:text-gray-700 font-bold flex items-center">
+                    &larr; Volver al menú
+                </button>
+            </div>
         
         {{-- Buscador --}}
         <div class="mb-8 flex flex-col md:flex-row gap-4 items-end">
@@ -87,4 +115,5 @@
             </div>
         @endif
     </div>
+    @endif
 </div>
