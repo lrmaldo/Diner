@@ -53,8 +53,8 @@ class DevolucionGarantia extends Component
             return;
         }
 
-        // 1. Validar que esté liquidado
-        if ($this->prestamo->estado !== 'liquidado') {
+        // 1. Validar reglas de negocio según modo
+        if ($this->modo === 'pagos' && $this->prestamo->estado !== 'liquidado') {
             $this->errorMessage = 'El crédito no está liquidado';
             $this->prestamo = null; // No mostrar datos
             return;

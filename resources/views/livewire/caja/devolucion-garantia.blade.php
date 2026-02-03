@@ -11,20 +11,11 @@
                 Multas
             </button>
         </div>
-    @elseif($modo === 'multas')
-        {{-- Vista de Multas: Placeholder o implementación futura --}}
-        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-            <button wire:click="seleccionarModo(null)" class="mb-4 text-gray-500 hover:text-gray-700 font-bold flex items-center">
-                &larr; Volver
-            </button>
-            <h1 class="text-2xl font-bold text-gray-900 mb-6">Retiro de Multas</h1>
-            <p class="text-gray-600">Módulo de multas en construcción.</p>
-        </div>
     @else
-        {{-- Vista de Pagos (Devoluciones de Garantía) --}}
+        {{-- Vista de Operación (Pagos/Multas) --}}
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-900">Devolución de Garantías</h1>
+                <h1 class="text-2xl font-bold text-gray-900">{{ $modo === 'pagos' ? 'Devolución de Garantías' : 'Retiro de Multas' }}</h1>
                 <button wire:click="seleccionarModo(null)" class="text-gray-500 hover:text-gray-700 font-bold flex items-center">
                     &larr; Volver al menú
                 </button>
