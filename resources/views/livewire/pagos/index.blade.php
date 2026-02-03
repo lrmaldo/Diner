@@ -40,13 +40,64 @@
                 Volver a Selección
             </button>
         </div>
-        <div class="bg-white shadow-xl rounded-lg overflow-hidden">
+        
+        @if($modo === 'multas')
+            {{-- Interface específica para Multas (Estilo Acordeón/Simplificado) --}}
+            <div class="bg-white shadow-xl rounded-lg overflow-hidden animate-fade-in-down">
+                <div class="bg-red-600 px-6 py-4">
+                     <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        Cobro de Penalizaciones
+                    </h2>
+                </div>
+                <div class="p-8">
+                     <div class="flex items-end gap-x-0">
+                        <div class="w-full max-w-md">
+                            <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Grupo</label>
+                            <input type="text" 
+                                wire:model.live.debounce.300ms="search" 
+                                id="search" 
+                                class="focus:ring-red-500 focus:border-red-500 block w-full pl-4 pr-12 text-lg border-gray-300 border-r-0 rounded-l-md h-12" 
+                                placeholder="ID Préstamo..."
+                                autofocus>
+                        </div>
+                        <button wire:click="buscarPrestamo" class="h-12 bg-red-600 hover:bg-red-700 text-white font-bold px-6 rounded-r-md transition duration-150 ease-in-out flex items-center justify-center">
+                            Buscar
+                        </button>
+                    </div>
+
+                    {{-- Loading --}}
+                    <div wire:loading wire:target="search, buscarPrestamo" class="mt-4 text-sm text-red-600 font-medium">
+                        Buscando grupo...
+                    </div>
+
+                    {{-- Feedback de no encontrado --}}
+                    @if($notFound)
+                        <div class="mt-4 text-red-600 font-medium">
+                            No se encontró el grupo {{ $search }}.
+                        </div>
+                    @endif
+
+                    {{-- Resultados para Multas (To be implemented) --}}
+                    @if($prestamo)
+                        <div class="mt-8 p-4 bg-gray-50 rounded border border-gray-200">
+                             <h3 class="font-bold text-lg mb-2">Grupo Encontrado: {{ $prestamo->grupo->nombre ?? 'N/A' }}</h3>
+                             <p>Módulo de cobro de multas en construcción...</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @else
+            {{-- Interface Original de Pagos --}}
+            <div class="bg-white shadow-xl rounded-lg overflow-hidden">
         <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                {{ $modo === 'multas' ? 'Búsqueda de Préstamos para Multas' : 'Búsqueda de Préstamos para Cobro' }}
+                Búsqueda de Préstamos para Cobro
             </h2>
         </div>
 
@@ -367,6 +418,6 @@
                 </div>
             @endif
         </div>
-    </div>
+    @endif
     @endif
 </div>
