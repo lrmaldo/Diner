@@ -546,6 +546,48 @@ class Prestamo extends Model
         return max(0, $totalGenerado - $moratorioPagadoTotal);
     }
 
+    public function calcularDetalleMoratorio($clienteId, $montoAutorizado)
+    {
+        $calendario = $this->simularCalendarioPago($montoAutorizado);
+        $fechaHoy = now()->startOfDay();
+        
+        $pagosCliente = $this->pagos->where('cliente_id', $clienteId);
+        $moratorioPagadoTotal = $pagosCliente->sum('moratorio_pagado');
+        
+        $multasGeneradasCount = 0;
+
+        foreach ($calendario as $pagoProg) {
+            $fechaVenc = Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
+            $numero = $pagoProg['numero'];
+            $montoCuota = $pagoProg['monto'];
+
+            $pagosCuota = $pagosCliente->where('numero_pago', $numero);
+            $montoPagadoCuota = $pagosCuota->sum('monto');
+
+            if ($montoPagadoCuota < ($montoCuota - 1)) { 
+                if ($fechaVenc->lt($fechaHoy)) {
+                    $multasGeneradasCount++;
+                }
+            } else {
+                $ultimoPago = $pagosCuota->sortByDesc('fecha_pago')->first();
+                if ($ultimoPago && $ultimoPago->fecha_pago->startOfDay()->gt($fechaVenc)) {
+                    $multasGeneradasCount++;
+                }
+            }
+        }
+
+        $montoPago = !empty($calendario) ? $calendario[0]['monto'] : 0;
+        $multaUnitaria = $montoPago * 0.05;
+        $totalGenerado = $multasGeneradasCount * $multaUnitaria;
+        $saldo = max(0, $totalGenerado - $moratorioPagadoTotal);
+
+        return [
+            'penalizacion' => $totalGenerado,
+            'recuperado' => $moratorioPagadoTotal,
+            'saldo' => $saldo
+        ];
+    }
+
     public function calcularSaldoLiquidarParaCliente($clienteId, $montoAutorizado)
     {
         // 1. Calcular Deuda Original Total (Capital + Interes + IVA)

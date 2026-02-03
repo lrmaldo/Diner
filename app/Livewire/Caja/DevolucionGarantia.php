@@ -19,6 +19,12 @@ class DevolucionGarantia extends Component
     public $ejecutivoName = '';
     public $montoGarantiaTotal = 0;
 
+    // Datos para Multas
+    public $multasData = [];
+    public $selectAllMultas = false;
+    public $multasSelected = [];
+    public $totalPagarMultas = 0;
+
     #[Layout('components.layouts.app')]
     public function render()
     {
@@ -72,6 +78,29 @@ class DevolucionGarantia extends Component
             ? $this->prestamo->clientes 
             : ($this->prestamo->clientes->isNotEmpty() ? $this->prestamo->clientes : collect([$this->prestamo->cliente]));
 
+        if ($this->modo === 'multas') {
+            $this->multasData = [];
+            $this->multasSelected = [];
+            $this->selectAllMultas = false;
+            $this->totalPagarMultas = 0;
+
+            foreach ($clientes as $cliente) {
+                if (!$cliente) continue;
+                $montoAuth = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
+                $detalle = $this->prestamo->calcularDetalleMoratorio($cliente->id, $montoAuth);
+                
+                $this->multasData[] = [
+                    'id' => $cliente->id,
+                    'nombre' => $cliente->nombre_completo,
+                    'penalizacion' => $detalle['penalizacion'],
+                    'recuperado' => $detalle['recuperado'],
+                    'saldo' => $detalle['saldo'],
+                ];
+                $this->multasSelected[$cliente->id] = false;
+            }
+            return;
+        }
+
         $totalGarantia = 0;
         foreach ($clientes as $cliente) {
             if (!$cliente) continue;
@@ -80,6 +109,30 @@ class DevolucionGarantia extends Component
         }
 
         $this->montoGarantiaTotal = $totalGarantia;
+    }
+
+    public function updatedSelectAllMultas($value)
+    {
+        foreach ($this->multasData as $row) {
+            $this->multasSelected[$row['id']] = $value;
+        }
+        $this->calcularTotalPagarMultas();
+    }
+
+    public function updatedMultasSelected()
+    {
+        $this->calcularTotalPagarMultas();
+    }
+
+    public function calcularTotalPagarMultas()
+    {
+        $total = 0;
+        foreach ($this->multasData as $row) {
+            if ($this->multasSelected[$row['id']] ?? false) {
+                $total += $row['saldo']; // Asumimos que pagan el saldo completo
+            }
+        }
+        $this->totalPagarMultas = $total;
     }
 
     public function iniciarDevolucion()
