@@ -8,7 +8,6 @@ use Livewire\Component;
 
 class DevolucionGarantia extends Component
 {
-    public $modo = null; // null (menú), 'pagos' (devolución), 'multas'
     public $search = '';
     public $prestamo = null;
     public $notFound = false;
@@ -19,22 +18,10 @@ class DevolucionGarantia extends Component
     public $ejecutivoName = '';
     public $montoGarantiaTotal = 0;
 
-    // Datos para Multas
-    public $multasData = [];
-    public $selectAllMultas = false;
-    public $multasSelected = [];
-    public $totalPagarMultas = 0;
-
     #[Layout('components.layouts.app')]
     public function render()
     {
         return view('livewire.caja.devolucion-garantia');
-    }
-
-    public function seleccionarModo($nuevoModo)
-    {
-        $this->modo = $nuevoModo;
-        $this->reset(['search', 'prestamo', 'notFound', 'errorMessage']);
     }
 
     public function updatedSearch()
@@ -59,84 +46,50 @@ class DevolucionGarantia extends Component
             return;
         }
 
-        // 1. Validar reglas de negocio según modo
-        if ($this->modo === 'pagos' && $this->prestamo->estado !== 'liquidado') {
+        // 1. Validar reglas de negocio
+        
+        // Estado Liquidado
+        if ($this->prestamo->estado !== 'liquidado') {
             $this->errorMessage = 'El crédito no está liquidado';
-            // No seteamos null para permitir ver los datos, aunque no se pueda operar
         }
 
         // 2. Cargar datos
         $this->representanteName = $this->prestamo->representante->nombre_completo ?? ($this->prestamo->cliente->nombre_completo ?? 'N/A');
         $this->ejecutivoName = $this->prestamo->asesor->name ?? 'N/A';
         
-        // 3. Calcular Monto de Garantía Total
-        // Sumar garantías individuales ($monto_autorizado * %garantía)
+        // 3. Calcular Monto de Garantía Total y verificar multas
         $factorGarantia = ($this->prestamo->garantia ?? 10) / 100;
         
         $clientes = $this->prestamo->producto === 'grupal' 
             ? $this->prestamo->clientes 
             : ($this->prestamo->clientes->isNotEmpty() ? $this->prestamo->clientes : collect([$this->prestamo->cliente]));
 
-        if ($this->modo === 'multas') {
-            $this->multasData = [];
-            $this->multasSelected = [];
-            $this->selectAllMultas = false;
-            $this->totalPagarMultas = 0;
+        $this->montoGarantiaTotal = 0;
+        $saldoMultasTotal = 0;
 
-            foreach ($clientes as $cliente) {
-                if (!$cliente) continue;
-                $montoAuth = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
-                $detalle = $this->prestamo->calcularDetalleMoratorio($cliente->id, $montoAuth);
-                
-                $this->multasData[] = [
-                    'id' => $cliente->id,
-                    'nombre' => $cliente->nombre_completo,
-                    'penalizacion' => $detalle['penalizacion'],
-                    'recuperado' => $detalle['recuperado'],
-                    'saldo' => $detalle['saldo'],
-                ];
-                $this->multasSelected[$cliente->id] = false;
-            }
-            return;
-        }
-
-        $totalGarantia = 0;
         foreach ($clientes as $cliente) {
             if (!$cliente) continue;
+            
+            // Garantía
             $montoAuth = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
-            $totalGarantia += ($montoAuth * $factorGarantia);
+            $this->montoGarantiaTotal += ($montoAuth * $factorGarantia);
+
+            // Multas
+            $detalle = $this->prestamo->calcularDetalleMoratorio($cliente->id, $montoAuth);
+            $saldoMultasTotal += $detalle['saldo'];
         }
 
-        $this->montoGarantiaTotal = $totalGarantia;
-    }
-
-    public function updatedSelectAllMultas($value)
-    {
-        foreach ($this->multasData as $row) {
-            $this->multasSelected[$row['id']] = $value;
+        // Si hay multas, bloqueamos la devolución
+        if ($saldoMultasTotal > 0 && !$this->errorMessage) {
+            $this->errorMessage = 'El préstamo tiene multas pendientes de pago ($' . number_format($saldoMultasTotal, 2) . '). No se puede devolver la garantía.';
         }
-        $this->calcularTotalPagarMultas();
-    }
-
-    public function updatedMultasSelected()
-    {
-        $this->calcularTotalPagarMultas();
-    }
-
-    public function calcularTotalPagarMultas()
-    {
-        $total = 0;
-        foreach ($this->multasData as $row) {
-            if ($this->multasSelected[$row['id']] ?? false) {
-                $total += $row['saldo']; // Asumimos que pagan el saldo completo
-            }
-        }
-        $this->totalPagarMultas = $total;
     }
 
     public function iniciarDevolucion()
     {
-        if (!$this->prestamo) return;
+        if (!$this->prestamo || $this->errorMessage) {
+            return;
+        }
 
         // Calcular desglose para enviar a DesgloseEfectivo
         $montosDevolver = [];
@@ -168,7 +121,7 @@ class DevolucionGarantia extends Component
         // Redirigir
         return redirect()->route('pagos.desglose-efectivo', [
             'prestamoId' => $this->prestamo->id,
-            'mode' => 'devolucion' // Query param como respaldo
+            'mode' => 'devolucion'
         ]);
     }
 }

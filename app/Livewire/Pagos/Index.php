@@ -26,10 +26,21 @@ class Index extends Component
     public $selectedClients = [];
     public $selectAll = false;
 
+    // Properties for Multas
+    public $multasData = [];
+    public $selectAllMultas = false;
+    public $multasSelected = [];
+    public $totalPagarMultas = 0;
+
+    public function mount()
+    {
+        // Default to null to show buttons first
+    }
+
     public function seleccionarModo($modo)
     {
         $this->modo = $modo;
-        $this->reset(['search', 'prestamo', 'notFound']);
+        $this->reset(['search', 'prestamo', 'notFound', 'abonos', 'pendientes', 'moratorios', 'saldosRestantes', 'multasData', 'multasSelected']);
     }
 
     public function updatedSelectAll($value)
@@ -55,6 +66,12 @@ class Index extends Component
         $this->siguientesPagos = [];
         $this->selectedClients = [];
         $this->selectAll = false;
+        
+        // Reset Multas specific fields
+        $this->multasData = [];
+        $this->multasSelected = [];
+        $this->selectAllMultas = false;
+        $this->totalPagarMultas = 0;
 
         if (empty($this->search)) {
             return;
@@ -81,6 +98,26 @@ class Index extends Component
             $clientes = $clientes->filter(function ($value) {
                 return !is_null($value);
             });
+
+            // Logic for 'multas' mode
+            if ($this->modo === 'multas') {
+                foreach ($clientes as $cliente) {
+                    $montoAutorizado = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
+                    $detalle = $this->prestamo->calcularDetalleMoratorio($cliente->id, $montoAutorizado);
+                    
+                    $this->multasData[] = [
+                        'id' => $cliente->id,
+                        'nombre' => $cliente->nombre_completo,
+                        'penalizacion' => $detalle['penalizacion'],
+                        'recuperado' => $detalle['recuperado'],
+                        'saldo' => $detalle['saldo'],
+                    ];
+                    $this->multasSelected[$cliente->id] = false;
+                }
+                return; // Stop here for multas
+            }
+            
+            // Logic for 'pagos' mode continue below...
 
             foreach ($clientes as $cliente) {
                 $montoAutorizado = 0;
@@ -391,6 +428,37 @@ class Index extends Component
                 'fecha' => $fechaPago->format('Y-m-d'),
                 'monto' => $cuota,
             ];
+
+    public function updatedSelectAllMultas($value)
+    {
+        foreach ($this->multasData as $row) {
+            $this->multasSelected[$row['id']] = $value;
+        }
+        $this->calculateTotalMultas();
+    }
+
+    public function updatedMultasSelected()
+    {
+        $this->calculateTotalMultas();
+    }
+
+    public function calculateTotalMultas()
+    {
+        $this->totalPagarMultas = 0;
+        foreach ($this->multasData as $row) {
+            if ($this->multasSelected[$row['id']] ?? false) {
+                $this->totalPagarMultas += $row['saldo'];
+            }
+        }
+    }
+
+    public function iniciarCobroMultas()
+    {
+        // Placeholder for Multas processing
+        // This would likely redirect to a payment breakdown or process directly
+        // For now, let's just debug or show message
+        // dd('Processing Fines', $this->multasSelected);
+    }
 
             $fechaActual = $fechaPago->copy();
         }

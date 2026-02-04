@@ -1,25 +1,8 @@
 <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    
-    @if(!$modo)
-        {{-- Menú de Retiro: Pagos (Devoluciones) vs Multas --}}
-        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-12 flex justify-center items-center gap-16 min-h-[400px]">
-            <button wire:click="seleccionarModo('pagos')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-3xl py-12 px-16 rounded shadow-lg transform transition hover:scale-105">
-                Pagos
-            </button>
-            
-            <button wire:click="seleccionarModo('multas')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-3xl py-12 px-16 rounded shadow-lg transform transition hover:scale-105">
-                Multas
-            </button>
+    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-900">Devolución de Garantías</h1>
         </div>
-    @else
-        {{-- Vista de Operación (Pagos/Multas) --}}
-        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-bold text-gray-900">{{ $modo === 'pagos' ? 'Devolución de Garantías' : 'Retiro de Multas' }}</h1>
-                <button wire:click="seleccionarModo(null)" class="text-gray-500 hover:text-gray-700 font-bold flex items-center">
-                    &larr; Volver al menú
-                </button>
-            </div>
         
         {{-- Buscador --}}
         <div class="mb-8 flex flex-col md:flex-row gap-4 items-end">
@@ -57,73 +40,6 @@
         @endif
 
         @if($prestamo)
-            @if($modo === 'multas')
-                <div class="animate-fade-in-up mt-8">
-                    {{-- Tabla de Multas --}}
-                    <div class="flex justify-end mb-2">
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" wire:model.live="selectAllMultas" class="form-checkbox h-5 w-5 text-red-600 rounded border-gray-300 focus:ring-red-500">
-                            <span class="ml-2 text-gray-700">Seleccionar todo</span>
-                        </label>
-                    </div>
-
-                    <div class="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-red-600">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Nombre</th>
-                                    <th class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Penalizacion</th>
-                                    <th class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Recuperado</th>
-                                    <th class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Saldo</th>
-                                    <th class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Pagar</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($multasData as $row)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                                            {{ $row['nombre'] }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 border-r border-gray-200">
-                                            ${{ number_format($row['penalizacion'], 0) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 border-r border-gray-200">
-                                            ${{ number_format($row['recuperado'], 0) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 border-r border-gray-200">
-                                            ${{ number_format($row['saldo'], 0) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <input type="checkbox" wire:model.live="multasSelected.{{ $row['id'] }}" class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 rounded">
-                                                <span class="text-blue-700 font-bold text-lg cursor-pointer" wire:click="$toggle('multasSelected.{{ $row['id'] }}')">
-                                                    {{ number_format($row['saldo'], 0) }}
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Totales y Acciones --}}
-                    <div class="mt-8 flex justify-end items-center gap-8 px-4">
-                        <div class="text-3xl font-bold text-red-600">
-                            Total <span class="ml-4">{{ number_format($totalPagarMultas, 0) }}</span>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-center gap-8 mt-12 pb-8">
-                        <button wire:click="iniciarCobroMultas" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-12 rounded text-xl shadow transform transition hover:scale-105">
-                            Cobrar
-                        </button>
-                        <button wire:click="$set('prestamo', null)" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-12 rounded text-xl shadow transform transition hover:scale-105">
-                            Cancelar
-                        </button>
-                    </div>
-                </div>
-            @else
             <div class="animate-fade-in-up mt-8 max-w-2xl mx-auto border border-gray-200 rounded-lg p-8 shadow-sm">
                 
                 <div class="grid grid-cols-1 gap-6 mb-8">
@@ -176,8 +92,6 @@
                     </button>
                 </div>
             </div>
-            @endif
         @endif
     </div>
-    @endif
 </div>

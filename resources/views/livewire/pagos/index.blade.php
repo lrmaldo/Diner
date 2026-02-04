@@ -1,13 +1,45 @@
 <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    @if(!$modo)
+        {{-- Selección de Modo --}}
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-12 flex justify-center items-center gap-16 min-h-[400px]">
+            <button wire:click="seleccionarModo('pagos')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-3xl py-12 px-16 rounded shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Realizar Pago
+            </button>
+            
+            <button wire:click="seleccionarModo('multas')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-3xl py-12 px-16 rounded shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Cobrar Multas
+            </button>
+        </div>
+    @else
     {{-- Interface Original de Pagos --}}
     <div class="bg-white shadow-xl rounded-lg overflow-hidden">
-        <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4">
-            <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                @if($modo === 'pagos')
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <h2 class="text-xl font-bold text-white">Búsqueda de Préstamos para Cobro</h2>
+                @else
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <h2 class="text-xl font-bold text-white">Cobro de Multas</h2>
+                @endif
+            </div>
+
+            <button wire:click="seleccionarModo(null)" class="text-white hover:text-gray-200 font-semibold flex items-center gap-1 bg-red-900 bg-opacity-30 px-3 py-1 rounded transition hover:bg-opacity-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
                 </svg>
-                Búsqueda de Préstamos para Cobro
-            </h2>
+                Volver
+            </button>
         </div>
 
         <div class="p-8">
@@ -118,7 +150,73 @@
                             </div>
                         </div>
                     </div>
-                    
+                    @if($modo === 'multas')
+                         <div class="mt-8 overflow-x-auto">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                                    Detalle de Multas
+                                </h3>
+                                
+                                <div class="flex justify-end mb-2">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" wire:model.live="selectAllMultas" class="form-checkbox h-5 w-5 text-red-600 rounded border-gray-300 focus:ring-red-500">
+                                        <span class="ml-2 text-gray-700">Seleccionar todo</span>
+                                    </label>
+                                </div>
+
+                                <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg">
+                                    <thead class="bg-red-600">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-bold text-white uppercase tracking-wider">Nombre</th>
+                                            <th class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Penalizacion</th>
+                                            <th class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Recuperado</th>
+                                            <th class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Saldo Pendiente</th>
+                                            <th class="px-6 py-3 text-center text-xs font-bold text-white uppercase tracking-wider">Pagar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @foreach($multasData as $row)
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                                                    {{ $row['nombre'] }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 border-r border-gray-200">
+                                                    ${{ number_format($row['penalizacion'], 0) }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 border-r border-gray-200">
+                                                    ${{ number_format($row['recuperado'], 0) }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 border-r border-gray-200 font-bold">
+                                                    ${{ number_format($row['saldo'], 0) }}
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                                    <div class="flex items-center justify-center gap-2">
+                                                        <input type="checkbox" wire:model.live="multasSelected.{{ $row['id'] }}" class="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot class="bg-gray-50">
+                                        <tr>
+                                            <td colspan="4" class="px-6 py-4 text-right font-bold text-gray-900 text-lg">Total a Pagar:</td>
+                                            <td class="px-6 py-4 text-center font-bold text-red-600 text-xl">
+                                                ${{ number_format($totalPagarMultas, 0) }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+
+                                <div class="mt-8 flex justify-end">
+                                    <button wire:click="iniciarCobroMultas" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded shadow-lg transform transition hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" @if($totalPagarMultas <= 0) disabled @endif>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Procesar Cobro de Multas
+                                    </button>
+                                </div>
+                             </div>
+
+                    @elseif($modo === 'pagos')
                     @if($prestamo->estado === 'entregado' || $prestamo->estado === 'liquidado')
                     {{-- Tabla de clientes --}}
                     <div class="mt-8 overflow-x-auto">
@@ -324,8 +422,10 @@
                             </div>
                         </div>
                     @endif
+                    @endif
                 </div>
             @endif
         </div>
     </div>
+    @endif
 </div>
