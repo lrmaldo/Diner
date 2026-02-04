@@ -140,14 +140,27 @@
 
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Estado</label>
-                            <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                @if($prestamo->estado === 'autorizado') bg-green-100 text-green-800
-                                @elseif($prestamo->estado === 'liquidado') bg-blue-100 text-blue-800
-                                @elseif($prestamo->estado === 'pendiente') bg-yellow-100 text-yellow-800
-                                @elseif($prestamo->estado === 'rechazado') bg-red-100 text-red-800
-                                @else bg-gray-100 text-gray-800 @endif">
-                                {{ ucfirst($prestamo->estado) }}
-                            </div>
+                            @php
+                                $tieneMultasPendientes = false;
+                                if ($modo === 'multas' && !empty($multasData)) {
+                                    $tieneMultasPendientes = collect($multasData)->sum('saldo') > 0;
+                                }
+                            @endphp
+
+                            @if($prestamo->estado === 'liquidado' && $tieneMultasPendientes)
+                                <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    Liquidado (Con Adeudo)
+                                </div>
+                            @else
+                                <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    @if($prestamo->estado === 'autorizado') bg-green-100 text-green-800
+                                    @elseif($prestamo->estado === 'liquidado') bg-blue-100 text-blue-800
+                                    @elseif($prestamo->estado === 'pendiente') bg-yellow-100 text-yellow-800
+                                    @elseif($prestamo->estado === 'rechazado') bg-red-100 text-red-800
+                                    @else bg-gray-100 text-gray-800 @endif">
+                                    {{ ucfirst($prestamo->estado) }}
+                                </div>
+                            @endif
                         </div>
                     </div>
                     @if($modo === 'multas')
