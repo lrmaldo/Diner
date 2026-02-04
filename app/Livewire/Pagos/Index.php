@@ -471,10 +471,39 @@ class Index extends Component
 
     public function iniciarCobroMultas()
     {
-        // Placeholder for Multas processing
-        // This would likely redirect to a payment breakdown or process directly
-        // For now, let's just debug or show message
-        // dd('Processing Fines', $this->multasSelected);
+        if (!$this->prestamo) return;
+
+        $moratoriosToSend = [];
+        $selectedClientsToSend = [];
+        $abonosToSend = [];
+
+        foreach ($this->multasData as $row) {
+            $clienteId = $row['id'];
+            $isSelected = $this->multasSelected[$clienteId] ?? false;
+            
+            $selectedClientsToSend[$clienteId] = $isSelected;
+            $abonosToSend[$clienteId] = 0; // No hay abono a capital/interés normal, solo multa
+
+            if ($isSelected) {
+                $monto = isset($this->multasMontos[$clienteId]) && $this->multasMontos[$clienteId] !== '' 
+                    ? (float) $this->multasMontos[$clienteId] 
+                    : 0;
+                $moratoriosToSend[$clienteId] = $monto;
+            } else {
+                $moratoriosToSend[$clienteId] = 0;
+            }
+        }
+
+        // Guardar en caché para DesgloseEfectivo
+        $cacheKey = 'cobro_data_' . auth()->id() . '_' . $this->prestamo->id;
+        \Illuminate\Support\Facades\Cache::put($cacheKey, [
+            'abonos' => $abonosToSend,
+            'moratorios' => $moratoriosToSend,
+            'selectedClients' => $selectedClientsToSend,
+            'tipo_operacion' => 'cobro', // Se trata de un cobro (entrada de dinero)
+        ], now()->addMinutes(5));
+
+        return redirect()->route('pagos.desglose-efectivo', $this->prestamo->id);
     }
 
     public function irACobrar()
