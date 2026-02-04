@@ -189,8 +189,22 @@
                                                     ${{ number_format($row['saldo'], 0) }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                                    <div class="flex items-center justify-center gap-2">
-                                                        <input type="checkbox" wire:model.live="multasSelected.{{ $row['id'] }}" class="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 rounded">
+                                                    <div class="flex items-center justify-center gap-3">
+                                                         <div class="relative rounded-md shadow-sm">
+                                                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                                <span class="text-gray-500 sm:text-sm">$</span>
+                                                            </div>
+                                                            <input type="number" 
+                                                                   wire:model.live.debounce.500ms="multasMontos.{{ $row['id'] }}" 
+                                                                   class="block w-28 rounded-md border-gray-300 pl-7 pr-3 text-right focus:border-red-500 focus:ring-red-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-400" 
+                                                                   placeholder="0.00"
+                                                                   min="0"
+                                                                   max="{{ $row['saldo'] }}"
+                                                                   step="any"
+                                                                   @if(!($multasSelected[$row['id']] ?? false)) disabled @endif
+                                                            >
+                                                        </div>
+                                                        <input type="checkbox" wire:model.live="multasSelected.{{ $row['id'] }}" class="h-6 w-6 text-red-600 focus:ring-red-500 border-gray-300 rounded cursor-pointer">
                                                     </div>
                                                 </td>
                                             </tr>

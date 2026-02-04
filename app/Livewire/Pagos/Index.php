@@ -30,6 +30,7 @@ class Index extends Component
     public $multasData = [];
     public $selectAllMultas = false;
     public $multasSelected = [];
+    public $multasMontos = [];
     public $totalPagarMultas = 0;
 
     public function mount()
@@ -40,7 +41,7 @@ class Index extends Component
     public function seleccionarModo($modo)
     {
         $this->modo = $modo;
-        $this->reset(['search', 'prestamo', 'notFound', 'abonos', 'pendientes', 'moratorios', 'saldosRestantes', 'multasData', 'multasSelected']);
+        $this->reset(['search', 'prestamo', 'notFound', 'abonos', 'pendientes', 'moratorios', 'saldosRestantes', 'multasData', 'multasSelected', 'multasMontos']);
     }
 
     public function updatedSelectAll($value)
@@ -113,6 +114,7 @@ class Index extends Component
                         'saldo' => $detalle['saldo'],
                     ];
                     $this->multasSelected[$cliente->id] = false;
+                    $this->multasMontos[$cliente->id] = $detalle['saldo'];
                 }
                 return; // Stop here for multas
             }
@@ -449,12 +451,20 @@ class Index extends Component
         $this->calculateTotalMultas();
     }
 
+    public function updatedMultasMontos()
+    {
+        $this->calculateTotalMultas();
+    }
+
     public function calculateTotalMultas()
     {
         $this->totalPagarMultas = 0;
         foreach ($this->multasData as $row) {
             if ($this->multasSelected[$row['id']] ?? false) {
-                $this->totalPagarMultas += $row['saldo'];
+                $monto = isset($this->multasMontos[$row['id']]) && $this->multasMontos[$row['id']] !== '' 
+                    ? (float) $this->multasMontos[$row['id']] 
+                    : 0;
+                $this->totalPagarMultas += $monto;
             }
         }
     }
