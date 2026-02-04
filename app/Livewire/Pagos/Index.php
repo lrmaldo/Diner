@@ -114,7 +114,7 @@ class Index extends Component
                         'saldo' => $detalle['saldo'],
                     ];
                     $this->multasSelected[$cliente->id] = false;
-                    $this->multasMontos[$cliente->id] = $detalle['saldo'];
+                    $this->multasMontos[$cliente->id] = round($detalle['saldo'], 2);
                 }
                 return; // Stop here for multas
             }

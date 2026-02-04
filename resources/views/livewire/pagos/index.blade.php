@@ -200,7 +200,7 @@
                                                                    placeholder="0.00"
                                                                    min="0"
                                                                    max="{{ $row['saldo'] }}"
-                                                                   step="any"
+                                                                   step="0.01"
                                                                    @if(!($multasSelected[$row['id']] ?? false)) disabled @endif
                                                             >
                                                         </div>
