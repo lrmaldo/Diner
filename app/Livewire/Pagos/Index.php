@@ -429,6 +429,13 @@ class Index extends Component
                 'monto' => $cuota,
             ];
 
+            // Actualizar fecha actual para el siguiente ciclo
+            $fechaActual = $fechaPago;
+        }
+
+        return $calendario;
+    }
+
     public function updatedSelectAllMultas($value)
     {
         foreach ($this->multasData as $row) {
@@ -458,12 +465,6 @@ class Index extends Component
         // This would likely redirect to a payment breakdown or process directly
         // For now, let's just debug or show message
         // dd('Processing Fines', $this->multasSelected);
-    }
-
-            $fechaActual = $fechaPago->copy();
-        }
-
-        return $calendario;
     }
 
     public function irACobrar()
