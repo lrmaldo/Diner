@@ -74,10 +74,9 @@ class AclaracionPagos extends Component
 
         // Validar Estado
         $estadoReal = trim($possiblePrestamo->estado);
-        // Permitimos 'entregado' pero también 'liquidado' si quisieras ver historial, aunque para "Aclarar Pagos" suele ser activo.
-        // Pagos\Index permite 'entregado' y 'liquidado'. Aquí mantendré 'entregado' como principal requisito para pagar.
-        if (strtolower($estadoReal) !== 'entregado') {
-            $this->errorMessage = "El préstamo #{$possiblePrestamo->id} está en estado '{$estadoReal}'. Solo se pueden aclarar pagos de préstamos en estado 'Entregado'.";
+        // Permitimos 'entregado' y 'liquidado' para permitir cobro de multas o aclaraciones posteriores.
+        if (!in_array(strtolower($estadoReal), ['entregado', 'liquidado'])) {
+            $this->errorMessage = "El préstamo #{$possiblePrestamo->id} está en estado '{$estadoReal}'. Solo se pueden aclarar pagos de préstamos en estado 'Entregado' o 'Liquidado'.";
             return;
         }
 
@@ -87,6 +86,19 @@ class AclaracionPagos extends Component
             : ('Préstamo Individual (P:' . $this->prestamo->id . ')');
 
         $this->prepareClientData();
+
+        // Validar si realmente está liquidado según el adeudo total calculado
+        if (strtolower($estadoReal) === 'liquidado') {
+            $deudaTotalReal = collect($this->clientData)->sum(function($client) {
+                return $client['saldo'] + $client['moratorio'];
+            });
+
+            if ($deudaTotalReal <= 1) { // Tolerancia de $1 por decimales
+                 $this->errorMessage = "El préstamo #{$possiblePrestamo->id} está marcado como 'Liquidado' y no tiene adeudo pendiente (Saldo + Moratorios = $0). No se requiere aclaración.";
+                 $this->reset(['prestamo', 'groupName', 'clientData', 'inputs']);
+                 return;
+            }
+        }
     }
 
     private function prepareClientData()
