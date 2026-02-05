@@ -59,9 +59,9 @@
                         </div>
                     </div>
 
-                    {{-- Ejecutivo --}}
+                    {{-- Asesor --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Ejecutivo</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Asesor</label>
                         <div class="w-full border border-gray-300 rounded-md px-4 py-3 bg-gray-50 text-gray-900 text-lg">
                             {{ $ejecutivoName }}
                         </div>
