@@ -45,9 +45,9 @@
                 <div class="grid grid-cols-1 gap-6 mb-8">
                     {{-- Grupo / Cliente --}}
                     <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Grupo</label>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Número de Grupo</label>
                         <div class="w-full border border-gray-300 rounded-md px-4 py-3 bg-gray-50 text-gray-900 text-lg">
-                            {{ $prestamo->grupo ? $prestamo->grupo->nombre : ($prestamo->cliente->nombre_completo ?? 'N/A') }}
+                            {{ $prestamo->id }}
                         </div>
                     </div>
 
