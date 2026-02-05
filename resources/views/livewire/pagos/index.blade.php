@@ -149,7 +149,7 @@
 
                             @if($prestamo->estado === 'liquidado' && $tieneMultasPendientes)
                                 <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                    Liquidado (Con Adeudo)
+                                    Multas Pendientes
                                 </div>
                             @else
                                 <div class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
