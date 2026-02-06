@@ -1641,7 +1641,7 @@
                             $montoCliente = $prestamo->monto_total ?? 0;
                             
                             // Sumatoria de pagos del cliente
-                            $sumatoriaPagosCliente = $prestamo->pagos()->sum('monto');
+                            $sumatoriaPagosCliente = $prestamo->pagos()->sum('monto') - $prestamo->pagos()->sum('moratorio_pagado');
                             
                             // Calcular monto vencido (reutilizamos el cálculo global ya que es individual)
                             $montoVencidoCliente = $montoVencido;
