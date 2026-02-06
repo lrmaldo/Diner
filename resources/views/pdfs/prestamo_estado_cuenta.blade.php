@@ -1295,7 +1295,7 @@
                     $pagosPorMil = !empty($calendarioPagos) ? $calendarioPagos[0]['monto'] : 0;
                     
                     // Sumatoria de pagos realizados
-                    $sumatoriaPagos = $prestamo->pagos()->sum('monto');
+                    $sumatoriaPagos = $prestamo->pagos()->sum('monto') - $prestamo->pagos()->sum('moratorio_pagado');
                     
                     // Calcular monto vencido real (sin depender de numero_pago)
                     // Regla: cualquier pago descuenta primero lo ya vencido (FIFO).
@@ -1471,7 +1471,7 @@
                             $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
                             
                             // Sumatoria de pagos del cliente
-                            $sumatoriaPagosCliente = $prestamo->pagos()->where('cliente_id', $cliente->id)->sum('monto');
+                            $sumatoriaPagosCliente = $prestamo->pagos()->where('cliente_id', $cliente->id)->sum('monto') - $prestamo->pagos()->where('cliente_id', $cliente->id)->sum('moratorio_pagado');
                             
                             // Obtener pago periódico del cliente
                             $clientSchedule = $clientSchedules[$cliente->id] ?? [];

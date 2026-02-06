@@ -210,10 +210,10 @@
                                                             <input type="number" 
                                                                    wire:model.live.debounce.500ms="multasMontos.{{ $row['id'] }}" 
                                                                    class="block w-28 rounded-md border-gray-300 pl-7 pr-3 text-right focus:border-red-500 focus:ring-red-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-400" 
-                                                                   placeholder="0.00"
+                                                                   placeholder="0"
                                                                    min="0"
-                                                                   max="{{ $row['saldo'] }}"
-                                                                   step="0.01"
+                                                                   max="{{ round($row['saldo']) }}"
+                                                                   step="1"
                                                                    @if(!($multasSelected[$row['id']] ?? false)) disabled @endif
                                                             >
                                                         </div>
