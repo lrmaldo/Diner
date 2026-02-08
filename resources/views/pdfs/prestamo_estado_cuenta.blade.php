@@ -878,9 +878,93 @@
                     // Calcular el total de moratorios/multas pagadas
                     $totalMultasPagadas = $prestamo->pagos()->sum('moratorio_pagado');
                     
+                    // --- CÁLCULO DE MULTAS GENERADAS (TOTAL PENALIZACIÓN) ---
+                    // Copiamos la lógica usada abajo para consistencia
+                    $multasGeneradasMontoTotal = 0;
+                    $acumuladoCuotasTemp = 0;
+                    // Usamos $todosLosPagos que ya fue filtrado/obtenido arriba (línea ~1010), si está disponible.
+                    // PERO cuidado, $todosLosPagos se define DESPUÉS de este bloque en el código actual (sección "Número de pagos").
+                    // Necesitamos recalcularlo aquí o mover este bloque después. 
+                    // Como este es un blade secuencial, recalculamos brevemente:
+                    
+                    $todosLosPagosCalc = $prestamo->pagos()
+                        ->orderBy('fecha_pago')
+                        ->orderBy('id')
+                        ->get();
+                        
+                    // Re-aplicar filtro básico (excluir garantías si aplica y día cero)
+                    // Copia simplificada de lógica de filtro
+                    $fechasRefCalc = array_filter([
+                        $prestamo->fecha_autorizacion ? $prestamo->fecha_autorizacion->startOfDay()->timestamp : null,
+                        $prestamo->fecha_entrega ? $prestamo->fecha_entrega->startOfDay()->timestamp : null,
+                        $prestamo->created_at ? $prestamo->created_at->startOfDay()->timestamp : null
+                    ]);
+                    $tsCorte = !empty($fechasRefCalc) ? min($fechasRefCalc) : null;
+                    $fCorteStr = $tsCorte ? \Carbon\Carbon::createFromTimestamp($tsCorte)->startOfDay()->format('Y-m-d') : null;
+
+                    $pagosOrdenadosCalc = $todosLosPagosCalc->filter(function($p) use ($fCorteStr) {
+                         $tipo = strtolower($p->tipo_pago ?? '');
+                         $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+                         $pagoDateStr = $p->fecha_pago->format('Y-m-d');
+                         $esDiaCero = $fCorteStr && $pagoDateStr < $fCorteStr;
+                         return !$esGarantia && !$esDiaCero;
+                    })->values();
+
+                    $timelinePagosCalc = [];
+                    $acumuladoPagosDineroCalc = 0;
+                    foreach($pagosOrdenadosCalc as $p) {
+                        // Restar el moratorio pagado para que el acumulado solo refleje capital/interés
+                        $montoEfectivo = $p->monto - ($p->moratorio_pagado ?? 0);
+                        $acumuladoPagosDineroCalc += $montoEfectivo;
+                        
+                        $timelinePagosCalc[] = [
+                            'monto_acumulado' => $acumuladoPagosDineroCalc,
+                            'fecha' => \Carbon\Carbon::parse($p->fecha_pago)
+                        ];
+                    }
+
+                    // Necesitamos el calendario. Ya lo calculamos abajo, pero aquí arriba NO EXISTE AÚN.
+                    // Recalcular calendario aquí es costoso pero seguro.
+                    $ultimoPagoCalc = null;
+                    try { $ultimoPagoCalc = $prestamo->ultimo_pago ?? null; } catch (\Exception $e) {}
+                    
+                    $calendarioCalc = calcularCalendarioPagos(
+                        $prestamo->monto_total ?? 0,
+                        $prestamo->tasa_interes ?? 0,
+                        $prestamo->plazo ?? '4meses',
+                        $prestamo->periodicidad ?? 'semanal',
+                        $prestamo->fecha_primer_pago ?? $prestamo->fecha_autorizacion ?? now(),
+                        $ultimoPagoCalc,
+                        'martes'
+                    );
+
+                    foreach ($calendarioCalc as $pagoProg) {
+                        $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->endOfDay();
+                        
+                        if ($fechaVenc->isFuture()) continue;
+
+                        $montoCuota = $pagoProg['monto'];
+                        $targetAcumulado = $acumuladoCuotasTemp + $montoCuota; 
+                        $acumuladoCuotasTemp += $montoCuota;
+                        
+                        $fechaCobertura = null;
+                        foreach ($timelinePagosCalc as $tp) {
+                            if ($tp['monto_acumulado'] >= $targetAcumulado - 0.1) { 
+                                $fechaCobertura = $tp['fecha'];
+                                break;
+                            }
+                        }
+                        
+                        if ($fechaCobertura === null) {
+                            $multasGeneradasMontoTotal += ($montoCuota * 0.05);
+                        } elseif ($fechaCobertura->format('Y-m-d') > $fechaVenc->format('Y-m-d')) {
+                             $multasGeneradasMontoTotal += ($montoCuota * 0.05);
+                        }
+                    }
+
                     // Configuración de visualización de multas
-                    // Moratorio va a la columna de Penalización
-                    $penalizacionTotal = $totalMultasPagadas;
+                    // Penalización: Total de multas GENERADAS (deuda total por multas histórica)
+                    $penalizacionTotal = $multasGeneradasMontoTotal;
                     
                     // Columna Moratorio se muestra en 0
                     $moratorioDisplay = 0;
