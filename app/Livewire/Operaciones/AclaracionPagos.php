@@ -495,37 +495,43 @@ class AclaracionPagos extends Component
     {
         if (!$this->prestamo) return;
 
-        DB::transaction(function () {
-            foreach ($this->inputs as $clientId => $data) {
-                // El input 'efectivo' representa el pago a capital/interés
-                // El input 'moratorio' representa el pago a multas
-                // En la BD, la columna 'monto' es el TOTAL (capital + interés + multas)
-                $capital = (float)$data['efectivo'];
-                $moratorio = (float)$data['moratorio'];
-                
-                $montoTotal = $capital + $moratorio;
+        $this->reset('errorMessage');
 
-                if ($montoTotal <= 0) continue;
+        try {
+            DB::transaction(function () {
+                foreach ($this->inputs as $clientId => $data) {
+                    // El input 'efectivo' representa el pago a capital/interés
+                    // El input 'moratorio' representa el pago a multas
+                    // En la BD, la columna 'monto' es el TOTAL (capital + interés + multas)
+                    $capital = (float)$data['efectivo'];
+                    $moratorio = (float)$data['moratorio'];
+                    
+                    $montoTotal = $capital + $moratorio;
 
-                Pago::create([
-                    'prestamo_id' => $this->prestamo->id,
-                    'cliente_id' => $clientId,
-                    'monto' => $montoTotal, 
-                    'moratorio_pagado' => $moratorio,
-                    'fecha_pago' => now(),
-                    'tipo_pago' => 'Abono', 
-                    'metodo_pago' => 'banco', // Registered as Bank payment
-                    'registrado_por' => auth()->id(),
-                ]);
-            }
-        });
+                    if ($montoTotal <= 0) continue;
 
-        // session()->flash('success', 'Pagos aclarados correctamente en Banco.');
-        
-        // Limpiar todo para dejar listo para la siguiente aclaración y evitar que quede la info anterior
-        $this->reset(['prestamo', 'groupName', 'clientData', 'inputs', 'errorMessage', 'fullPayment', 'grupoSearch']);
+                    Pago::create([
+                        'prestamo_id' => $this->prestamo->id,
+                        'cliente_id' => $clientId,
+                        'monto' => $montoTotal, 
+                        'moratorio_pagado' => $moratorio,
+                        'fecha_pago' => now(),
+                        'tipo_pago' => 'Abono', 
+                        'metodo_pago' => 'banco', // Registered as Bank payment
+                        'registrado_por' => auth()->id(),
+                    ]);
+                }
+            });
 
-        $this->showSuccessModal = true;
+            // session()->flash('success', 'Pagos aclarados correctamente en Banco.');
+            
+            // Limpiar todo para dejar listo para la siguiente aclaración y evitar que quede la info anterior
+            $this->reset(['prestamo', 'groupName', 'clientData', 'inputs', 'errorMessage', 'fullPayment', 'grupoSearch']);
+
+            $this->showSuccessModal = true;
+        } catch (\Exception $e) {
+            $this->errorMessage = "Ocurrió un error al procesar la aclaración: " . $e->getMessage();
+        }
     }
 
     public function closeSuccessModal()
