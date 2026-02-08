@@ -875,14 +875,21 @@
                     // Calcular recuperado: suma de todos los pagos realizados (excluyendo devoluciones que son negativas)
                     $recuperadoTotal = $prestamo->pagos()->where('tipo_pago', '!=', 'devolucion_garantia')->sum('monto') - $prestamo->pagos()->sum('moratorio_pagado');
                     
-                    // Calcular moratorio pagado
-                    $moratorioRecuperado = $prestamo->pagos()->sum('moratorio_pagado');
+                    // Calcular el total de moratorios/multas pagadas
+                    $totalMultasPagadas = $prestamo->pagos()->sum('moratorio_pagado');
                     
+                    // Configuración de visualización de multas
+                    // Moratorio va a la columna de Penalización
+                    $penalizacionTotal = $totalMultasPagadas;
+                    
+                    // Columna Moratorio se muestra en 0
+                    $moratorioDisplay = 0;
+                    
+                    // Columna Recuperado (en sección Multas) muestra el total recuperado de multas
+                    $recuperadoMultasDisplay = $totalMultasPagadas;
+
                     // Garantía pendiente para futuro
                     $garantiaRecuperaciones = 0;
-                    
-                    // Penalización: suma de multas pagadas (futuro)
-                    $penalizacionTotal = 0;
 
                     // Obtener la fecha del último pago si existe
                     $ultimoPagoRealizado = $prestamo->pagos()->latest('fecha_pago')->first();
@@ -895,9 +902,9 @@
                     <td>{{ number_format($recuperadoTotal, 0) }}</td>
                     <td>{{ number_format($garantiaRecuperaciones, 0) }}</td>
                     <td>{{ number_format($penalizacionTotal, 0) }}</td>
-                    <td>{{ number_format($moratorioRecuperado, 0) }}</td>
+                    <td>{{ number_format($moratorioDisplay, 0) }}</td>
                     <td>0</td>
-                    <td>{{ number_format($moratorioRecuperado, 0) }}</td>
+                    <td>{{ number_format($recuperadoMultasDisplay, 0) }}</td>
                     <td>0</td>
                 </tr>
             </tbody>
