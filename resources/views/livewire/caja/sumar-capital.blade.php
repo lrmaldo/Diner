@@ -17,6 +17,7 @@
                 <span class="ml-2 text-gray-700">Cuenta Externa / Aportación</span>
             </label>
         </div>
+        @error('origenFondos') <span class="text-sm text-red-600 block mt-1">{{ $message }}</span> @enderror
         @if($origenFondos === 'banco')
             <div class="mt-2 text-sm text-blue-600">
                 Se restará del saldo acumulado en Banco proveniente de aclaraciones/transferencias.

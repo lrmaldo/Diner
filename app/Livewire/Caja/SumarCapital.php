@@ -7,7 +7,7 @@ use Livewire\Component;
 
 class SumarCapital extends Component
 {
-    public $origenFondos = 'externo'; // 'externo' | 'banco'
+    public $origenFondos = null; // 'externo' | 'banco'
     
     public $billetes = [
         '1000' => 0,
@@ -73,7 +73,10 @@ class SumarCapital extends Component
     public function guardar()
     {
         $this->validate([
+            'origenFondos' => 'required|in:externo,banco',
             'comentarios' => 'nullable|string|max:255',
+        ], [
+            'origenFondos.required' => 'Debe seleccionar el origen de los fondos.',
         ]);
 
         if ($this->totalGeneral <= 0) {
