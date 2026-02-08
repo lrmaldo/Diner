@@ -873,7 +873,7 @@
                     $exigibleTotal = $totalCredito + $totalInteres + $totalIva;
                     
                     // Calcular recuperado: suma de todos los pagos realizados
-                    $recuperadoTotal = $prestamo->pagos()->sum('monto');
+                    $recuperadoTotal = $prestamo->pagos()->sum('monto') - $prestamo->pagos()->sum('moratorio_pagado');
                     
                     // Calcular moratorio pagado
                     $moratorioRecuperado = $prestamo->pagos()->sum('moratorio_pagado');
