@@ -872,8 +872,8 @@
                     // Calcular exigible: capital + interés + iva
                     $exigibleTotal = $totalCredito + $totalInteres + $totalIva;
                     
-                    // Calcular recuperado: suma de todos los pagos realizados
-                    $recuperadoTotal = $prestamo->pagos()->sum('monto') - $prestamo->pagos()->sum('moratorio_pagado');
+                    // Calcular recuperado: suma de todos los pagos realizados (excluyendo devoluciones que son negativas)
+                    $recuperadoTotal = $prestamo->pagos()->where('tipo_pago', '!=', 'devolucion_garantia')->sum('monto') - $prestamo->pagos()->sum('moratorio_pagado');
                     
                     // Calcular moratorio pagado
                     $moratorioRecuperado = $prestamo->pagos()->sum('moratorio_pagado');
