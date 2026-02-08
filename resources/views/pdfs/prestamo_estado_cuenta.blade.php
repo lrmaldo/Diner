@@ -1401,7 +1401,11 @@
                     $timelinePagos = [];
                     $acumuladoPagosDinero = 0;
                     foreach($pagosOrdenados as $p) {
-                        $acumuladoPagosDinero += $p->monto;
+                        // Restar el moratorio pagado para que el acumulado solo refleje capital/interés
+                        // Esto evita que el pago de una multa cuente como cobertura de una cuota de capital
+                        $montoEfectivo = $p->monto - ($p->moratorio_pagado ?? 0);
+                        $acumuladoPagosDinero += $montoEfectivo;
+                        
                         $timelinePagos[] = [
                             'monto_acumulado' => $acumuladoPagosDinero,
                             'fecha' => \Carbon\Carbon::parse($p->fecha_pago),
@@ -1599,7 +1603,10 @@
                             $timelinePagosCliente = [];
                             $acumuladoPagosDineroCliente = 0;
                             foreach($pagosOrdenadosCliente as $p) {
-                                $acumuladoPagosDineroCliente += $p->monto;
+                                // Restar moratorio para consistencia en la cobertura de capital
+                                $montoEfectivo = $p->monto - ($p->moratorio_pagado ?? 0);
+                                $acumuladoPagosDineroCliente += $montoEfectivo;
+                                
                                 $timelinePagosCliente[] = [
                                     'monto_acumulado' => $acumuladoPagosDineroCliente,
                                     'fecha' => \Carbon\Carbon::parse($p->fecha_pago)
