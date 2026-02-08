@@ -1316,7 +1316,7 @@
                                             <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: left;">
                                                 {{ $pagoDetalle->cliente ? mb_strtoupper($pagoDetalle->cliente->nombre_completo) : 'CLIENTE DESCONOCIDO' }}
                                             </td>
-                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pago['fecha'] }}</td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pagoDetalle->moratorio_pagado > 0?"":$pago['fecha'] }}</td>
                                             <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pagoDetalle->fecha_pago->format('d/m/Y') }}</td>
                                             <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">${{ number_format($pagoDetalle->monto, 2) }}</td>
                                             <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">
