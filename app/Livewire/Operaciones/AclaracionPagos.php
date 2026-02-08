@@ -497,15 +497,20 @@ class AclaracionPagos extends Component
 
         DB::transaction(function () {
             foreach ($this->inputs as $clientId => $data) {
-                $monto = (float)$data['efectivo'];
+                // El input 'efectivo' representa el pago a capital/interés
+                // El input 'moratorio' representa el pago a multas
+                // En la BD, la columna 'monto' es el TOTAL (capital + interés + multas)
+                $capital = (float)$data['efectivo'];
                 $moratorio = (float)$data['moratorio'];
+                
+                $montoTotal = $capital + $moratorio;
 
-                if ($monto <= 0 && $moratorio <= 0) continue;
+                if ($montoTotal <= 0) continue;
 
                 Pago::create([
                     'prestamo_id' => $this->prestamo->id,
                     'cliente_id' => $clientId,
-                    'monto' => $monto, 
+                    'monto' => $montoTotal, 
                     'moratorio_pagado' => $moratorio,
                     'fecha_pago' => now(),
                     'tipo_pago' => 'Abono', 
