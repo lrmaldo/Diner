@@ -986,9 +986,16 @@
                         // Cada entrada es una porción de un pago real
                         $colaPagos = [];
                         foreach($pagosDisponibles as $p) {
+                            // CORRECCIÓN: El remanente disponible para cubrir capital (exigible) no debe incluir la mora ni devoluciones de garantía
+                            // El monto del pago incluye mora, así que restamos la mora para tener solo el capital neto.
+                            $capitalNeto = (float)$p->monto - (float)$p->moratorio_pagado;
+                            
+                            // Si es devolución de garantía, el monto es negativo, y moratorio es 0, así que se mantiene negativo correctamente.
+                            // Si es solo multa, capitalNeto será 0 (o cercano).
+                            
                             $colaPagos[] = [
                                 'original' => $p,
-                                'remanente' => (float)$p->monto
+                                'remanente' => $capitalNeto
                             ];
                         }
                         
@@ -997,6 +1004,9 @@
                             $pagosAsignados = collect();
                             
                             foreach($colaPagos as &$entry) {
+                                // Ignoramos pagos que no tienen remanente positivo (ej. solo multas, o ya agotados)
+                                // Las devoluciones de garantía (negativos) no deberían procesarse aquí normalmente, 
+                                // ya que distribuirPagos asume cobertura de deuda positiva.
                                 if ($entry['remanente'] <= 0.001) continue;
                                 
                                 $tomar = min($entry['remanente'], $montoRequerido);
@@ -1005,6 +1015,9 @@
                                     // Clonamos el pago original para preservar fechas e IDs
                                     // pero ajustamos el monto a la porción que cubre esta cuota
                                     $pagoVirtual = clone $entry['original'];
+                                    
+                                    // IMPORTANTE: El monto del pago virtual debe reflejar solo la porción de CAPITAL aplicada a esta cuota.
+                                    // Esto asegura que en la tabla "Pagado en efectivo" y "Recuperado" solo se sume capital.
                                     $pagoVirtual->monto = $tomar;
                                     
                                     $pagosAsignados->push($pagoVirtual);
@@ -1034,7 +1047,10 @@
                     // Debemos asignarlos manualmente a una cuota para que aparezcan en el historial.
                     // ===================================================================================
                     $pagosSoloMulta = $todosLosPagos->filter(function($p) {
-                         return ((float)$p->monto <= 0.001) && ((float)$p->moratorio_pagado > 0.001);
+                         // Un pago es "solo multa" si su componente de capital es cero (o menor a epsilon)
+                         // pero tiene monto de moratorio.
+                         $capitalNeto = (float)$p->monto - (float)$p->moratorio_pagado;
+                         return ($capitalNeto <= 0.001) && ((float)$p->moratorio_pagado > 0.001);
                     });
 
                     foreach($pagosSoloMulta as $pagoMulta) {
@@ -1070,8 +1086,12 @@
                             $pagosRegistrados->put($targetInst, collect());
                         }
                         
-                        // Clonamos o usamos directo, no importa porque no tiene remanente que afectar
-                        $pagosRegistrados->get($targetInst)->push($pagoMulta);
+                        // Clonamos el pago de multa para ajustar su monto "visual" a 0 capital
+                        // De esta forma no suma a "Pagado en efectivo" ni "Recuperado"
+                        $pagoVirtualMulta = clone $pagoMulta;
+                        $pagoVirtualMulta->monto = 0; // 0 Capital
+                        
+                        $pagosRegistrados->get($targetInst)->push($pagoVirtualMulta);
                     }
                     // ===================================================================================
 
