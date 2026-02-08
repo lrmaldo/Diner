@@ -161,11 +161,15 @@ class ArqueoCaja extends Component
                 }
                 $processedUuids[] = $pago->pago_uuid;
                 
-                // Sumar lo recibido
-                $sumarAlArqueo($pago->desglose_efectivo, 1);
+                // Determinar si es entrada o salida
+                // Si es devolución de garantía, es una salida de dinero
+                $factor = ($pago->tipo_pago === 'devolucion_garantia') ? -1 : 1;
                 
-                // Restar el cambio entregado (si existe)
-                if (!empty($pago->desglose_cambio)) {
+                // Sumar (o restar) lo procesado
+                $sumarAlArqueo($pago->desglose_efectivo, $factor);
+                
+                // Procesar cambio entregado (solo en cobros, son salidas de dinero)
+                if ($factor === 1 && !empty($pago->desglose_cambio)) {
                     $sumarAlArqueo($pago->desglose_cambio, -1);
                 }
                 
