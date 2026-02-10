@@ -1197,6 +1197,52 @@
                         }
                     }
 
+                    // ===================================================================================
+                    // PRE-CALCULO DE UBICACIÓN DE MULTAS
+                    // Determina en qué fila debe mostrarse cada multa, dando prioridad al número de pago explícito
+                    // ===================================================================================
+                    $fineTargetMap = []; // ID Pago => Numero Cuota
+                    $fineSumsByRow = []; // Numero Cuota => ['normal' => 0, 'garantia' => 0]
+                    
+                    foreach ($todosLosPagos as $p) {
+                        if ($p->moratorio_pagado > 0.001) {
+                            $targetNum = null;
+                            
+                            // 1. Prioridad Absoluta: Número de pago registrado en BD
+                            if (!empty($p->numero_pago)) {
+                                $targetNum = (int)$p->numero_pago;
+                            } 
+                            // 2. Fallback: Usar lógica de capital (bucket más alto tocado)
+                            elseif (isset($maxInstMap[$p->id])) {
+                                $targetNum = $maxInstMap[$p->id];
+                            }
+                            // 3. Fallback final
+                            else {
+                                $targetNum = 1;
+                            }
+                            
+                            $fineTargetMap[$p->id] = $targetNum;
+                            
+                            // Acumular sumas
+                            $tipo = strtolower($p->tipo_pago ?? '');
+                            $esGarantia = $tipo === 'garantia' || $tipo === 'garantía'; // || in_array(strtolower($p->metodo_pago ?? ''), ['garantia', 'garantía']);
+                            // Revisar metodo_pago también por si acaso
+                            if (!$esGarantia && isset($p->metodo_pago) && in_array(strtolower($p->metodo_pago), ['garantia', 'garantía'])) {
+                                $esGarantia = true;
+                            }
+                            
+                            if (!isset($fineSumsByRow[$targetNum])) {
+                                $fineSumsByRow[$targetNum] = ['normal' => 0, 'garantia' => 0];
+                            }
+                            
+                            if ($esGarantia) {
+                                $fineSumsByRow[$targetNum]['garantia'] += $p->moratorio_pagado;
+                            } else {
+                                $fineSumsByRow[$targetNum]['normal'] += $p->moratorio_pagado;
+                            }
+                        }
+                    }
+
                     // Pre-calcular calendarios individuales para préstamos grupales
                     $clientSchedules = [];
                     if ($prestamo->producto === 'grupal') {
@@ -1252,28 +1298,9 @@
                             $fechaPagoReal = $pagoRealizado->sortByDesc('fecha_pago')->first()->fecha_pago->format('d-m-y');
                         }
                         // Calcular Moratorios Recuperados para esta fila
-                        // Regla: Mostrar el moratorio total del pago SOLO si esta fila es el "último movimiento" de ese pago.
-                        $moratorioRow = 0;
-                        $moratorioGarantiaRow = 0;
-
-                        if ($pagoRealizado) {
-                            // Iterar sobre los pagos únicos que tocaron esta fila
-                            // Como $pagoRealizado puede tener fragmentos del mismo pago, usamos unique('id')
-                            $pagosUnicos = $pagoRealizado->unique('id');
-                            foreach($pagosUnicos as $p) {
-                                // Si esta fila es la última cuota que tocó este pago
-                                if (isset($maxInstMap[$p->id]) && $maxInstMap[$p->id] == $pago['numero']) {
-                                    $tipo = strtolower($p->tipo_pago ?? '');
-                                    $esGarantia = $tipo === 'garantia' || $tipo === 'garantía';
-
-                                    if ($esGarantia) {
-                                        $moratorioGarantiaRow += $p->moratorio_pagado;
-                                    } else {
-                                        $moratorioRow += $p->moratorio_pagado;
-                                    }
-                                }
-                            }
-                        }
+                        // Regla: Usar el pre-calculo basado en fineTargetMap
+                        $moratorioRow = $fineSumsByRow[$pago['numero']]['normal'] ?? 0;
+                        $moratorioGarantiaRow = $fineSumsByRow[$pago['numero']]['garantia'] ?? 0;
                     @endphp
                     <tr @if($pago['numero'] % 2 == 0) style="background-color: #f3f4f6;" @endif
                         @if(!$forPdf) 
@@ -1341,16 +1368,14 @@
 
                                 {{-- TABLA 2: PAGO DE MULTAS --}}
                                 @php
-                                    // Filtrar pagos que tengan multa y correspondan a esta fila (MaxInstMap)
-                                    $multasEnEstaFila = collect();
-                                    $pagosUnicosMulta = $pagoRealizado->unique('id');
-                                    foreach($pagosUnicosMulta as $p) {
-                                        if (isset($maxInstMap[$p->id]) && $maxInstMap[$p->id] == $pago['numero']) {
-                                            if ($p->moratorio_pagado > 0) {
-                                                $multasEnEstaFila->push($p);
-                                            }
-                                        }
-                                    }
+                                    // Filtrar pagos que tengan multa y correspondan a esta fila usando fineTargetMap
+                                    // Iteramos sobre TODOS los pagos con multa para encontrar los de esta fila, 
+                                    // ya que $pagoRealizado solo tiene pagos que aportaron capital a esta fila.
+                                    $multasEnEstaFila = $todosLosPagos->filter(function($p) use ($pago, $fineTargetMap) {
+                                         return $p->moratorio_pagado > 0.001 && 
+                                                isset($fineTargetMap[$p->id]) && 
+                                                $fineTargetMap[$p->id] == $pago['numero'];
+                                    });
                                 @endphp
 
                                 @if($multasEnEstaFila->isNotEmpty())
