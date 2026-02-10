@@ -136,7 +136,8 @@ class Index extends Component
 
                 // Calcular Pendiente
                 $pagosCliente = $this->prestamo->pagos->where('cliente_id', $cliente->id);
-                $totalPagado = $pagosCliente->sum('monto');
+                // Restar moratorios pagados para que no cuenten como abono a capital/interés
+                $totalPagado = $pagosCliente->sum('monto') - $pagosCliente->sum('moratorio_pagado');
                 
                 // Calcular Saldo Restante (Deuda Total para Liquidar)
                 try {
