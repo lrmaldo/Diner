@@ -70,12 +70,14 @@ class DesgloseEfectivo extends Component
     public $seleccionarTodos = true; // Por defecto seleccionamos todos
     public $showModalCambio = false;
     public $mode = 'cobro'; // 'cobro' or 'devolucion'
+    public $transactionUuid;
 
     public function mount($prestamoId, $mode = 'cobro')
     {
         $this->prestamoId = $prestamoId;
         $this->mode = $mode;
         $this->fechaPago = now()->format('Y-m-d');
+        $this->transactionUuid = (string) Str::uuid();
         $this->loadPrestamo();
     }
 
@@ -381,10 +383,16 @@ class DesgloseEfectivo extends Component
     public function finalizarRegistro()
     {
         try {
+            // Idempotency Check: Prevent double submission
+            if (Pago::where('pago_uuid', $this->transactionUuid)->exists()) {
+                $this->dispatch('alert', type: 'info', message: 'Este cobro ya fue procesado previamente.');
+                return redirect()->route('pagos.index');
+            }
+
             DB::beginTransaction();
 
-            // Generar un UUID único para este lote de pagos (transacción física)
-            $pagoUuid = (string) Str::uuid();
+            // Use persistent UUID generated in mount()
+            $pagoUuid = $this->transactionUuid;
 
             $desglose = [
                 'billetes' => array_filter($this->desgloseBilletes, fn ($cantidad) => $cantidad > 0),
