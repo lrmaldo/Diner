@@ -1154,7 +1154,7 @@
                         
                         // 2. Si no hay, buscar el último pago de capital realizado antes o en el mismo momento que la multa
                         if (!$targetInst) {
-                            $fechaPago = Carbon::parse($pagoMulta->fecha_pago);
+                            $fechaPago = \Carbon\Carbon::parse($pagoMulta->fecha_pago);
                             $targetInst = 1; // Default
                             
                             // Iterar sobre los buckets con actividad (capital)
@@ -1171,6 +1171,59 @@
                                 }
                             }
                         }
+
+                        // ===================================================================================
+                        // LOGICA DE REUBICACIÓN INTELIGENTE (Solución "Último Exigible Pagado")
+                        // Si la multa apunta a una cuota FUTURA (sin capital pagado), 
+                        // moverla a la última cuota que SÍ tenga capital pagado.
+                        // Esto responde a: "debe de ponerlo en el historial de pago de multa del numero de pago del ultimo antes pagado el exigible"
+                        // ===================================================================================
+                        
+                        // Verificar si el target actual tiene cobertura de capital
+                        $hasCapitalCoverage = false;
+                        if ($pagosRegistrados->has($targetInst)) {
+                            foreach($pagosRegistrados->get($targetInst) as $subP) {
+                                // Verificar si hay monto de capital (los pagosSoloMulta tienen monto=0)
+                                if ($subP->monto > 0.001) {
+                                    $hasCapitalCoverage = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (!$hasCapitalCoverage) {
+                            // Buscar el bucket más alto (menor que targetInst) que sí tenga capital
+                            $betterTarget = 1;
+                            
+                            foreach($pagosRegistrados as $instNum => $pagos) {
+                                // Solo mirar hacia atrás
+                                if ($instNum >= $targetInst) continue;
+                                
+                                $hasCap = false;
+                                foreach($pagos as $subP) {
+                                    if ($subP->monto > 0.001) {
+                                        $hasCap = true;
+                                        break;
+                                    }
+                                }
+                                
+                                // Si encontramos capital pagado en este bucket y es mayor que lo que teníamos, actualizamos
+                                if ($hasCap && $instNum > $betterTarget) {
+                                    $betterTarget = $instNum;
+                                }
+                            }
+                            
+                            // Si encontramos un "mejor target" (que tenga capital), usamos ese.
+                            // Si no encontramos nada (ej. primera cuota), se queda en 1.
+                            // Nota: Si betterTarget es 1, aún verificamos si el 1 tenía capital. Si no, pues se queda en 1.
+                            
+                            // Caso especial: Si incluso el 1 no tiene capital, la multa se queda donde estaba (o en 1)
+                            // Pero la lógica de arriba ya setea betterTarget=1 por defecto.
+                            
+                            // Aplicar cambio
+                            $targetInst = $betterTarget;
+                        }
+                        // ===================================================================================
 
                         // Agregar a pagosRegistrados
                         if (!$pagosRegistrados->has($targetInst)) {
@@ -1211,6 +1264,32 @@
                             // 1. Prioridad Absoluta: Número de pago registrado en BD
                             if (!empty($p->numero_pago)) {
                                 $targetNum = (int)$p->numero_pago;
+                                
+                                // REUBICACIÓN TAMBIÉN PARA PAGOS CON NUMERO REGISTRADO
+                                // Si el numero registrado apunta a futuro (sin capital), regresarlo al último pagado
+                                // Copiamos la lógica usada arriba:
+                                
+                                $hasCapitalCoverage = false;
+                                if ($pagosRegistrados->has($targetNum)) {
+                                    foreach($pagosRegistrados->get($targetNum) as $subP) {
+                                        if ($subP->monto > 0.001) { $hasCapitalCoverage = true; break; }
+                                    }
+                                }
+                                
+                                if (!$hasCapitalCoverage) {
+                                    $betterTarget = 1;
+                                    foreach($pagosRegistrados as $instNum => $pagos) {
+                                        if ($instNum >= $targetNum) continue;
+                                        $hasCap = false;
+                                        foreach($pagos as $subP) { if ($subP->monto > 0.001) { $hasCap = true; break; } }
+                                        if ($hasCap && $instNum > $betterTarget) { $betterTarget = $instNum; }
+                                    }
+                                    // Verificación secundaria: solo mover si encontramos algun bucket con capital 
+                                    // (O si es el bucket 1, aceptamos mover ahi)
+                                    // Si no hay nada pagado en el prestamo, todo cae al 1.
+                                    $targetNum = $betterTarget;
+                                }
+
                             } 
                             // 2. Fallback: Usar lógica de capital (bucket más alto tocado)
                             elseif (isset($maxInstMap[$p->id])) {
