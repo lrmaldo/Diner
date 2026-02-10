@@ -1296,46 +1296,95 @@
                     @if(isset($pagoRealizado) && $pagoRealizado->isNotEmpty() && !$forPdf)
                     <tr class="accordion-row-{{ $pago['numero'] }}" style="display: none;">
                         <td colspan="10" style="padding: 0; border: none;">
-                            <div style="background-color: #f8f9fa; padding: 5px 10px; border-bottom: 1px solid #ddd; margin-left: 20px;">
-                                <div 8yle="font-weight: bold; font-size: 9px; margin-bottom: 3px; color: #4b5563;">Historial de Pagos Aplicados:</div>
-                                <table style="width: 100%; border-collapse: collapse; font-size: 9px; background: white;">
+                            <div style="background-color: #f8f9fa; padding: 10px; border-bottom: 1px solid #ddd; margin-left: 20px;">
+                                
+                                {{-- TABLA 1: ABONOS A CAPITAL --}}
+                                @php
+                                    $hasCapital = $pagoRealizado->where('monto', '>', 0.001)->isNotEmpty();
+                                @endphp
+                                
+                                @if($hasCapital)
+                                <div style="font-weight: bold; font-size: 9px; margin-bottom: 3px; color: #4b5563;">Historial de Abonos a Capital:</div>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 9px; background: white; margin-bottom: 8px;">
                                     <thead>
-                                        <tr style="background-color: #e02424; color: white;">
+                                        <tr style="background-color: #4b5563; color: white;"> {{-- Gris oscuro para diferenciar --}}
                                             <th style="padding: 3px 4px; border: 1px solid #333; text-align: left;">Cliente</th>
                                             <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Fecha vencimiento</th>
                                             <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Fecha de pago</th>
-                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Recuperado</th>
-                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Pagado con garantía</th>
-                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Moratorio recuperado</th>
-                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Moratorio con garantia</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Monto Capital</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Pagado con Garantía</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach($pagoRealizado as $pagoDetalle)
+                                            @if($pagoDetalle->monto > 0.001)
+                                            <tr>
+                                                <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: left;">
+                                                    {{ $pagoDetalle->cliente ? mb_strtoupper($pagoDetalle->cliente->nombre_completo) : 'CLIENTE DESCONOCIDO' }}
+                                                </td>
+                                                <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pago['fecha'] }}</td>
+                                                <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pagoDetalle->fecha_pago->format('d/m/Y') }}</td>
+                                                <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">${{ number_format($pagoDetalle->monto, 2) }}</td>
+                                                <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">
+                                                    @if(in_array(strtolower($pagoDetalle->metodo_pago ?? ''), ['garantia', 'garantía']))
+                                                        Sí (${{ number_format($pagoDetalle->monto, 2) }})
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            @endif
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                                @endif
+
+                                {{-- TABLA 2: PAGO DE MULTAS --}}
+                                @php
+                                    // Filtrar pagos que tengan multa y correspondan a esta fila (MaxInstMap)
+                                    $multasEnEstaFila = collect();
+                                    $pagosUnicosMulta = $pagoRealizado->unique('id');
+                                    foreach($pagosUnicosMulta as $p) {
+                                        if (isset($maxInstMap[$p->id]) && $maxInstMap[$p->id] == $pago['numero']) {
+                                            if ($p->moratorio_pagado > 0) {
+                                                $multasEnEstaFila->push($p);
+                                            }
+                                        }
+                                    }
+                                @endphp
+
+                                @if($multasEnEstaFila->isNotEmpty())
+                                <div style="font-weight: bold; font-size: 9px; margin-bottom: 3px; color: #b91c1c;">Historial de Pago de Multas:</div>
+                                <table style="width: 100%; border-collapse: collapse; font-size: 9px; background: white;">
+                                    <thead>
+                                        <tr style="background-color: #e02424; color: white;"> {{-- Rojo para multas --}}
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: left;">Cliente</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Fecha de pago</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Monto Multa</th>
+                                            <th style="padding: 3px 4px; border: 1px solid #333; text-align: center;">Pagado con Garantía</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($multasEnEstaFila as $pagoMulta)
                                         <tr>
                                             <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: left;">
-                                                {{ $pagoDetalle->cliente ? mb_strtoupper($pagoDetalle->cliente->nombre_completo) : 'CLIENTE DESCONOCIDO' }}
+                                                {{ $pagoMulta->cliente ? mb_strtoupper($pagoMulta->cliente->nombre_completo) : 'CLIENTE DESCONOCIDO' }}
                                             </td>
-                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pagoDetalle->moratorio_pagado > 0?"":$pago['fecha'] }}</td>
-                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pagoDetalle->fecha_pago->format('d/m/Y') }}</td>
-                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">${{ number_format($pagoDetalle->monto, 2) }}</td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">{{ $pagoMulta->fecha_pago->format('d/m/Y') }}</td>
+                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">${{ number_format($pagoMulta->moratorio_pagado, 2) }}</td>
                                             <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">
-                                                @if(in_array(strtolower($pagoDetalle->metodo_pago ?? ''), ['garantia', 'garantía']))
-                                                    ${{ number_format($pagoDetalle->monto, 2) }}
+                                                @if(in_array(strtolower($pagoMulta->metodo_pago ?? ''), ['garantia', 'garantía']))
+                                                    Sí
+                                                @else
+                                                    -
                                                 @endif
-                                            </td>
-                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">
-                                                @if($pagoDetalle->moratorio_pagado > 0)
-                                                    ${{ number_format($pagoDetalle->moratorio_pagado, 2) }}
-                                                @endif
-                                            </td>
-                                            <td style="padding: 3px 4px; border: 1px solid #ccc; text-align: center;">
-                                                {{-- Lógica pendiente para Moratorio con Garantía --}}
                                             </td>
                                         </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
+                                @endif
+
                             </div>
                         </td>
                     </tr>
