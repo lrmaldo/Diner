@@ -1696,7 +1696,7 @@
                     // Sobrescribir atrasos con el conteo histórico
                     $atrasos = $multasGeneradasCount;
 
-                    $adeudoTotal = $capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido + $saldoTotal;
+                    $adeudoTotal = floor($capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido);
                     
                     $garantiaSaldos = $totalGarantia;
                 @endphp
@@ -1709,7 +1709,7 @@
                     <td>{{ $ivaVencido > 0.5 ? number_format($ivaVencido, 0) : '' }}</td>
                     <td>{{ $atrasos }}</td>
                     <td>{{ number_format($saldoTotal, 0) }}</td>
-                    <td>{{ number_format(floor($adeudoTotal), 0) }}</td>
+                    <td>{{ number_format($adeudoTotal, 0) }}</td>
                     <td>{{ number_format($garantiaSaldos, 0) }}</td>
                 </tr>
             </tbody>
