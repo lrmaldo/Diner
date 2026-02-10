@@ -1476,12 +1476,12 @@
                     $pagadoPorNumero = $pagosHastaHoy
                         ->whereNotNull('numero_pago')
                         ->groupBy('numero_pago')
-                        ->map(fn ($pagos) => (float) $pagos->sum('monto'))
+                        ->map(fn ($pagos) => (float) ($pagos->sum('monto') - $pagos->sum('moratorio_pagado')))
                         ->toArray();
 
-                    $pagosSinNumeroTotal = (float) $pagosHastaHoy
+                    $pagosSinNumeroTotal = (float) ($pagosHastaHoy
                         ->whereNull('numero_pago')
-                        ->sum('monto');
+                        ->sum('monto') - $pagosHastaHoy->whereNull('numero_pago')->sum('moratorio_pagado'));
 
                     $montoVencido = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
                         $calendarioPagos,
@@ -1659,12 +1659,12 @@
                             $pagadoPorNumeroCliente = $pagosHastaHoyCliente
                                 ->whereNotNull('numero_pago')
                                 ->groupBy('numero_pago')
-                                ->map(fn ($pagos) => (float) $pagos->sum('monto'))
+                                ->map(fn ($pagos) => (float) ($pagos->sum('monto') - $pagos->sum('moratorio_pagado')))
                                 ->toArray();
 
-                            $pagosSinNumeroClienteTotal = (float) $pagosHastaHoyCliente
+                            $pagosSinNumeroClienteTotal = (float) ($pagosHastaHoyCliente
                                 ->whereNull('numero_pago')
-                                ->sum('monto');
+                                ->sum('monto') - $pagosHastaHoyCliente->whereNull('numero_pago')->sum('moratorio_pagado'));
 
                             $montoVencidoCliente = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
                                 $clientSchedule,
