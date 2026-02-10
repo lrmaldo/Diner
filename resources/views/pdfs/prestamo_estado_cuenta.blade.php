@@ -1787,7 +1787,7 @@
                             // Sobrescribir atrasos con el conteo histórico
                             $atrasosCliente = $multasGeneradasCountCliente;
 
-                            $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente + $saldoMoratorioCliente;
+                            $deudaTotalCliente = floor($capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente + $saldoMoratorioCliente);
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($cliente->nombres . ' ' . $cliente->apellido_paterno . ' ' . $cliente->apellido_materno)) }}</td>
@@ -1843,7 +1843,7 @@
                             // Usamos el saldo moratorio acumulativo global calculado previamente
                             $saldoMoratorioCliente = $saldoTotal;
                             
-                            $deudaTotalCliente = $capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente + $saldoMoratorioCliente;
+                            $deudaTotalCliente = floor($capitalVigenteCliente + $interesVigenteCliente + $ivaVigenteCliente + $capitalVencidoCliente + $interesVencidoCliente + $ivaVencidoCliente + $saldoMoratorioCliente);
                         @endphp
                         <tr>
                             <td class="left">{{ mb_strtoupper(trim($prestamo->cliente->nombres . ' ' . $prestamo->cliente->apellido_paterno . ' ' . $prestamo->cliente->apellido_materno)) }}</td>
