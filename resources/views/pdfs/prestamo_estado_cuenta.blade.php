@@ -905,9 +905,10 @@
                     $pagosOrdenadosCalc = $todosLosPagosCalc->filter(function($p) use ($fCorteStr) {
                          $tipo = strtolower($p->tipo_pago ?? '');
                          $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+                         $esDevolucion = str_contains($tipo, 'devolucion');
                          $pagoDateStr = $p->fecha_pago->format('Y-m-d');
                          $esDiaCero = $fCorteStr && $pagoDateStr < $fCorteStr;
-                         return !$esGarantia && !$esDiaCero;
+                         return !$esGarantia && !$esDiaCero && !$esDevolucion;
                     })->values();
 
                     $timelinePagosCalc = [];
@@ -1060,13 +1061,14 @@
                     $todosLosPagos = $todosLosPagosRaw->filter(function($p) use ($fechaCorteStr) {
                          $tipo = strtolower($p->tipo_pago ?? '');
                          $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+                         $esDevolucion = str_contains($tipo, 'devolucion'); // Excluir devoluciones de garantía
                          
                          $pagoDateStr = $p->fecha_pago->format('Y-m-d');
                          // Solo considerarlo día cero si es estrictamente menor a la fecha de corte
                          // Permitiendo pagos el mismo día de la entrega
                          $esDiaCero = $fechaCorteStr && $pagoDateStr < $fechaCorteStr;
                          
-                         return !$esGarantia && !$esDiaCero;
+                         return !$esGarantia && !$esDiaCero && !$esDevolucion;
                     });
 
                     // Función para simular desglose de pagos (Bucket Logic)
@@ -1558,8 +1560,8 @@
                     // Calcular pago por mil (monto de cada pago)
                     $pagosPorMil = !empty($calendarioPagos) ? $calendarioPagos[0]['monto'] : 0;
                     
-                    // Sumatoria de pagos realizados
-                    $sumatoriaPagos = $prestamo->pagos()->sum('monto') - $prestamo->pagos()->sum('moratorio_pagado');
+                    // Sumatoria de pagos realizados (excluyendo devoluciones de garantía)
+                    $sumatoriaPagos = $prestamo->pagos()->where('tipo_pago', '!=', 'devolucion_garantia')->sum('monto') - $prestamo->pagos()->where('tipo_pago', '!=', 'devolucion_garantia')->sum('moratorio_pagado');
                     
                     // Calcular monto vencido real (sin depender de numero_pago)
                     // Regla: cualquier pago descuenta primero lo ya vencido (FIFO).
@@ -1738,8 +1740,8 @@
                         @php
                             $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
                             
-                            // Sumatoria de pagos del cliente
-                            $sumatoriaPagosCliente = $prestamo->pagos()->where('cliente_id', $cliente->id)->sum('monto') - $prestamo->pagos()->where('cliente_id', $cliente->id)->sum('moratorio_pagado');
+                            // Sumatoria de pagos del cliente (excluyendo devoluciones)
+                            $sumatoriaPagosCliente = $prestamo->pagos()->where('cliente_id', $cliente->id)->where('tipo_pago', '!=', 'devolucion_garantia')->sum('monto') - $prestamo->pagos()->where('cliente_id', $cliente->id)->where('tipo_pago', '!=', 'devolucion_garantia')->sum('moratorio_pagado');
                             
                             // Obtener pago periódico del cliente
                             $clientSchedule = $clientSchedules[$cliente->id] ?? [];
@@ -1911,8 +1913,8 @@
                         @php
                             $montoCliente = $prestamo->monto_total ?? 0;
                             
-                            // Sumatoria de pagos del cliente
-                            $sumatoriaPagosCliente = $prestamo->pagos()->sum('monto') - $prestamo->pagos()->sum('moratorio_pagado');
+                            // Sumatoria de pagos del cliente (excluyendo devoluciones)
+                            $sumatoriaPagosCliente = $prestamo->pagos()->where('tipo_pago', '!=', 'devolucion_garantia')->sum('monto') - $prestamo->pagos()->where('tipo_pago', '!=', 'devolucion_garantia')->sum('moratorio_pagado');
                             
                             // Calcular monto vencido (reutilizamos el cálculo global ya que es individual)
                             $montoVencidoCliente = $montoVencido;
