@@ -73,115 +73,61 @@
                 @can('ver prestamos')
                 <!-- Préstamos -->
                 <div class="space-y-1">
-                    @if(auth()->user()->hasRole('Asesor'))
-                        <!-- Solo Préstamos Autorizados para Asesores -->
-                        <a href="{{ route('prestamos.autorizados') }}"
-                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.autorizados') ? 'bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                           wire:navigate>
-                            <svg class="mr-3 h-5 w-5 {{ request()->routeIs('prestamos.autorizados') ? 'text-green-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Préstamos Autorizados
-                        </a>
-
-                        <!-- En Comité - Asesores también pueden ver préstamos en comité -->
-                        <a href="{{ route('prestamos.en-comite') }}"
-                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.en-comite') ? 'bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                           wire:navigate>
-                            <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.en-comite') ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                            En Comité
-                        </a>
-
-                        <!-- En Proceso -->
-                        <a href="{{ route('prestamos.en-proceso') }}"
-                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.en-proceso') ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                           wire:navigate>
-                            <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.en-proceso') ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            En Proceso
-                        </a>
-
-                        <!-- Rechazados -->
-                        <a href="{{ route('prestamos.rechazados') }}"
-                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.rechazados') ? 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                           wire:navigate>
-                            <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.rechazados') ? 'text-red-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Rechazados
-                        </a>
-
-                        @can('crear prestamos')
-                        <!-- Nuevo Préstamo -->
-                        <a href="{{ route('prestamos.create') }}"
-                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.create') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                           wire:navigate>
-                            <svg class="mr-3 h-4 w-4 {{ request()->routeIs('prestamos.create') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            Solicitar Crédito
-                        </a>
-                        @endcan
-                    @else
-                        <!-- Vista para Administradores y Cajeros -->
-                        <div x-data="{ open: {{ request()->routeIs('prestamos.*') ? 'true' : 'false' }} }">
-                            <button @click="open = !open" class="w-full group flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
-                                <div class="flex items-center">
-                                    <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                    </svg>
-                                    Créditos
-                                </div>
-                                <svg :class="{'rotate-90': open}" class="h-4 w-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    <!-- Menú Desplegable unificado para todos los roles -->
+                    <div x-data="{ open: {{ request()->routeIs('prestamos.*') ? 'true' : 'false' }} }">
+                        <button @click="open = !open" class="w-full group flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                            <div class="flex items-center">
+                                <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                 </svg>
-                            </button>
-
-                            <div x-show="open" class="space-y-1 pl-10" x-cloak>
-                                @can('crear prestamos')
-                                <!-- Nuevo Préstamo -->
-                                <a href="{{ route('prestamos.create') }}"
-                                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.create') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                                   wire:navigate>
-                                    Solicitar Crédito
-                                </a>
-                                @endcan
-
-                                @if(auth()->user()->hasRole('Administrador'))
-                                <!-- En Comité - Solo Administradores -->
-                                <a href="{{ route('prestamos.en-comite') }}"
-                                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.en-comite') ? 'bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                                   wire:navigate>
-                                    En Comité
-                                </a>
-
-                                <!-- En Proceso -->
-                                <a href="{{ route('prestamos.en-proceso') }}"
-                                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.en-proceso') ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                                   wire:navigate>
-                                    En Proceso
-                                </a>
-
-                                <!-- Rechazados -->
-                                <a href="{{ route('prestamos.rechazados') }}"
-                                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.rechazados') ? 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                                   wire:navigate>
-                                    Rechazados
-                                </a>
-                                @endif
-
-                                <!-- Préstamos Autorizados -->
-                                <a href="{{ route('prestamos.autorizados') }}"
-                                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.autorizados') ? 'bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
-                                   wire:navigate>
-                                    Autorizados
-                                </a>
+                                Créditos
                             </div>
+                            <svg :class="{'rotate-90': open}" class="h-4 w-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+
+                        <div x-show="open" class="space-y-1 pl-10" x-cloak>
+                            @can('crear prestamos')
+                            <!-- Nuevo Préstamo -->
+                            <a href="{{ route('prestamos.create') }}"
+                               class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.create') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                               wire:navigate>
+                                Solicitar Crédito
+                            </a>
+                            @endcan
+
+                            @if(auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Asesor'))
+                            <!-- En Comité -->
+                            <a href="{{ route('prestamos.en-comite') }}"
+                               class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.en-comite') ? 'bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                               wire:navigate>
+                                En Comité
+                            </a>
+
+                            <!-- En Proceso -->
+                            <a href="{{ route('prestamos.en-proceso') }}"
+                               class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.en-proceso') ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-900 dark:text-indigo-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                               wire:navigate>
+                                En Proceso
+                            </a>
+
+                            <!-- Rechazados -->
+                            <a href="{{ route('prestamos.rechazados') }}"
+                               class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.rechazados') ? 'bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                               wire:navigate>
+                                Rechazados
+                            </a>
+                            @endif
+
+                            <!-- Préstamos Autorizados -->
+                            <a href="{{ route('prestamos.autorizados') }}"
+                               class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('prestamos.autorizados') ? 'bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                               wire:navigate>
+                                Autorizados
+                            </a>
                         </div>
-                    @endif
+                    </div>
                 </div>
                 @endcan
 
