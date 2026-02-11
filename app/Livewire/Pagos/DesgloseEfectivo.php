@@ -7,10 +7,14 @@ use App\Models\Prestamo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class DesgloseEfectivo extends Component
 {
+    #[Url]
+    public $source = null; // 'pagos' o 'multas'
+
     public $prestamoId;
     public $prestamo;
     public $fechaPago;
@@ -386,7 +390,11 @@ class DesgloseEfectivo extends Component
             // Idempotency Check: Prevent double submission
             if (Pago::where('pago_uuid', $this->transactionUuid)->exists()) {
                 $this->dispatch('alert', type: 'info', message: 'Este cobro ya fue procesado previamente.');
-                return redirect()->route('pagos.index');
+                $params = [];
+                if ($this->source) {
+                    $params['modo'] = $this->source;
+                }
+                return redirect()->route('pagos.index', $params);
             }
 
             DB::beginTransaction();
@@ -466,7 +474,12 @@ class DesgloseEfectivo extends Component
             DB::commit();
 
             $this->dispatch('alert', type: 'success', message: 'Pagos registrados exitosamente.');
-            return redirect()->route('pagos.index');
+            
+            $params = [];
+            if ($this->source) {
+                $params['modo'] = $this->source;
+            }
+            return redirect()->route('pagos.index', $params);
 
         } catch (\Exception $e) {
             DB::rollBack();

@@ -6,10 +6,12 @@ use App\Models\Prestamo;
 use App\Models\Holiday;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class Index extends Component
 {
+    #[Url]
     public $modo = null; // 'pagos' o 'multas'
 
     public $search = '';
@@ -504,7 +506,7 @@ class Index extends Component
             'tipo_operacion' => 'cobro', // Se trata de un cobro (entrada de dinero)
         ], now()->addMinutes(5));
 
-        return redirect()->route('pagos.desglose-efectivo', $this->prestamo->id);
+        return redirect()->route('pagos.desglose-efectivo', ['prestamoId' => $this->prestamo->id, 'source' => 'multas']);
     }
 
     public function irACobrar()
@@ -517,7 +519,7 @@ class Index extends Component
                 'selectedClients' => $this->selectedClients,
             ], now()->addMinutes(5));
 
-            return redirect()->route('pagos.desglose-efectivo', $this->prestamo->id);
+            return redirect()->route('pagos.desglose-efectivo', ['prestamoId' => $this->prestamo->id, 'source' => 'pagos']);
         }
     }
 
