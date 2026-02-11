@@ -53,6 +53,11 @@ class DevolucionGarantia extends Component
             $this->errorMessage = 'El crédito no está liquidado';
         }
 
+        // Verificar si la garantía ya fue entregada
+        if ($this->prestamo->pagos()->where('tipo_pago', 'devolucion_garantia')->exists()) {
+            $this->errorMessage = 'La garantía ya fue entregada.';
+        }
+
         // 2. Cargar datos
         $this->representanteName = $this->prestamo->representante->nombre_completo ?? ($this->prestamo->cliente->nombre_completo ?? 'N/A');
         $this->ejecutivoName = $this->prestamo->asesor->name ?? 'N/A';
@@ -80,7 +85,8 @@ class DevolucionGarantia extends Component
         }
 
         // Si hay multas, bloqueamos la devolución
-        if ($saldoMultasTotal > 0 && !$this->errorMessage) {
+        // Usamos floor para ignorar centavos residuales (ej. $0.05) que bloquean la operación
+        if (floor($saldoMultasTotal) > 0 && !$this->errorMessage) {
             $this->errorMessage = 'El préstamo tiene multas pendientes de pago ($' . number_format($saldoMultasTotal, 2) . '). No se puede devolver la garantía.';
         }
     }
