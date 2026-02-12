@@ -18,59 +18,6 @@
         </div>
     @endif
 
-    <div class="bg-white shadow rounded-lg p-4 mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-            <!-- Búsqueda general -->
-            <div class="lg:col-span-2">
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
-                        </svg>
-                    </span>
-                    <input wire:model.live.debounce.300ms="search" type="text" id="search" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Folio, cliente o representante">
-                </div>
-            </div>
-
-            <!-- Filtro por producto -->
-            <div>
-                <label for="producto" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
-                <select wire:model.live="producto" id="producto" class="input-project">
-                    <option value="">Todos</option>
-                    <option value="individual">Individual</option>
-                    <option value="grupal">Grupal</option>
-                </select>
-            </div>
-
-            <!-- Registros por página -->
-            <div>
-                <label for="perPage" class="block text-sm font-medium text-gray-700 mb-1">Mostrar</label>
-                <select wire:model.live="perPage" id="perPage" class="input-project">
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Filtros de fecha -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Fecha desde -->
-            <div>
-                <label for="fechaDesde" class="block text-sm font-medium text-gray-700 mb-1">Fecha desde</label>
-                <input wire:model.live="fechaDesde" type="date" id="fechaDesde" class="input-project">
-            </div>
-
-            <!-- Fecha hasta -->
-            <div>
-                <label for="fechaHasta" class="block text-sm font-medium text-gray-700 mb-1">Fecha hasta</label>
-                <input wire:model.live="fechaHasta" type="date" id="fechaHasta" class="input-project">
-            </div>
-        </div>
-    </div>
-
     <div class="bg-white shadow rounded-lg overflow-hidden">
         @if(auth()->check() && auth()->user()->hasRole('Asesor'))
             <div class="px-4 py-3 bg-yellow-50 border-l-4 border-yellow-300 rounded-b mb-4">
