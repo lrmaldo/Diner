@@ -70,6 +70,7 @@ class Holiday extends Model
      */
     public static function createRecurringForYear(int $year): void
     {
+        // 1. Intentar copiar feriados recurrentes existentes
         $recurringHolidays = self::where('is_recurring', true)->get();
 
         foreach ($recurringHolidays as $holiday) {
@@ -78,9 +79,9 @@ class Holiday extends Model
             self::updateOrCreate(
                 [
                     'date' => $newDate->format('Y-m-d'),
-                    'year' => $year,
                 ],
                 [
+                    'year' => $year,
                     'name' => $holiday->name,
                     'is_recurring' => true,
                     'type' => $holiday->type,
@@ -88,6 +89,36 @@ class Holiday extends Model
                     'is_active' => true,
                 ]
             );
+        }
+
+        // 2. Si no existen feriados para este año después del proceso anterior,
+        // poblar con los días festivos obligatorios de México por defecto.
+        $count = self::where('year', $year)->count();
+
+        if ($count === 0) {
+            $defaults = [
+                ['name' => 'Año Nuevo', 'date' => "$year-01-01"],
+                ['name' => 'Día de la Constitución', 'date' => "$year-02-05"],
+                ['name' => 'Natalicio de Benito Juárez', 'date' => "$year-03-21"],
+                ['name' => 'Día del Trabajo', 'date' => "$year-05-01"],
+                ['name' => 'Día de la Independencia', 'date' => "$year-09-16"],
+                ['name' => 'Revolución Mexicana', 'date' => "$year-11-20"],
+                ['name' => 'Navidad', 'date' => "$year-12-25"],
+            ];
+
+            foreach ($defaults as $def) {
+                self::firstOrCreate(
+                    ['date' => $def['date']],
+                    [
+                        'name' => $def['name'],
+                        'year' => $year,
+                        'is_recurring' => true,
+                        'type' => 'national',
+                        'description' => 'Festivo oficial',
+                        'is_active' => true,
+                    ]
+                );
+            }
         }
     }
 
