@@ -1,10 +1,9 @@
 <div class="flex flex-col gap-6">
     <div class="flex flex-col items-center gap-4 text-center">
-        <img src="{{ asset('img/logo.JPG') }}" alt="Logo Diner" class="h-20 w-auto rounded-lg shadow-md mb-2">
-        <h2 class="text-2xl font-bold tracking-tight text-gray-900">
-            Inicia sesión en Diner
+        <h2 class="text-3xl font-extrabold tracking-tight text-gray-900 mb-2">
+            ¡Bienvenido!
         </h2>
-        <p class="text-sm text-gray-600">
+        <p class="text-sm text-gray-500">
             Ingresa tus credenciales para acceder al sistema
         </p>
     </div>
@@ -25,7 +24,7 @@
         />
 
         <!-- Password -->
-        <div class="relative">
+        <div class="space-y-2">
             <flux:input
                 wire:model="password"
                 label="Contraseña"
@@ -37,9 +36,11 @@
             />
 
             @if (Route::has('password.request'))
-                <flux:link class="absolute end-0 top-0 text-sm" :href="route('password.request')" wire:navigate>
-                    ¿Olvidaste tu contraseña?
-                </flux:link>
+                <div class="flex justify-end">
+                    <flux:link class="text-sm font-medium text-red-600 hover:text-red-500" :href="route('password.request')" wire:navigate>
+                        ¿Olvidaste tu contraseña?
+                    </flux:link>
+                </div>
             @endif
         </div>
 

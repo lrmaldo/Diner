@@ -1,11 +1,10 @@
  <div class="flex flex-col gap-6">
     <div class="flex flex-col items-center gap-4 text-center">
-        <img src="{{ asset('img/logo.JPG') }}" alt="Logo Diner" class="h-20 w-auto rounded-lg shadow-md mb-2">
-        <h2 class="text-2xl font-bold tracking-tight text-gray-900">
-            Recuperar contraseña
+        <h2 class="text-xl font-semibold text-gray-900">
+            Recuperar Contraseña
         </h2>
-        <p class="text-sm text-gray-600">
-            Ingresa tu correo para recibir un enlace de recuperación
+        <p class="text-sm text-gray-500">
+            Ingresa tu correo para recibir un enlace de recuperación.
         </p>
     </div>
 
