@@ -965,13 +965,14 @@
 
                     // Configuración de visualización de multas
                     // Penalización: Total de multas GENERADAS (deuda total por multas histórica)
-                    $penalizacionTotal = $multasGeneradasMontoTotal;
+                    $penalizacionTotal = floor($multasGeneradasMontoTotal);
                     
                     // Columna Moratorio se muestra en 0
                     $moratorioDisplay = 0;
                     
                     // Columna Recuperado (en sección Multas) muestra el total recuperado de multas
-                    $recuperadoMultasDisplay = $totalMultasPagadas;
+                    // Usar floor() para eliminar centavos residuales
+                    $recuperadoMultasDisplay = floor($totalMultasPagadas);
 
                     // Garantía pendiente para futuro
                     $garantiaRecuperaciones = 0;
@@ -1396,8 +1397,8 @@
                         <td>{{ $montoPagado > 0 ? number_format($montoPagado, 0) : '' }}</td>
                         <td></td>
                         {{-- Columnas de Multas Recuperadas --}}
-                        <td style="text-align: center;">{{ $moratorioRow > 0 ? number_format($moratorioRow, 0) : '' }}</td>
-                        <td style="text-align: center;">{{ $moratorioGarantiaRow > 0 ? number_format($moratorioGarantiaRow, 0) : '' }}</td>
+                        <td style="text-align: center;">{{ floor($moratorioRow) > 0 ? number_format(floor($moratorioRow), 0) : '' }}</td>
+                        <td style="text-align: center;">{{ floor($moratorioGarantiaRow) > 0 ? number_format(floor($moratorioGarantiaRow), 0) : '' }}</td>
                     </tr>
 
                     {{-- Historial de Pagos para esta cuota (Accordion) --}}
