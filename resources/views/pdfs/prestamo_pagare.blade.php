@@ -154,6 +154,8 @@
                     <tr>
                         <td style="vertical-align:top; padding-top:20px;">
                             <strong>AVAL:</strong> {{ mb_strtoupper($prestamo->cliente->nombre_aval, 'UTF-8') }}
+                            <div style="margin-top:6px; font-size:12px;">{{ $prestamo->cliente->direccion_aval ?? '' }}</div>
+                            <div style="font-size:12px;">{{ $prestamo->cliente->telefono_aval ?? '' }}</div>
                         </td>
                         <td style="width:220px;text-align:right;vertical-align:top; padding-top:20px;">
                             <div>__________________</div>

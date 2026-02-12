@@ -1701,7 +1701,9 @@
 
                     $adeudoTotal = floor($capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido);
                     
-                    $garantiaSaldos = $totalGarantia;
+                    // Restar garantías devueltas del saldo de garantía mostrado
+                    $garantiaDevueltaTotal = abs($prestamo->pagos()->where('tipo_pago', 'devolucion_garantia')->sum('monto'));
+                    $garantiaSaldos = max(0, $totalGarantia - $garantiaDevueltaTotal);
                 @endphp
                 <tr>
                     <td class="label">{{ number_format($capitalVigente, 0) }}</td>

@@ -496,6 +496,16 @@
                                                 <input wire:model.defer="new_nombre_aval" class="input-project" />
                                                 @error('new_nombre_aval') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
+                                            <div class="sm:col-span-2">
+                                                <label class="field-label">Dirección de aval</label>
+                                                <input wire:model.defer="new_direccion_aval" class="input-project" />
+                                                @error('new_direccion_aval') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div>
+                                                <label class="field-label">Teléfono de aval</label>
+                                                <input wire:model.defer="new_telefono_aval" class="input-project" />
+                                                @error('new_telefono_aval') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -991,9 +1001,17 @@
                                 <input wire:model.defer="edit_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
                             </div>
                             @if($producto === 'individual')
-                            <div>
+                            <div class="sm:col-span-2">
                                 <label class="field-label">Nombre de aval</label>
                                 <input wire:model.defer="edit_nombre_aval" class="input-project" />
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="field-label">Dirección de aval</label>
+                                <input wire:model.defer="edit_direccion_aval" class="input-project" />
+                            </div>
+                            <div>
+                                <label class="field-label">Teléfono de aval</label>
+                                <input wire:model.defer="edit_telefono_aval" class="input-project" />
                             </div>
                             @endif
                         </div>
