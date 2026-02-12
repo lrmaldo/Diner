@@ -91,34 +91,30 @@ class Holiday extends Model
             );
         }
 
-        // 2. Si no existen feriados para este año después del proceso anterior,
-        // poblar con los días festivos obligatorios de México por defecto.
-        $count = self::where('year', $year)->count();
+        // 2. Asegurar que los días festivos obligatorios de México existan
+        // Se usa firstOrCreate para no duplicar si ya fueron copiados o creados manualmente
+        $defaults = [
+            ['name' => 'Año Nuevo', 'date' => "$year-01-01"],
+            ['name' => 'Día de la Constitución', 'date' => "$year-02-05"],
+            ['name' => 'Natalicio de Benito Juárez', 'date' => "$year-03-21"],
+            ['name' => 'Día del Trabajo', 'date' => "$year-05-01"],
+            ['name' => 'Día de la Independencia', 'date' => "$year-09-16"],
+            ['name' => 'Revolución Mexicana', 'date' => "$year-11-20"],
+            ['name' => 'Navidad', 'date' => "$year-12-25"],
+        ];
 
-        if ($count === 0) {
-            $defaults = [
-                ['name' => 'Año Nuevo', 'date' => "$year-01-01"],
-                ['name' => 'Día de la Constitución', 'date' => "$year-02-05"],
-                ['name' => 'Natalicio de Benito Juárez', 'date' => "$year-03-21"],
-                ['name' => 'Día del Trabajo', 'date' => "$year-05-01"],
-                ['name' => 'Día de la Independencia', 'date' => "$year-09-16"],
-                ['name' => 'Revolución Mexicana', 'date' => "$year-11-20"],
-                ['name' => 'Navidad', 'date' => "$year-12-25"],
-            ];
-
-            foreach ($defaults as $def) {
-                self::firstOrCreate(
-                    ['date' => $def['date']],
-                    [
-                        'name' => $def['name'],
-                        'year' => $year,
-                        'is_recurring' => true,
-                        'type' => 'national',
-                        'description' => 'Festivo oficial',
-                        'is_active' => true,
-                    ]
-                );
-            }
+        foreach ($defaults as $def) {
+            self::firstOrCreate(
+                ['date' => $def['date']],
+                [
+                    'name' => $def['name'],
+                    'year' => $year,
+                    'is_recurring' => true,
+                    'type' => 'national',
+                    'description' => 'Festivo oficial',
+                    'is_active' => true,
+                ]
+            );
         }
     }
 
