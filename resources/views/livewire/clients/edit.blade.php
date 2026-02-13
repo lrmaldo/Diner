@@ -108,6 +108,18 @@
             </div>
 
             <div>
+                <label class="field-label">Dirección de aval</label>
+                <input wire:model.defer="direccion_aval" type="text" class="input-project" value="{{ old('direccion_aval', $direccion_aval) }}" />
+                @error('direccion_aval') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <div>
+                <label class="field-label">Teléfono de aval</label>
+                <input wire:model.defer="telefono_aval" type="text" class="input-project" value="{{ old('telefono_aval', $telefono_aval) }}" />
+                @error('telefono_aval') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
+            </div>
+
+            <div>
                 <label class="field-label">Actividad productiva</label>
                 <input wire:model.defer="actividad_productiva" type="text" class="input-project" value="{{ old('actividad_productiva', $actividad_productiva) }}" />
                 @error('actividad_productiva') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror

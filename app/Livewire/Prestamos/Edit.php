@@ -97,6 +97,10 @@ class Edit extends Component
 
     public $new_nombre_aval;
 
+    public $new_direccion_aval;
+
+    public $new_telefono_aval;
+
     public $new_actividad_productiva;
 
     public $new_anios_experiencia;
@@ -894,6 +898,10 @@ class Edit extends Component
 
     public $edit_nombre_aval;
 
+    public $edit_direccion_aval;
+
+    public $edit_telefono_aval;
+
     public $edit_actividad_productiva;
 
     public $edit_anios_experiencia;
@@ -937,6 +945,8 @@ class Edit extends Component
         $this->edit_estado_civil = $c->estado_civil;
         $this->edit_dependientes_economicos = $c->dependientes_economicos;
         $this->edit_nombre_aval = $c->nombre_aval;
+        $this->edit_direccion_aval = $c->direccion_aval;
+        $this->edit_telefono_aval = $c->telefono_aval;
         $this->edit_actividad_productiva = $c->actividad_productiva;
         $this->edit_anios_experiencia = $c->anios_experiencia;
         $this->edit_ingreso_mensual = $c->ingreso_mensual;
@@ -968,6 +978,8 @@ class Edit extends Component
             'edit_estado_civil' => ['nullable', 'string', 'max:100'],
             'edit_dependientes_economicos' => ['nullable', 'integer', 'min:0'],
             'edit_nombre_aval' => ['nullable', 'string', 'max:255'],
+            'edit_direccion_aval' => ['nullable', 'string', 'max:500'],
+            'edit_telefono_aval' => ['nullable', 'string', 'max:20'],
             'edit_actividad_productiva' => ['nullable', 'string', 'max:255'],
             'edit_anios_experiencia' => ['nullable', 'integer', 'min:0'],
             'edit_ingreso_mensual' => ['nullable', 'numeric'],
@@ -1006,6 +1018,8 @@ class Edit extends Component
             'estado_civil' => $this->edit_estado_civil,
             'dependientes_economicos' => $this->edit_dependientes_economicos,
             'nombre_aval' => $this->edit_nombre_aval,
+            'direccion_aval' => $this->edit_direccion_aval,
+            'telefono_aval' => $this->edit_telefono_aval,
             'actividad_productiva' => $this->edit_actividad_productiva,
             'anios_experiencia' => $this->edit_anios_experiencia,
             'ingreso_mensual' => $this->edit_ingreso_mensual,

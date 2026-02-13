@@ -37,6 +37,10 @@ class Edit extends Component
 
     public $nombre_aval;
 
+    public $direccion_aval;
+
+    public $telefono_aval;
+
     public $actividad_productiva;
 
     public $anios_experiencia;
@@ -70,6 +74,8 @@ class Edit extends Component
             'estado_civil' => ['nullable', 'string', 'max:100'],
             'dependientes_economicos' => ['nullable', 'integer', 'min:0'],
             'nombre_aval' => ['nullable', 'string', 'max:255'],
+            'direccion_aval' => ['nullable', 'string', 'max:500'],
+            'telefono_aval' => ['nullable', 'string', 'max:20'],
             'actividad_productiva' => ['nullable', 'string', 'max:255'],
             'anios_experiencia' => ['nullable', 'integer', 'min:0'],
             'ingreso_mensual' => ['nullable', 'numeric'],
@@ -121,6 +127,8 @@ class Edit extends Component
         $this->estado_civil = $cliente->estado_civil;
         $this->dependientes_economicos = $cliente->dependientes_economicos;
         $this->nombre_aval = $cliente->nombre_aval;
+        $this->direccion_aval = $cliente->direccion_aval;
+        $this->telefono_aval = $cliente->telefono_aval;
         $this->actividad_productiva = $cliente->actividad_productiva;
         $this->anios_experiencia = $cliente->anios_experiencia;
         $this->ingreso_mensual = $cliente->ingreso_mensual;
@@ -153,6 +161,8 @@ class Edit extends Component
             'estado_civil' => $this->estado_civil,
             'dependientes_economicos' => $this->dependientes_economicos,
             'nombre_aval' => $this->nombre_aval,
+            'direccion_aval' => $this->direccion_aval,
+            'telefono_aval' => $this->telefono_aval,
             'actividad_productiva' => $this->actividad_productiva,
             'anios_experiencia' => $this->anios_experiencia,
             'ingreso_mensual' => $this->ingreso_mensual,
