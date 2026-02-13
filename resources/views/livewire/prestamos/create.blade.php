@@ -108,7 +108,7 @@
                 {{-- Cuarta fila: Fecha de entrega y Fecha primer pago --}}
                 <div>
                     <label class="field-label">Fecha de entrega</label>
-                    <input wire:model="fecha_entrega" type="date" class="input-project" />
+                    <input wire:model="fecha_entrega" type="date" min="{{ date('Y-m-d') }}" class="input-project" />
                     @error('fecha_entrega')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
