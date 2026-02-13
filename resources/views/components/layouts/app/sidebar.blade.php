@@ -14,7 +14,7 @@
             <!-- Navegación Principal -->
             <nav class="flex-1 space-y-1 px-2 py-4">
                 <!-- Dashboard -->
-                <a href="{{ route('dashboard') }}"
+                {{-- <a href="{{ route('dashboard') }}"
                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
                    wire:navigate>
                     <svg class="mr-3 h-5 w-5 {{ request()->routeIs('dashboard') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,7 +22,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6a2 2 0 01-2 2H10a2 2 0 01-2-2V5z"></path>
                     </svg>
                     Dashboard
-                </a>
+                </a> --}}
 
                 <!-- Consultas -->
                 <div x-data="{ open: {{ request()->routeIs('consultas.*') ? 'true' : 'false' }} }">
