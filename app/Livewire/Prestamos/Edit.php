@@ -633,6 +633,13 @@ class Edit extends Component
 
         $prestamo = Prestamo::findOrFail($this->prestamo_id);
 
+        // Validación de fecha de entrega
+        if ($prestamo->fecha_entrega && \Carbon\Carbon::parse($prestamo->fecha_entrega)->startOfDay()->lt(now()->startOfDay())) {
+            $this->addError('fecha_entrega', 'La fecha de entrega (' . $prestamo->fecha_entrega->format('d/m/Y') . ') es anterior a la fecha actual. Debe editar el préstamo y seleccionar una fecha válida (hoy o futura) antes de enviarlo a comité.');
+            $this->showMessage('error', 'Error de validación: Fecha de entrega inválida.');
+            return;
+        }
+
         if ($this->producto === 'individual') {
             if (! $this->cliente_id) {
                 $this->addError('cliente', 'Debe seleccionar un cliente.');
