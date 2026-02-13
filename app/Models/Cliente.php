@@ -24,6 +24,8 @@ class Cliente extends Model
         'estado_civil',
         'dependientes_economicos',
         'nombre_aval',
+        'direccion_aval',
+        'telefono_aval',
         'actividad_productiva',
         'anios_experiencia',
         'ingreso_mensual',
