@@ -65,7 +65,11 @@ class Index extends Component
     public function render()
     {
         $users = User::query()
-            ->where('name', 'like', "%{$this->search}%")
+            ->where('email', '!=', 'lrmaldo@gmail.com') // Ocultar desarrollador
+            ->where(function ($query) {
+                $query->where('name', 'like', "%{$this->search}%")
+                      ->orWhere('email', 'like', "%{$this->search}%");
+            })
             ->when($this->roleFilter, function ($query) {
                 $query->whereHas('roles', function ($query) {
                     $query->where('name', $this->roleFilter);
