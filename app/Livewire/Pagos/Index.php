@@ -50,6 +50,12 @@ class Index extends Component
     {
         foreach ($this->selectedClients as $key => $val) {
             $this->selectedClients[$key] = $value;
+            // Si se desmarca, limpiar el abono. Si se marca, restaurar el pendiente.
+            if (!$value) {
+                $this->abonos[$key] = 0;
+            } else {
+                $this->abonos[$key] = $this->pendientes[$key] ?? 0;
+            }
         }
     }
 
