@@ -93,7 +93,8 @@
                         @endif
                     </div>
 
-                    @if(auth()->check() && (auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Cajero') || auth()->id() === $prestamo->asesor_id) && in_array($prestamo->estado, ['en_comite', 'rechazado']))
+                    {{-- REGLA: El asesor no puede editar préstamos en comité, solo el administrador --}}
+                    @if(auth()->check() && auth()->user()->hasRole('Administrador') && in_array($prestamo->estado, ['en_comite', 'rechazado']))
                         <div>
                             <a href="{{ route('prestamos.edit', $prestamo->id) }}"
                                class="inline-flex items-center px-4 py-2 bg-white border border-red-300 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium">
