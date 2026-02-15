@@ -1699,7 +1699,7 @@
                     // Sobrescribir atrasos con el conteo histórico
                     $atrasos = $multasGeneradasCount;
 
-                    $adeudoTotal = floor($capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido);
+                    $adeudoTotal = floor($capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido + $saldoTotal);
                     
                     // Restar garantías devueltas del saldo de garantía mostrado
                     $garantiaDevueltaTotal = abs($prestamo->pagos()->where('tipo_pago', 'devolucion_garantia')->sum('monto'));
