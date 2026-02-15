@@ -199,7 +199,7 @@
                                                     ${{ number_format(floor($row['recuperado']), 0) }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900 border-r border-gray-200 font-bold">
-                                                    ${{ number_format(floor($row['saldo']), 0) }}
+                                                    ${{ number_format(round($row['saldo']), 0) }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                                     <div class="flex items-center justify-center gap-3">
@@ -212,7 +212,7 @@
                                                                    class="block w-28 rounded-md border-gray-300 pl-7 pr-3 text-right focus:border-red-500 focus:ring-red-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-400" 
                                                                    placeholder="0"
                                                                    min="0"
-                                                                   max="{{ floor($row['saldo']) }}"
+                                                                   max="{{ round($row['saldo']) }}"
                                                                    step="1"
                                                                    @if(!($multasSelected[$row['id']] ?? false)) disabled @endif
                                                             >
