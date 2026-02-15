@@ -1963,7 +1963,7 @@
                             <td>{{ $interesVencidoCliente > 0.5 ? number_format($interesVencidoCliente, 0) : '' }}</td>
                             <td>{{ $ivaVencidoCliente > 0.5 ? number_format($ivaVencidoCliente, 0) : '' }}</td>
                             <td>{{ $atrasosCliente }}</td>
-                            <td>{{ number_format($saldoMoratorioCliente, 0) }}</td>
+                            <td>{{ $saldoMoratorioCliente }}</td>
                             <td>{{ number_format($deudaTotalCliente, 0) }}</td>
                         </tr>
                     @endif
