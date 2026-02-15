@@ -1694,10 +1694,94 @@
 
                     $moratorioPagadoTotal = $prestamo->pagos()->sum('moratorio_pagado');
 
-                    $saldoTotal = max(0, $totalMultasGeneradasMonto - $moratorioPagadoTotal); // Saldo Moratorio Real
+                    // Corrección para préstamos grupales: Sumar el saldo moratorio individual de cada cliente
+                    if ($prestamo->producto === 'grupal') {
+                        $totalSaldoMoratorioGrupo = 0;
+                        $atrasosGrupo = 0;
 
-                    // Sobrescribir atrasos con el conteo histórico
-                    $atrasos = $multasGeneradasCount;
+                        foreach ($prestamo->clientes as $clienteGrp) {
+                            $montoClienteGrp = $clienteGrp->pivot->monto_autorizado ?? $clienteGrp->pivot->monto_solicitado ?? 0;
+                            
+                            // 1. Calcular calendario del cliente
+                            $clientScheduleGrp = calcularCalendarioPagos(
+                                $montoClienteGrp,
+                                $prestamo->tasa_interes ?? 0,
+                                $prestamo->plazo ?? '4meses',
+                                $prestamo->periodicidad ?? 'semanal',
+                                $prestamo->fecha_primer_pago ?? $prestamo->fecha_autorizacion ?? now(),
+                                $prestamo->ultimo_pago ?? null
+                            );
+
+                            // 2. Obtener pagos del cliente ordenados
+                            $pagosClienteGrp = $todosLosPagos
+                                ->where('cliente_id', $clienteGrp->id)
+                                ->sortBy('fecha_pago')
+                                ->values();
+
+                            // 3. Crear Timeline de pagos acumulados (Capital + Interés, sin mora)
+                            $timelinePagosClienteGrp = [];
+                            $acumuladoPagosDineroClienteGrp = 0;
+                            foreach($pagosClienteGrp as $pC) {
+                                $montoEfectivoC = $pC->monto - ($pC->moratorio_pagado ?? 0);
+                                $acumuladoPagosDineroClienteGrp += $montoEfectivoC;
+                                
+                                $timelinePagosClienteGrp[] = [
+                                    'monto_acumulado' => $acumuladoPagosDineroClienteGrp,
+                                    'fecha' => \Carbon\Carbon::parse($pC->fecha_pago)
+                                ];
+                            }
+
+                            // 4. Calcular multas generadas para este cliente
+                            $multasGeneradasCountClienteGrp = 0;
+                            $totalMultasGeneradasMontoClienteGrp = 0;
+                            $acumuladoCuotasClienteGrp = 0;
+                            
+                            foreach ($clientScheduleGrp as $cuotaGrp) {
+                                $fechaVencC = \Carbon\Carbon::createFromFormat('d-m-y', $cuotaGrp['fecha'])->endOfDay();
+                                
+                                if ($fechaVencC->isFuture()) continue;
+
+                                $montoCuotaC = $cuotaGrp['monto'];
+                                $targetAcumuladoC = $acumuladoCuotasClienteGrp + $montoCuotaC;
+                                $acumuladoCuotasClienteGrp += $montoCuotaC;
+                                
+                                // Buscar cuándo se cubrió esta cuota
+                                $fechaCoberturaC = null;
+                                foreach ($timelinePagosClienteGrp as $tpC) {
+                                    if ($tpC['monto_acumulado'] >= $targetAcumuladoC - 0.1) {
+                                        $fechaCoberturaC = $tpC['fecha'];
+                                        break;
+                                    }
+                                }
+                                
+                                // Determinar si hubo multa
+                                if ($fechaCoberturaC === null) {
+                                    $multasGeneradasCountClienteGrp++;
+                                    $totalMultasGeneradasMontoClienteGrp += ($montoCuotaC * 0.05);
+                                } elseif ($fechaCoberturaC->format('Y-m-d') > $fechaVencC->format('Y-m-d')) {
+                                     $multasGeneradasCountClienteGrp++;
+                                     $totalMultasGeneradasMontoClienteGrp += ($montoCuotaC * 0.05);
+                                }
+                            }
+
+                            // 5. Calcular saldo moratorio neto del cliente
+                            $moratorioPagadoClienteGrp = $prestamo->pagos()
+                                ->where('cliente_id', $clienteGrp->id)
+                                ->sum('moratorio_pagado');
+                                
+                            $saldoMoratorioClienteGrp = max(0, $totalMultasGeneradasMontoClienteGrp - $moratorioPagadoClienteGrp);
+                            
+                            $totalSaldoMoratorioGrupo += $saldoMoratorioClienteGrp;
+                            $atrasosGrupo = max($atrasosGrupo, $multasGeneradasCountClienteGrp);
+                        }
+                        
+                        $saldoTotal = $totalSaldoMoratorioGrupo;
+                        $atrasos = $atrasosGrupo;
+                    } else {
+                        $saldoTotal = max(0, $totalMultasGeneradasMonto - $moratorioPagadoTotal); // Saldo Moratorio Real (Individual)
+                        // Sobrescribir atrasos con el conteo histórico
+                        $atrasos = $multasGeneradasCount;
+                    }
 
                     $adeudoTotal = floor($capitalVigente + $interesVigente + $ivaVigente + $capitalVencido + $interesVencido + $ivaVencido + $saldoTotal);
                     
