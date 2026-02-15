@@ -1769,7 +1769,8 @@
                                 ->where('cliente_id', $clienteGrp->id)
                                 ->sum('moratorio_pagado');
                                 
-                            $saldoMoratorioClienteGrp = max(0, $totalMultasGeneradasMontoClienteGrp - $moratorioPagadoClienteGrp);
+                            // Redondear el saldo individual antes de sumar al total grupal para evitar discrepancias de centavos
+                            $saldoMoratorioClienteGrp = round(max(0, $totalMultasGeneradasMontoClienteGrp - $moratorioPagadoClienteGrp));
                             
                             $totalSaldoMoratorioGrupo += $saldoMoratorioClienteGrp;
                             $atrasosGrupo = max($atrasosGrupo, $multasGeneradasCountClienteGrp);
