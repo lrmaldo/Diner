@@ -935,10 +935,10 @@ class Create extends Component
         ]);
 
         $cliente = Cliente::create([
-            'apellido_paterno' => $this->new_apellido_paterno,
-            'apellido_materno' => $this->new_apellido_materno,
-            'nombres' => $this->new_nombres,
-            'curp' => $this->new_curp,
+            'apellido_paterno' => Str::upper($this->new_apellido_paterno),
+            'apellido_materno' => Str::upper($this->new_apellido_materno),
+            'nombres' => Str::upper($this->new_nombres),
+            'curp' => Str::upper($this->new_curp),
             'email' => $this->new_email,
             'pais_nacimiento' => $this->new_pais_nacimiento,
             'nombre_conyuge' => $this->new_nombre_conyuge,
@@ -1202,10 +1202,10 @@ class Create extends Component
 
         $c = Cliente::findOrFail($this->edit_cliente_id);
         $c->update([
-            'apellido_paterno' => $this->edit_apellido_paterno,
-            'apellido_materno' => $this->edit_apellido_materno,
-            'nombres' => $this->edit_nombres,
-            'curp' => $this->edit_curp,
+            'apellido_paterno' => Str::upper($this->edit_apellido_paterno),
+            'apellido_materno' => Str::upper($this->edit_apellido_materno),
+            'nombres' => Str::upper($this->edit_nombres),
+            'curp' => Str::upper($this->edit_curp),
             'email' => $this->edit_email,
             'pais_nacimiento' => $this->edit_pais_nacimiento,
             'nombre_conyuge' => $this->edit_nombre_conyuge,

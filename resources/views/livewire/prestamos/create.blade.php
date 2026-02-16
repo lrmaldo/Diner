@@ -351,17 +351,17 @@
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <div>
                                                 <label class="field-label">Apellido paterno *</label>
-                                                <input wire:model.defer="new_apellido_paterno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
+                                                <input wire:model.defer="new_apellido_paterno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '').toUpperCase()" />
                                                 @error('new_apellido_paterno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Apellido materno</label>
-                                                <input wire:model.defer="new_apellido_materno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
+                                                <input wire:model.defer="new_apellido_materno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '').toUpperCase()" />
                                                 @error('new_apellido_materno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Nombres *</label>
-                                                <input wire:model.defer="new_nombres" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
+                                                <input wire:model.defer="new_nombres" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '').toUpperCase()" />
                                                 @error('new_nombres') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
@@ -574,17 +574,17 @@
                                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                             <div>
                                                 <label class="field-label">Apellido paterno *</label>
-                                                <input wire:model.defer="new_apellido_paterno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
+                                                <input wire:model.defer="new_apellido_paterno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '').toUpperCase()" />
                                                 @error('new_apellido_paterno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Apellido materno</label>
-                                                <input wire:model.defer="new_apellido_materno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
+                                                <input wire:model.defer="new_apellido_materno" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '').toUpperCase()" />
                                                 @error('new_apellido_materno') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
                                                 <label class="field-label">Nombres *</label>
-                                                <input wire:model.defer="new_nombres" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
+                                                <input wire:model.defer="new_nombres" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '').toUpperCase()" />
                                                 @error('new_nombres') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
@@ -881,19 +881,19 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="field-label">Apellido paterno *</label>
-                                <input wire:model.defer="edit_apellido_paterno" class="input-project" />
+                                <input wire:model.defer="edit_apellido_paterno" class="input-project" x-on:input="$el.value = $el.value.toUpperCase()" />
                             </div>
                             <div>
                                 <label class="field-label">Apellido materno</label>
-                                <input wire:model.defer="edit_apellido_materno" class="input-project" />
+                                <input wire:model.defer="edit_apellido_materno" class="input-project" x-on:input="$el.value = $el.value.toUpperCase()" />
                             </div>
                             <div class="sm:col-span-2">
                                 <label class="field-label">Nombres *</label>
-                                <input wire:model.defer="edit_nombres" class="input-project" />
+                                <input wire:model.defer="edit_nombres" class="input-project" x-on:input="$el.value = $el.value.toUpperCase()" />
                             </div>
                             <div>
                                 <label class="field-label">CURP *</label>
-                                <input wire:model.defer="edit_curp" class="input-project" maxlength="18" />
+                                <input wire:model.defer="edit_curp" class="input-project" maxlength="18" x-on:input="$el.value = $el.value.toUpperCase()" />
                             </div>
                             <div>
                                 <label class="field-label">Email</label>
