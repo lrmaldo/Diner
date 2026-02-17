@@ -366,7 +366,7 @@
                                             </div>
                                             <div>
                                                 <label class="field-label">CURP *</label>
-                                                <input wire:model.defer="new_curp" class="input-project" maxlength="18" x-on:input="$el.value = $el.value.toUpperCase()" />
+                                                <input wire:model.blur="new_curp" class="input-project" maxlength="18" x-on:input="$el.value = $el.value.toUpperCase()" />
                                                 @error('new_curp') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
@@ -589,7 +589,7 @@
                                             </div>
                                             <div>
                                                 <label class="field-label">CURP *</label>
-                                                <input wire:model.defer="new_curp" class="input-project" maxlength="18" x-on:input="$el.value = $el.value.toUpperCase()" />
+                                                <input wire:model.blur="new_curp" class="input-project" maxlength="18" x-on:input="$el.value = $el.value.toUpperCase()" />
                                                 @error('new_curp') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
@@ -893,7 +893,8 @@
                             </div>
                             <div>
                                 <label class="field-label">CURP *</label>
-                                <input wire:model.defer="edit_curp" class="input-project" maxlength="18" x-on:input="$el.value = $el.value.toUpperCase()" />
+                                <input wire:model.blur="edit_curp" class="input-project" maxlength="18" x-on:input="$el.value = $el.value.toUpperCase()" />
+                                @error('edit_curp') <span class="text-red-500 text-sm block mt-1">{{ $message }}</span> @enderror
                             </div>
                             <div>
                                 <label class="field-label">Email</label>

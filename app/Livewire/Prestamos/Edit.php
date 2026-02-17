@@ -741,13 +741,40 @@ class Edit extends Component
         }
     }
 
+    public function updatedNewCurp()
+    {
+        $this->new_curp = strtoupper($this->new_curp);
+        $this->validateOnly('new_curp', [
+            'new_curp' => ['required', 'string', 'size:18', 'unique:clientes,curp'],
+        ], [
+            'new_curp.unique' => 'Esta CURP ya está registrada en el sistema.',
+            'new_curp.size' => 'La CURP debe tener exactamente 18 caracteres.',
+        ]);
+    }
+
+    public function updatedEditCurp()
+    {
+        $this->edit_curp = strtoupper($this->edit_curp);
+        $this->validateOnly('edit_curp', [
+            'edit_curp' => ['required', 'string', 'size:18', 'unique:clientes,curp,' . $this->edit_cliente_id],
+        ], [
+            'edit_curp.unique' => 'Esta CURP ya está registrada por otro cliente.',
+            'edit_curp.size' => 'La CURP debe tener exactamente 18 caracteres.',
+        ]);
+    }
+
     public function addNewClient()
     {
+        // Force uppercase CURP if present
+        if ($this->new_curp) {
+            $this->new_curp = strtoupper($this->new_curp);
+        }
+
         $this->validate([
             'new_apellido_paterno' => ['required', 'string', 'max:255'],
             'new_apellido_materno' => ['nullable', 'string', 'max:255'],
             'new_nombres' => ['required', 'string', 'max:255'],
-            'new_curp' => ['required', 'string', 'max:18'],
+            'new_curp' => ['required', 'string', 'size:18', 'unique:clientes,curp'],
             'new_email' => ['nullable', 'email', 'max:255'],
             'new_pais_nacimiento' => ['nullable', 'string', 'max:255'],
             'new_nombre_conyuge' => ['nullable', 'string', 'max:255'],
@@ -976,7 +1003,7 @@ class Edit extends Component
             'edit_apellido_paterno' => ['required', 'string', 'max:255'],
             'edit_apellido_materno' => ['nullable', 'string', 'max:255'],
             'edit_nombres' => ['required', 'string', 'max:255'],
-            'edit_curp' => ['required', 'string', 'max:18'],
+            'edit_curp' => ['required', 'string', 'size:18', 'unique:clientes,curp,' . $this->edit_cliente_id],
             'edit_email' => ['nullable', 'email', 'max:255'],
             'edit_pais_nacimiento' => ['nullable', 'string', 'max:255'],
             'edit_nombre_conyuge' => ['nullable', 'string', 'max:255'],
