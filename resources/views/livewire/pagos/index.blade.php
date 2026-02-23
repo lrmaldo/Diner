@@ -205,11 +205,11 @@
                                                     <div class="flex items-center justify-center gap-3">
                                                          <div class="relative rounded-md shadow-sm">
                                                             <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                                <span class="text-gray-500 sm:text-sm">$</span>
+                                                                <span class="text-gray-500 text-sm">$</span>
                                                             </div>
                                                             <input type="number" 
                                                                    wire:model.live.debounce.500ms="multasMontos.{{ $row['id'] }}" 
-                                                                   class="block w-28 rounded-md border-gray-300 pl-7 pr-3 text-right focus:border-red-500 focus:ring-red-500 sm:text-sm disabled:bg-gray-100 disabled:text-gray-400" 
+                                                                   class="block w-28 sm:w-32 rounded-md border-gray-300 pl-7 pr-3 text-right focus:border-red-500 focus:ring-red-500 text-base sm:text-sm disabled:bg-gray-100 disabled:text-gray-400 font-medium" 
                                                                    placeholder="0"
                                                                    min="0"
                                                                    max="{{ round($row['saldo']) }}"
@@ -353,11 +353,11 @@
                                             </td>
                                         @endif
                                         <td class="px-3 py-4 whitespace-nowrap text-right">
-                                            <div class="relative rounded-md shadow-sm max-w-[120px] ml-auto">
-                                                <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                                                    <span class="text-gray-500 sm:text-sm">$</span>
+                                            <div class="relative rounded-md shadow-sm w-28 sm:w-32 ml-auto">
+                                                <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                                                    <span class="text-gray-500 text-sm">$</span>
                                                 </div>
-                                                <input type="number" wire:model.live.debounce.500ms="abonos.{{ $cliente->id }}" class="focus:ring-red-500 focus:border-red-500 block w-full pl-6 pr-2 sm:text-sm border-gray-300 rounded-md text-right" placeholder="0.00">
+                                                <input type="number" wire:model.live.debounce.500ms="abonos.{{ $cliente->id }}" class="focus:ring-red-500 focus:border-red-500 block w-full pl-7 pr-2 text-base sm:text-sm border-gray-300 rounded-md text-right font-medium" placeholder="0">
                                             </div>
                                         </td>
                                         <td class="px-3 py-4 whitespace-nowrap text-right text-sm text-gray-900">
