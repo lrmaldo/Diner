@@ -17,6 +17,16 @@ class EstadosCuenta extends Component
     public $selectedLoan = null;
     public $noResults = false;
 
+    public function updatedGrupo()
+    {
+        $this->buscarPorGrupo();
+    }
+
+    public function updatedNombre()
+    {
+        $this->buscarPorNombre();
+    }
+
     public function buscarPorGrupo()
     {
         $this->reset(['results', 'selectedClient', 'clientLoans', 'selectedLoan', 'nombre', 'noResults']);

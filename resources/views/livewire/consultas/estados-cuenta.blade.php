@@ -4,27 +4,31 @@
             <h2 class="text-lg font-medium mb-6">Estados de cuenta</h2>
 
             {{-- Search Form --}}
-            <div class="space-y-4 max-w-2xl mb-8">
+            <div class="space-y-6 max-w-2xl mb-8">
                 <!-- Busqueda por Grupo -->
-                <div class="flex items-center gap-4">
-                    <flux:label for="grupo" class="w-40 text-right">Numero de grupo</flux:label>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <flux:label for="grupo" class="w-full sm:w-40 sm:text-right">Número de grupo</flux:label>
                     <div class="flex-1">
-                        <flux:input type="text" id="grupo" wire:model="grupo" />
+                        <flux:input type="text" id="grupo" wire:model.live.debounce.300ms="grupo" wire:keydown.enter="buscarPorGrupo" placeholder="Ingrese número de grupo..." />
                     </div>
-                    <flux:button wire:click="buscarPorGrupo">
-                        Buscar
-                    </flux:button>
+                    <div class="sm:shrink-0 text-right">
+                        <flux:button wire:click="buscarPorGrupo" class="w-full sm:w-auto">
+                            Buscar
+                        </flux:button>
+                    </div>
                 </div>
 
                 <!-- Busqueda por Nombre -->
-                <div class="flex items-center gap-4">
-                    <flux:label for="nombre" class="w-40 text-right">Nombre</flux:label>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                    <flux:label for="nombre" class="w-full sm:w-40 sm:text-right">Nombre</flux:label>
                     <div class="flex-1">
-                        <flux:input type="text" id="nombre" wire:model="nombre" />
+                        <flux:input type="text" id="nombre" wire:model.live.debounce.300ms="nombre" wire:keydown.enter="buscarPorNombre" placeholder="Ingrese nombre del cliente..." />
                     </div>
-                    <flux:button wire:click="buscarPorNombre">
-                        Buscar
-                    </flux:button>
+                    <div class="sm:shrink-0 text-right">
+                        <flux:button wire:click="buscarPorNombre" class="w-full sm:w-auto">
+                            Buscar
+                        </flux:button>
+                    </div>
                 </div>
             </div>
 
