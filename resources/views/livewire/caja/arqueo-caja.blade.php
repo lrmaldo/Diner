@@ -16,19 +16,19 @@
     }
 }">
     <!-- Encabezado y Acciones -->
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Arqueo de Caja</h1>
             <p class="text-sm text-gray-600 dark:text-gray-400">Control y cuadre de efectivo físico vs sistema</p>
         </div>
-        <div class="flex items-center gap-4">
-            <div class="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-100 px-4 py-1 rounded-lg font-bold border border-indigo-200 dark:border-indigo-700 shadow-sm text-sm">
+        <div class="flex flex-wrap items-center gap-2 sm:gap-4">
+            <div class="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-100 px-4 py-1.5 rounded-lg font-bold border border-indigo-200 dark:border-indigo-700 shadow-sm text-xs sm:text-sm">
                 BANCO: ${{ number_format($saldoBanco ?? 0, 2) }}
             </div>
-            <span class="text-sm text-gray-500 dark:text-gray-400 font-medium bg-gray-100 dark:bg-zinc-700 px-3 py-1 rounded-full">
+            <span class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium bg-gray-100 dark:bg-zinc-700 px-3 py-1.5 rounded-full">
                 {{ now()->format('d/m/Y H:i') }}
             </span>
-            <flux:button variant="primary" icon="plus" wire:click="abrirCapitalizar">
+            <flux:button variant="primary" icon="plus" wire:click="abrirCapitalizar" class="w-full sm:w-auto">
                 Capitalizar Caja
             </flux:button>
         </div>
@@ -83,7 +83,7 @@
             </div>
 
             <!-- Tabla Detallada -->
-            <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-zinc-700">
                         <tr>
