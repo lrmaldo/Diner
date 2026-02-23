@@ -1,16 +1,16 @@
 <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
     @if(!$modo)
         {{-- Selección de Modo --}}
-        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-12 flex justify-center items-center gap-16 min-h-[400px]">
-            <button wire:click="seleccionarModo('pagos')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-3xl py-12 px-16 rounded shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 sm:p-12 flex flex-col sm:flex-row justify-center items-center gap-6 sm:gap-16 min-h-[400px]">
+            <button wire:click="seleccionarModo('pagos')" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold text-2xl sm:text-3xl py-8 sm:py-12 px-6 sm:px-16 rounded shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-4 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 sm:h-16 sm:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Realizar Pago
             </button>
             
-            <button wire:click="seleccionarModo('multas')" class="bg-red-600 hover:bg-red-700 text-white font-bold text-3xl py-12 px-16 rounded shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <button wire:click="seleccionarModo('multas')" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold text-2xl sm:text-3xl py-8 sm:py-12 px-6 sm:px-16 rounded shadow-lg transform transition hover:scale-105 flex flex-col items-center gap-4 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 sm:h-16 sm:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
                 Cobrar Multas
@@ -19,22 +19,22 @@
     @else
     {{-- Interface Original de Pagos --}}
     <div class="bg-white shadow-xl rounded-lg overflow-hidden">
-        <div class="bg-gradient-to-r from-red-600 to-red-800 px-6 py-4 flex justify-between items-center">
+        <div class="bg-gradient-to-r from-red-600 to-red-800 px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-2">
                 @if($modo === 'pagos')
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
-                    <h2 class="text-xl font-bold text-white">Búsqueda de Préstamos para Cobro</h2>
+                    <h2 class="text-lg sm:text-xl font-bold text-white">Búsqueda de Préstamos para Cobro</h2>
                 @else
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                    <h2 class="text-xl font-bold text-white">Cobro de Multas</h2>
+                    <h2 class="text-lg sm:text-xl font-bold text-white">Cobro de Multas</h2>
                 @endif
             </div>
 
-            <button wire:click="seleccionarModo(null)" class="text-white hover:text-gray-200 font-semibold flex items-center gap-1 bg-red-900 bg-opacity-30 px-3 py-1 rounded transition hover:bg-opacity-50">
+            <button wire:click="seleccionarModo(null)" class="w-full sm:w-auto text-white hover:text-gray-200 font-semibold flex items-center justify-center gap-1 bg-red-900 bg-opacity-30 px-3 py-2 sm:py-1 rounded transition hover:bg-opacity-50">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
                 </svg>
@@ -42,7 +42,7 @@
             </button>
         </div>
 
-        <div class="p-8">
+        <div class="p-4 sm:p-8">
             <div class="flex flex-col md:flex-row gap-4 items-end mb-8">
                 <div class="w-full md:w-1/3">
                     <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Grupo (ID Préstamo)</label>
@@ -50,7 +50,7 @@
                         <input type="text" 
                             wire:model.live.debounce.300ms="search" 
                             id="search" 
-                            class="focus:ring-red-500 focus:border-red-500 block w-full pl-4 pr-12 sm:text-lg border-gray-300 rounded-md h-12" 
+                            class="focus:ring-red-500 focus:border-red-500 block w-full pl-4 pr-12 text-base sm:text-lg border-gray-300 rounded-md h-12" 
                             placeholder="Ingrese ID..."
                             autofocus>
                         <div class="absolute inset-y-0 right-0 flex items-center">
@@ -233,8 +233,8 @@
                                     </tfoot>
                                 </table>
 
-                                <div class="mt-8 flex justify-end">
-                                    <button wire:click="iniciarCobroMultas" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded shadow-lg transform transition hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" @if($totalPagarMultas <= 0) disabled @endif>
+                                <div class="mt-8 flex justify-center sm:justify-end">
+                                    <button wire:click="iniciarCobroMultas" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-4 sm:py-3 px-8 rounded shadow-lg transform transition hover:scale-105 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" @if($totalPagarMultas <= 0) disabled @endif>
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
