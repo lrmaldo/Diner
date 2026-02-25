@@ -972,7 +972,7 @@
                     
                     // Columna Recuperado (en sección Multas) muestra el total recuperado de multas
                     // Usar floor() para eliminar centavos residuales
-                    $recuperadoMultasDisplay = floor($totalMultasPagadas);
+                    $recuperadoMultasDisplay = round($totalMultasPagadas);
 
                     // Garantía pendiente para futuro
                     $garantiaRecuperaciones = 0;
