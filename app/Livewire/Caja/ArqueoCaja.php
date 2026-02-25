@@ -14,7 +14,7 @@ class ArqueoCaja extends Component
     public $showCapitalizarModal = false;
     public $showSuccessModal = false;
     public $comentariosCapital = '';
-    public $origenFondos = 'externo'; // externo, banco
+    public $origenFondos = null; // externo, banco
     public $montoGuardado = 0;
 
     public $billetesCapital = [
@@ -60,7 +60,6 @@ class ArqueoCaja extends Component
     public function abrirCapitalizar()
     {
         $this->reset(['billetesCapital', 'monedasCapital', 'comentariosCapital', 'origenFondos']);
-        $this->origenFondos = 'externo';
         $this->showCapitalizarModal = true;
     }
 

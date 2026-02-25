@@ -105,7 +105,6 @@ class SumarCapital extends Component
         ]);
 
         $this->reset(['billetes', 'monedas', 'comentarios', 'origenFondos']);
-        $this->origenFondos = 'externo';
         
         $this->showSuccessModal = true;
     }
