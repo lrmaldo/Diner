@@ -965,7 +965,7 @@
 
                     // Configuración de visualización de multas
                     // Penalización: Total de multas GENERADAS (deuda total por multas histórica)
-                    $penalizacionTotal = floor($multasGeneradasMontoTotal);
+                    $penalizacionTotal = round($multasGeneradasMontoTotal);
                     
                     // Columna Moratorio se muestra en 0
                     $moratorioDisplay = 0;
