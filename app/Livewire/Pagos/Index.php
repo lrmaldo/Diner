@@ -110,6 +110,7 @@ class Index extends Component
 
             // Logic for 'multas' mode
             if ($this->modo === 'multas') {
+                $this->selectAllMultas = true;
                 foreach ($clientes as $cliente) {
                     $montoAutorizado = $cliente->pivot->monto_autorizado ?? $this->prestamo->monto_total ?? 0;
                     $detalle = $this->prestamo->calcularDetalleMoratorio($cliente->id, $montoAutorizado);
@@ -121,9 +122,10 @@ class Index extends Component
                         'recuperado' => $detalle['recuperado'],
                         'saldo' => $detalle['saldo'],
                     ];
-                    $this->multasSelected[$cliente->id] = false;
+                    $this->multasSelected[$cliente->id] = true;
                     $this->multasMontos[$cliente->id] = round($detalle['saldo']);
                 }
+                $this->calculateTotalMultas();
                 return; // Stop here for multas
             }
             
