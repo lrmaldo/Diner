@@ -929,37 +929,95 @@
                     $ultimoPagoCalc = null;
                     try { $ultimoPagoCalc = $prestamo->ultimo_pago ?? null; } catch (\Exception $e) {}
                     
-                    $calendarioCalc = calcularCalendarioPagos(
-                        $prestamo->monto_total ?? 0,
-                        $prestamo->tasa_interes ?? 0,
-                        $prestamo->plazo ?? '4meses',
-                        $prestamo->periodicidad ?? 'semanal',
-                        $prestamo->fecha_primer_pago ?? $prestamo->fecha_autorizacion ?? now(),
-                        $ultimoPagoCalc,
-                        'martes'
-                    );
+                    if ($prestamo->producto === 'grupal') {
+                        $multasGeneradasMontoTotal = 0;
+                        foreach ($prestamo->clientes as $clienteGrp) {
+                            $montoClienteGrp = $clienteGrp->pivot->monto_autorizado ?? $clienteGrp->pivot->monto_solicitado ?? 0;
+                            
+                            $clientScheduleGrp = calcularCalendarioPagos(
+                                $montoClienteGrp,
+                                $prestamo->tasa_interes ?? 0,
+                                $prestamo->plazo ?? '4meses',
+                                $prestamo->periodicidad ?? 'semanal',
+                                $prestamo->fecha_primer_pago ?? $prestamo->fecha_autorizacion ?? now(),
+                                $ultimoPagoCalc,
+                                'martes'
+                            );
 
-                    foreach ($calendarioCalc as $pagoProg) {
-                        $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->endOfDay();
-                        
-                        if ($fechaVenc->isFuture()) continue;
+                            $pagosClienteGrp = $todosLosPagosCalc
+                                ->where('cliente_id', $clienteGrp->id)
+                                ->sortBy('fecha_pago')
+                                ->values();
 
-                        $montoCuota = $pagoProg['monto'];
-                        $targetAcumulado = $acumuladoCuotasTemp + $montoCuota; 
-                        $acumuladoCuotasTemp += $montoCuota;
-                        
-                        $fechaCobertura = null;
-                        foreach ($timelinePagosCalc as $tp) {
-                            if ($tp['monto_acumulado'] >= $targetAcumulado - 0.1) { 
-                                $fechaCobertura = $tp['fecha'];
-                                break;
+                            $timelinePagosClienteGrp = [];
+                            $acumuladoPagosDineroClienteGrp = 0;
+                            foreach($pagosClienteGrp as $pC) {
+                                $montoEfectivoC = (float)$pC->monto - (float)($pC->moratorio_pagado ?? 0);
+                                $acumuladoPagosDineroClienteGrp += $montoEfectivoC;
+                                $timelinePagosClienteGrp[] = [
+                                    'monto_Acumulado' => $acumuladoPagosDineroClienteGrp,
+                                    'fecha' => \Carbon\Carbon::parse($pC->fecha_pago)
+                                ];
                             }
+
+                            $totalMultasGeneradasMontoClienteGrp = 0;
+                            $acumuladoCuotasClienteGrp = 0;
+                            foreach ($clientScheduleGrp as $cuotaGrp) {
+                                $fechaVencC = \Carbon\Carbon::createFromFormat('d-m-y', $cuotaGrp['fecha'])->endOfDay();
+                                if ($fechaVencC->isFuture()) continue;
+
+                                $montoCuotaC = $cuotaGrp['monto'];
+                                $targetAcumuladoC = $acumuladoCuotasClienteGrp + $montoCuotaC;
+                                $acumuladoCuotasClienteGrp += $montoCuotaC;
+                                
+                                $fechaCoberturaC = null;
+                                foreach ($timelinePagosClienteGrp as $tpC) {
+                                    if ($tpC['monto_Acumulado'] >= $targetAcumuladoC - 0.1) {
+                                        $fechaCoberturaC = $tpC['fecha'];
+                                        break;
+                                    }
+                                }
+                                
+                                if ($fechaCoberturaC === null || $fechaCoberturaC->format('Y-m-d') > $fechaVencC->format('Y-m-d')) {
+                                     $totalMultasGeneradasMontoClienteGrp += ($montoCuotaC * 0.05);
+                                }
+                            }
+                            // Acumular el redondeado por cliente para consistencia con el pie de página
+                            $multasGeneradasMontoTotal += round($totalMultasGeneradasMontoClienteGrp);
                         }
-                        
-                        if ($fechaCobertura === null) {
-                            $multasGeneradasMontoTotal += ($montoCuota * 0.05);
-                        } elseif ($fechaCobertura->format('Y-m-d') > $fechaVenc->format('Y-m-d')) {
-                             $multasGeneradasMontoTotal += ($montoCuota * 0.05);
+                    } else {
+                        $calendarioCalc = calcularCalendarioPagos(
+                            $prestamo->monto_total ?? 0,
+                            $prestamo->tasa_interes ?? 0,
+                            $prestamo->plazo ?? '4meses',
+                            $prestamo->periodicidad ?? 'semanal',
+                            $prestamo->fecha_primer_pago ?? $prestamo->fecha_autorizacion ?? now(),
+                            $ultimoPagoCalc,
+                            'martes'
+                        );
+
+                        foreach ($calendarioCalc as $pagoProg) {
+                            $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->endOfDay();
+                            
+                            if ($fechaVenc->isFuture()) continue;
+
+                            $montoCuota = $pagoProg['monto'];
+                            $targetAcumulado = $acumuladoCuotasTemp + $montoCuota; 
+                            $acumuladoCuotasTemp += $montoCuota;
+                            
+                            $fechaCobertura = null;
+                            foreach ($timelinePagosCalc as $tp) {
+                                if ($tp['monto_acumulado'] >= $targetAcumulado - 0.1) { 
+                                    $fechaCobertura = $tp['fecha'];
+                                    break;
+                                }
+                            }
+                            
+                            if ($fechaCobertura === null) {
+                                $multasGeneradasMontoTotal += ($montoCuota * 0.05);
+                            } elseif ($fechaCobertura->format('Y-m-d') > $fechaVenc->format('Y-m-d')) {
+                                 $multasGeneradasMontoTotal += ($montoCuota * 0.05);
+                            }
                         }
                     }
 
@@ -991,7 +1049,7 @@
                     <td>{{ number_format($moratorioDisplay, 0) }}</td>
                     <td>0</td>
                     <td>{{ number_format($recuperadoMultasDisplay, 0) }}</td>
-                    <td>0</td>
+                    <td>{{ number_format(max(0, $penalizacionTotal - $recuperadoMultasDisplay), 0) }}</td>
                 </tr>
             </tbody>
         </table>
@@ -1779,7 +1837,7 @@
                         $saldoTotal = $totalSaldoMoratorioGrupo;
                         $atrasos = $atrasosGrupo;
                     } else {
-                        $saldoTotal = max(0, $totalMultasGeneradasMonto - $moratorioPagadoTotal); // Saldo Moratorio Real (Individual)
+                        $saldoTotal = round(max(0, $totalMultasGeneradasMonto - $moratorioPagadoTotal)); // Saldo Moratorio Redondeado (Individual)
                         // Sobrescribir atrasos con el conteo histórico
                         $atrasos = $multasGeneradasCount;
                     }
@@ -1976,7 +2034,7 @@
                             
                             $moratorioPagadoTotalCliente = $prestamo->pagos()->where('cliente_id', $cliente->id)->sum('moratorio_pagado');
 
-                            $saldoMoratorioCliente = max(0, $totalMultasGeneradasMontoCliente - $moratorioPagadoTotalCliente);
+                            $saldoMoratorioCliente = round(max(0, $totalMultasGeneradasMontoCliente - $moratorioPagadoTotalCliente));
                             
                             // Sobrescribir atrasos con el conteo histórico
                             $atrasosCliente = $multasGeneradasCountCliente;
