@@ -87,9 +87,9 @@
                             Devolver
                         </button>
                     @endif
-                    <button wire:click="$set('prestamo', null)" class="w-1/2 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded text-lg shadow transition transform hover:scale-105">
+                    <a href="{{ route('dashboard') }}" wire:navigate class="w-1/2 bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded text-lg shadow transition transform hover:scale-105 flex items-center justify-center">
                         Cancelar
-                    </button>
+                    </a>
                 </div>
             </div>
         @endif
