@@ -387,6 +387,14 @@ class DesgloseEfectivo extends Component
     public function finalizarRegistro()
     {
         try {
+            // Asegurar que el cambio manual coincida exactamente con la diferencia
+            $this->calcularTotalCambioManual();
+            if (round($this->totalCambioManual, 2) != round($this->diferencia, 2)) {
+                $info = $this->totalCambioManual < $this->diferencia ? 'Falta dinero en el desglose del cambio.' : 'Sobra dinero en el desglose del cambio.';
+                $this->dispatch('alert', type: 'error', message: $info);
+                return;
+            }
+
             // Idempotency Check: Prevent double submission
             if (Pago::where('pago_uuid', $this->transactionUuid)->exists()) {
                 $this->dispatch('alert', type: 'info', message: 'Este cobro ya fue procesado previamente.');
