@@ -1984,7 +1984,7 @@
                                      $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
                                      
                                      $pagoDateStr = $p->fecha_pago->format('Y-m-d');
-                                     $esDiaCero = $fechaCorteStr && $pagoDateStr <= $fechaCorteStr;
+                                     $esDiaCero = $fechaCorteStr && $pagoDateStr < $fechaCorteStr;
                                      
                                      return !$esGarantia && !$esDiaCero;
                                 })

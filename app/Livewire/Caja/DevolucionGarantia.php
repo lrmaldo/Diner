@@ -48,9 +48,16 @@ class DevolucionGarantia extends Component
 
         // 1. Validar reglas de negocio
         
-        // Estado Liquidado
-        if ($this->prestamo->estado !== 'liquidado') {
-            $this->errorMessage = 'El crédito no está liquidado';
+        // Estado Liquidado - O si el saldo pendiente ya es cero
+        $saldoPendiente = (float)$this->prestamo->calcularSaldoPendiente();
+        if ($this->prestamo->estado !== 'liquidado' && $saldoPendiente > 0.5) {
+            $this->errorMessage = 'El crédito no está liquidado (Saldo pendiente: $' . number_format($saldoPendiente, 2) . ')';
+        }
+
+        // Si el saldo es cero pero no está en estado liquidado, podríamos marcarlo aquí o al menos dejarlo pasar
+        if ($this->prestamo->estado !== 'liquidado' && $saldoPendiente <= 0.5) {
+            // El crédito está liquidado físicamente pero no en estado
+            // Permitimos que continúe
         }
 
         // Verificar si la garantía ya fue entregada
