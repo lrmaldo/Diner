@@ -552,6 +552,14 @@ class Edit extends Component
 
         $row = $this->clientesAgregados[$index];
 
+        // Si estamos editando un préstamo existente, eliminar de la base de datos inmediatamente
+        if ($this->prestamo_id && isset($row['cliente_id'])) {
+            $prestamo = Prestamo::find($this->prestamo_id);
+            if ($prestamo) {
+                $prestamo->clientes()->detach($row['cliente_id']);
+            }
+        }
+
         unset($this->clientesAgregados[$index]);
         $this->clientesAgregados = array_values($this->clientesAgregados);
 
