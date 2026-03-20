@@ -15,23 +15,17 @@ class Autorizados extends Component
 
     public $producto = '';
 
-    public $fechaDesde = '';
-
-    public $fechaHasta = '';
+    public $fechaSeleccionada = '';
 
     public $perPage = 10;
 
-    // Nuevos: ver anteriores y búsqueda por grupo
-    public $verAnteriores = false;
-
+    // Búsqueda por grupo (opcional)
     public $grupo = '';
 
     public function mount(): void
     {
-        // Inicializar fechas a hoy si no fueron provistas
-        $today = now()->toDateString();
-        $this->fechaDesde = $this->fechaDesde ?: $today;
-        $this->fechaHasta = $this->fechaHasta ?: $today;
+        // Inicializar fecha seleccionada a hoy (por defecto siempre hoy)
+        $this->fechaSeleccionada = now()->toDateString();
     }
 
     public function updatingSearch(): void
@@ -44,46 +38,16 @@ class Autorizados extends Component
         $this->resetPage();
     }
 
-    public function updatingFechaDesde(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingFechaHasta(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatedVerAnteriores(): void
-    {
-        // al cambiar el checkbox, resetear paginación y búsquedas previas
-        $this->resetPage();
-        if (! $this->verAnteriores) {
-            // si desactivó ver anteriores, limpiar grupo
-            $this->grupo = '';
-        }
-    }
-
     public function updatingGrupo(): void
     {
         // cuando el usuario escribe el grupo en tiempo real, resetear paginación
         $this->resetPage();
     }
 
-    public function buscarPorGrupo(): void
+    public function updatingFechaSeleccionada(): void
     {
-        // Forzar modo "ver anteriores" y recargar
-        $this->verAnteriores = true;
-        $this->resetPage();
-    }
-
-    public function resetToToday(): void
-    {
-        $today = now()->toDateString();
-        $this->fechaDesde = $today;
-        $this->fechaHasta = $today;
-        $this->verAnteriores = false;
-        $this->grupo = '';
+        // Si el usuario cambia la fecha, resetear paginación
+        // Esto permite visualizar cualquier día que el usuario elija
         $this->resetPage();
     }
 
@@ -129,13 +93,9 @@ class Autorizados extends Component
                     ->orWhere('folio', $this->grupo);
             });
         } else {
-            // Si no hay grupo, aplicamos filtro por fecha (por defecto hoy)
-            if (! empty($this->fechaDesde)) {
-                $query->whereDate('fecha_entrega', '>=', $this->fechaDesde);
-            }
-
-            if (! empty($this->fechaHasta)) {
-                $query->whereDate('fecha_entrega', '<=', $this->fechaHasta);
+            // Si no hay grupo, aplicamos filtro por fecha seleccionada
+            if (! empty($this->fechaSeleccionada)) {
+                $query->whereDate('fecha_entrega', $this->fechaSeleccionada);
             }
         }
 

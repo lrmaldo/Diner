@@ -15,15 +15,17 @@
     {{-- Controles de filtrado --}}
     <div class="bg-white shadow rounded-lg p-4 mb-4">
         <div class="flex flex-col md:flex-row md:items-center gap-4">
-            {{-- Botón Créditos del día --}}
-            <button
-                wire:click="resetToToday"
-                class="inline-flex items-center justify-center px-4 py-2 border border-blue-300 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Créditos del día
-            </button>
+            {{-- Selector de Fecha --}}
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-gray-700">
+                    Créditos del día
+                </span>
+                <input
+                    wire:model.live="fechaSeleccionada"
+                    type="date"
+                    class="border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                />
+            </div>
 
             {{-- Input de número de grupo (siempre visible) --}}
             <div class="flex items-center gap-3">
