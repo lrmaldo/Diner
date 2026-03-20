@@ -109,7 +109,17 @@ class EntregaCredito extends Component
         $pctGarantia = (float) ($prestamo->garantia ?? 0);
 
         $this->montoGarantia = round($montoAutorizado * ($pctGarantia / 100), 2);
-        $this->montoSeguro = $this->calcularSeguro($montoAutorizado);
+        
+        if ($prestamo->producto === 'grupal' && $prestamo->clientes->count() > 0) {
+            $sumaSeguros = 0;
+            foreach ($prestamo->clientes as $cliente) {
+                $montoIndividual = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
+                $sumaSeguros += $this->calcularSeguro($montoIndividual);
+            }
+            $this->montoSeguro = $sumaSeguros;
+        } else {
+            $this->montoSeguro = $this->calcularSeguro($montoAutorizado);
+        }
         
         $this->totalEntregar = $montoAutorizado - $this->montoGarantia - $this->montoSeguro;
         
