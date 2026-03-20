@@ -648,44 +648,53 @@ class Edit extends Component
             return;
         }
 
-        if ($this->producto === 'individual') {
-            if (! $this->cliente_id) {
-                $this->addError('cliente', 'Debe seleccionar un cliente.');
+if ($this->producto === 'grupal') {
+            // Asegurarse de tener la lista limpia
+            $this->normalizeClientesAgregados();
 
-                return;
-            }
-            // en individual, asignar solicitante y persistir cliente y monto
-            $prestamo->representante_id = $this->cliente_id;
-            $prestamo->cliente_id = $this->cliente_id;
-            if (is_numeric($this->monto) && (float) $this->monto > 0) {
-                $prestamo->monto_total = (float) $this->monto;
-            }
-        } else {
             if (empty($this->clientesAgregados)) {
                 $this->addError('miembros', 'Debe agregar al menos un miembro.');
 
                 return;
             }
-            if (! $this->representante_id) {
-                $this->addError('representante', 'Debe seleccionar un representante del grupo.');
 
-                return;
-            }
-            $prestamo->representante_id = $this->representante_id;
-            // si el monto_total no está definido aún, calcularlo desde los miembros en memoria
-            if (! is_numeric($prestamo->monto_total) || (float) $prestamo->monto_total <= 0) {
-                $this->normalizeClientesAgregados();
-                $total = 0.0;
-                foreach ($this->clientesAgregados as $row) {
-                    $m = $row['monto_solicitado'] ?? 0;
-                    if (is_numeric($m) && (float) $m > 0) {
-                        $total += (float) $m;
+            // --- SINCRONIZACION EXPLICITA ANTES DE ENVIAR ---
+            // Reconstruimos el array de sincronización basado EXCLUSIVAMENTE en lo que ve el usuario (clientesAgregados)
+            $syncData = [];
+            $totalMonto = 0.0;
+            
+            foreach ($this->clientesAgregados as $row) {
+                // Validación básica de cada fila
+                if (isset($row['cliente_id']) && is_numeric($row['cliente_id'])) {
+                    $montoSolicitado = isset($row['monto_solicitado']) && is_numeric($row['monto_solicitado']) 
+                        ? (float) $row['monto_solicitado'] 
+                        : 0.0;
+                        
+                    if ($montoSolicitado > 0) {
+                        $syncData[$row['cliente_id']] = ['monto_solicitado' => $montoSolicitado];
+                        $totalMonto += $montoSolicitado;
                     }
                 }
-                if ($total > 0) {
-                    $prestamo->monto_total = $total;
-                }
             }
+            
+            // Si después de filtrar no queda nadie, error
+            if (empty($syncData)) {
+                $this->addError('miembros', 'Debe haber al menos un miembro con monto válido > 0.');
+                return;
+            }
+
+            // Aplicar cambios a la BD: Esto elimina a cualquiera que no esté en la lista actual
+            $prestamo->clientes()->sync($syncData);
+            
+            // Actualizar monto total
+            $prestamo->monto_total = $totalMonto;
+            
+            // Validar representante
+            if (! $this->representante_id || ! isset($syncData[$this->representante_id])) {
+                // Si el representante actual no está en la lista final, asignar el primero
+                $this->representante_id = array_key_first($syncData);
+            }
+            $prestamo->representante_id = $this->representante_id;
         }
 
         // Guardar comentarios del comité (usar trim para limpiar espacios, y null si está vacío)
