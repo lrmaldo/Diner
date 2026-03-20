@@ -20,34 +20,36 @@
                 <span class="text-sm font-medium text-gray-700">Seleccionar fecha</span>
                 <div class="relative">
                     <input
-                        x-data
-                        x-init="
-                            flatpickr($el, {
-                                locale: 'es',
-                                dateFormat: 'Y-m-d',
-                                defaultDate: '{{ $fechaSeleccionada }}',
-                                onDayCreate: function(dObj, dStr, fp, dayElem){
-                                    // Datos desde Livewire
-                                    // Pasamos esto como JSON puro, hay que renderizarlo correctamente
-                                    const eventos = @json($this->fechasEventos);
-                                    
-                                    // Normalizar fecha del día actual en flatpickr a YYYY-MM-DD
-                                    // dateObj está en zona local del navegador
-                                    const year = dObj.getFullYear();
-                                    const month = String(dObj.getMonth() + 1).padStart(2, '0');
-                                    const day = String(dObj.getDate()).padStart(2, '0');
-                                    const dateKey = `${year}-${month}-${day}`;
-                                    
-                                    if (eventos && eventos[dateKey]) {
-                                        dayElem.classList.add(eventos[dateKey].class);
-                                        dayElem.title = eventos[dateKey].title;
+                        x-data="{
+                            initPicker() {
+                                let eventos = {};
+                                try {
+                                    eventos = JSON.parse(this.$el.dataset.eventos || '{}');
+                                } catch (e) { console.error('Error parsing eventos', e); }
+
+                                flatpickr(this.$el, {
+                                    locale: 'es',
+                                    dateFormat: 'Y-m-d',
+                                    defaultDate: '{{ $fechaSeleccionada }}',
+                                    onDayCreate: (dObj, dStr, fp, dayElem) => {
+                                        const year = dObj.getFullYear();
+                                        const month = String(dObj.getMonth() + 1).padStart(2, '0');
+                                        const day = String(dObj.getDate()).padStart(2, '0');
+                                        const dateKey = `${year}-${month}-${day}`;
+                                        
+                                        if (eventos && eventos[dateKey]) {
+                                            dayElem.classList.add(eventos[dateKey].class);
+                                            dayElem.title = eventos[dateKey].title;
+                                        }
+                                    },
+                                    onChange: (selectedDates, dateStr, instance) => {
+                                        @this.set('fechaSeleccionada', dateStr);
                                     }
-                                },
-                                onChange: function(selectedDates, dateStr, instance) {
-                                    @this.set('fechaSeleccionada', dateStr);
-                                }
-                            });
-                        "
+                                });
+                            }
+                        }"
+                        x-init="initPicker"
+                        data-eventos="{{ json_encode($this->fechasEventos) }}"
                         type="text"
                         placeholder="Clic para ver calendario"
                         class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm cursor-pointer bg-white"
