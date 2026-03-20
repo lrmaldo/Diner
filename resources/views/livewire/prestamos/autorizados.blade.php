@@ -32,9 +32,13 @@
                                     dateFormat: 'Y-m-d',
                                     defaultDate: '{{ $fechaSeleccionada }}',
                                     onDayCreate: (dObj, dStr, fp, dayElem) => {
-                                        const year = dObj.getFullYear();
-                                        const month = String(dObj.getMonth() + 1).padStart(2, '0');
-                                        const day = String(dObj.getDate()).padStart(2, '0');
+                                        // Usamos dayElem.dateObj que es la referencia más fiable al objeto fecha de la celda
+                                        const date = dayElem.dateObj;
+                                        if (!date) return;
+
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        const day = String(date.getDate()).padStart(2, '0');
                                         const dateKey = `${year}-${month}-${day}`;
                                         
                                         if (eventos && eventos[dateKey]) {
