@@ -53,23 +53,24 @@ class Autorizados extends Component
 
     public function getFechasEventosProperty()
     {
+        // Usar un enfoque más robusto sin selectRaw para evitar problemas de DB
         return Prestamo::query()
-            ->selectRaw('DATE(fecha_entrega) as fecha, estado')
+            ->select('fecha_entrega', 'estado') // Seleccionar columnas reales
             ->whereIn('estado', ['autorizado', 'entregado'])
             ->whereNotNull('fecha_entrega')
             ->get()
             ->groupBy(function($item) {
-                return \Carbon\Carbon::parse($item->fecha)->format('Y-m-d');
+                // Usar Carbon directamente sobre la propiedad casted o parsear si es string
+                if ($item->fecha_entrega instanceof \Carbon\Carbon) {
+                    return $item->fecha_entrega->format('Y-m-d');
+                }
+                return \Carbon\Carbon::parse($item->fecha_entrega)->format('Y-m-d');
             })
             ->map(function ($items) {
                 $tieneEntregado = $items->contains('estado', 'entregado');
                 $tieneAutorizado = $items->contains('estado', 'autorizado');
                 
-                // Prioridad: Verde (entregado) > Azul (autorizado)
-                // Si hay ambos, se puede usar un estilo mixto, pero por simplicidad usaremos verde si hay entregados.
-                
                 if ($tieneEntregado && $tieneAutorizado) {
-                    // Mixto: fondo verde con borde azul
                     return [
                         'class' => 'day-mixed',
                         'title' => 'Entregados y Autorizados'
@@ -77,12 +78,12 @@ class Autorizados extends Component
                 } elseif ($tieneEntregado) {
                     return [
                         'class' => 'day-entregado',
-                        'title' => 'Entregados'
+                        'title' => 'Entregado(s)'
                     ];
                 } else {
                     return [
                         'class' => 'day-autorizado',
-                        'title' => 'Autorizados'
+                        'title' => 'Autorizado(s)'
                     ];
                 }
             })->toArray();
