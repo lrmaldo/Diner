@@ -15,17 +15,86 @@
     {{-- Controles de filtrado --}}
     <div class="bg-white shadow rounded-lg p-4 mb-4">
         <div class="flex flex-col md:flex-row md:items-center gap-4">
-            {{-- Selector de Fecha --}}
-            <div class="flex items-center gap-2">
-                <span class="text-sm font-medium text-gray-700">
-                    Créditos del día
-                </span>
-                <input
-                    wire:model.live="fechaSeleccionada"
-                    type="date"
-                    class="border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                />
+            {{-- Selector de Fecha con Flatpickr --}}
+            <div class="flex flex-col gap-1 w-full max-w-sm" wire:ignore>
+                <span class="text-sm font-medium text-gray-700">Seleccionar fecha</span>
+                <div class="relative">
+                    <input
+                        x-data
+                        x-init="
+                            flatpickr($el, {
+                                locale: 'es',
+                                dateFormat: 'Y-m-d',
+                                defaultDate: '{{ $fechaSeleccionada }}',
+                                onDayCreate: function(dObj, dStr, fp, dayElem){
+                                    // Datos desde Livewire
+                                    // Pasamos esto como JSON puro, hay que renderizarlo correctamente
+                                    const eventos = @json($this->fechasEventos);
+                                    
+                                    // Normalizar fecha del día actual en flatpickr a YYYY-MM-DD
+                                    // dateObj está en zona local del navegador
+                                    const year = dObj.getFullYear();
+                                    const month = String(dObj.getMonth() + 1).padStart(2, '0');
+                                    const day = String(dObj.getDate()).padStart(2, '0');
+                                    const dateKey = `${year}-${month}-${day}`;
+                                    
+                                    if (eventos && eventos[dateKey]) {
+                                        dayElem.classList.add(eventos[dateKey].class);
+                                        dayElem.title = eventos[dateKey].title;
+                                    }
+                                },
+                                onChange: function(selectedDates, dateStr, instance) {
+                                    @this.set('fechaSeleccionada', dateStr);
+                                }
+                            });
+                        "
+                        type="text"
+                        placeholder="Clic para ver calendario"
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm cursor-pointer bg-white"
+                    />
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                </div>
             </div>
+
+            {{-- Leyenda de colores (opcional pero útil) --}}
+            <div class="flex items-center gap-4 text-xs mt-6">
+                <div class="flex items-center gap-1">
+                    <span class="w-3 h-3 rounded-full bg-blue-100 border border-blue-300"></span>
+                    <span class="text-gray-600">Autorizados (Azul)</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <span class="w-3 h-3 rounded-full bg-green-100 border border-green-300"></span>
+                    <span class="text-gray-600">Entregados (Verde)</span>
+                </div>
+            </div>
+            
+            {{-- Estilos para Flatpickr personalizados --}}
+            <style>
+                .day-autorizado {
+                    background-color: #dbeafe !important; /* bg-blue-100 */
+                    border-color: #93c5fd !important; /* border-blue-300 */
+                    font-weight: bold;
+                }
+                .day-entregado {
+                    background-color: #dcfce7 !important; /* bg-green-100 */
+                    border-color: #86efac !important; /* border-green-300 */
+                    font-weight: bold;
+                }
+                .day-mixed {
+                    background: linear-gradient(135deg, #dcfce7 50%, #dbeafe 50%) !important;
+                    border-color: #64748b !important;
+                    font-weight: bold;
+                }
+            </style> 
+
+            {{-- Scripts de Flatpickr desde CDN --}}
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+            <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+            <script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
 
             {{-- Input de número de grupo (siempre visible) --}}
             <div class="flex items-center gap-3">
@@ -45,6 +114,22 @@
                         class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors" />
                 </div>
             </div>
+
+             {{-- Estilos personalizados flatpickr --}}
+            <style>
+                .day-autorizado {
+                    background: #e0f2fe !important; /* blue-100 */
+                    border-radius: 50%;
+                }
+                .day-entregado {
+                    background: #dcfce7 !important; /* green-100 */
+                    border-radius: 50%;
+                }
+                .day-mixed {
+                    background: linear-gradient(135deg, #dcfce7 50%, #e0f2fe 50%) !important;
+                    border-radius: 50%;
+                }
+            </style>
         </div>
     </div>
 

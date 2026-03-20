@@ -51,6 +51,43 @@ class Autorizados extends Component
         $this->resetPage();
     }
 
+    public function getFechasEventosProperty()
+    {
+        return Prestamo::query()
+            ->selectRaw('DATE(fecha_entrega) as fecha, estado')
+            ->whereIn('estado', ['autorizado', 'entregado'])
+            ->whereNotNull('fecha_entrega')
+            ->get()
+            ->groupBy(function($item) {
+                return \Carbon\Carbon::parse($item->fecha)->format('Y-m-d');
+            })
+            ->map(function ($items) {
+                $tieneEntregado = $items->contains('estado', 'entregado');
+                $tieneAutorizado = $items->contains('estado', 'autorizado');
+                
+                // Prioridad: Verde (entregado) > Azul (autorizado)
+                // Si hay ambos, se puede usar un estilo mixto, pero por simplicidad usaremos verde si hay entregados.
+                
+                if ($tieneEntregado && $tieneAutorizado) {
+                    // Mixto: fondo verde con borde azul
+                    return [
+                        'class' => 'day-mixed',
+                        'title' => 'Entregados y Autorizados'
+                    ];
+                } elseif ($tieneEntregado) {
+                    return [
+                        'class' => 'day-entregado',
+                        'title' => 'Entregados'
+                    ];
+                } else {
+                    return [
+                        'class' => 'day-autorizado',
+                        'title' => 'Autorizados'
+                    ];
+                }
+            })->toArray();
+    }
+
     public function rechazarPrestamo(Prestamo $prestamo)
     {
         if ($prestamo->estado !== 'autorizado') {
