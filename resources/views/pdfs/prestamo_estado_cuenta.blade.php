@@ -724,7 +724,7 @@
                     <td>${{ number_format($totalGarantia, 0) }}</td>
                     <td>${{ number_format($totalSeguro, 0) }}</td>
                     <td>${{ number_format($totalEfectivo, 0) }}</td>
-                    <td>{{ number_format((float)($prestamo->tasa_interes ?? 0), 1) }}%</td>
+                    <td>{{ fmod((float)($prestamo->tasa_interes ?? 0), 1) == 0 ? number_format((float)($prestamo->tasa_interes ?? 0), 0) : number_format((float)($prestamo->tasa_interes ?? 0), 1) }}%</td>
                     <td>${{ number_format($totalInteres, 0) }}</td>
                     <td>{{ number_format((float)\App\Models\Configuration::get('iva_percentage', 16), 1) }}%</td>
                     <td>${{ number_format($totalIva, 0) }}</td>
@@ -789,7 +789,7 @@
                             <td>{{ number_format($garantiaCliente, 0) }}</td>
                             <td>{{ number_format($seguroCliente, 0) }}</td>
                             <td>{{ number_format($efectivoCliente, 0) }}</td>
-                            <td>{{ number_format($tasaCliente, 0) }}%</td>
+                            <td>{{ fmod($tasaCliente, 1) == 0 ? number_format($tasaCliente, 0) : number_format($tasaCliente, 1) }}%</td>
                             <td>{{ number_format($interesCliente, 0) }}</td>
                             <td>{{ number_format((float)$ivaPorcentajeCliente, 1) }}%</td>
                             <td>{{ number_format($ivaCliente, 0) }}</td>
@@ -834,7 +834,7 @@
                             <td>{{ number_format($garantiaCliente, 0) }}</td>
                             <td>{{ number_format($seguroCliente, 0) }}</td>
                             <td>{{ number_format($efectivoCliente, 0) }}</td>
-                            <td>{{ number_format($tasaCliente, 0) }}%</td>
+                            <td>{{ fmod($tasaCliente, 1) == 0 ? number_format($tasaCliente, 0) : number_format($tasaCliente, 1) }}%</td>
                             <td>{{ number_format($interesCliente, 0) }}</td>
                             <td>{{ number_format((float)$ivaPorcentajeCliente, 1) }}%</td>
                             <td>{{ number_format($ivaCliente, 0) }}</td>
