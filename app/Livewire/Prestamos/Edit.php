@@ -787,6 +787,10 @@ if ($this->producto === 'grupal') {
             $this->new_curp = strtoupper($this->new_curp);
         }
 
+        if ($this->new_dependientes_economicos === '') {
+            $this->new_dependientes_economicos = null;
+        }
+
         $this->validate([
             'new_apellido_paterno' => ['required', 'string', 'max:255'],
             'new_apellido_materno' => ['nullable', 'string', 'max:255'],
@@ -832,7 +836,7 @@ if ($this->producto === 'grupal') {
             'calle_numero' => $this->new_calle_numero,
             'referencia_domiciliaria' => $this->new_referencia_domiciliaria,
             'estado_civil' => $this->new_estado_civil,
-            'dependientes_economicos' => $this->new_dependientes_economicos,
+            'dependientes_economicos' => (int) $this->new_dependientes_economicos,
             'nombre_aval' => $this->new_nombre_aval,
             'actividad_productiva' => $this->new_actividad_productiva,
             'anios_experiencia' => $this->new_anios_experiencia,
@@ -1016,6 +1020,10 @@ if ($this->producto === 'grupal') {
             return;
         }
 
+        if ($this->edit_dependientes_economicos === '') {
+            $this->edit_dependientes_economicos = null;
+        }
+
         $this->validate([
             'edit_apellido_paterno' => ['required', 'string', 'max:255'],
             'edit_apellido_materno' => ['nullable', 'string', 'max:255'],
@@ -1067,7 +1075,7 @@ if ($this->producto === 'grupal') {
             'calle_numero' => $this->edit_calle_numero,
             'referencia_domiciliaria' => $this->edit_referencia_domiciliaria,
             'estado_civil' => $this->edit_estado_civil,
-            'dependientes_economicos' => $this->edit_dependientes_economicos,
+            'dependientes_economicos' => (int) $this->edit_dependientes_economicos,
             'nombre_aval' => $this->edit_nombre_aval,
             'direccion_aval' => $this->edit_direccion_aval,
             'telefono_aval' => $this->edit_telefono_aval,

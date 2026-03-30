@@ -402,13 +402,13 @@
                                                 @error('new_estado_civil') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             @if(in_array($new_estado_civil, ['casado', 'union_libre']))
-                                                <div class="sm:col-span-2">
+                                                <div class="sm:col-span-2" wire:key="new-conyuge-ind">
                                                     <label class="field-label">Nombre del cónyuge</label>
                                                     <input wire:model.defer="new_nombre_conyuge" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                     @error('new_nombre_conyuge') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                                 </div>
                                             @endif
-                                            <div>
+                                            <div wire:key="new-dep-ind">
                                                 <label class="field-label">Dependientes económicos</label>
                                                 <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" placeholder="Ej: 3 (hijos, padres, etc.)" autocomplete="off" name="dependientes_economicos_individual" />
                                                 @error('new_dependientes_economicos') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
@@ -625,13 +625,13 @@
                                                 @error('new_estado_civil') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             @if(in_array($new_estado_civil, ['casado', 'union_libre']))
-                                                <div class="sm:col-span-2">
+                                                <div class="sm:col-span-2" wire:key="new-conyuge-grp">
                                                     <label class="field-label">Nombre del cónyuge</label>
                                                     <input wire:model.defer="new_nombre_conyuge" class="input-project" x-on:input="$el.value = $el.value.replace(/[0-9]/g, '')" />
                                                     @error('new_nombre_conyuge') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                                 </div>
                                             @endif
-                                            <div>
+                                            <div wire:key="new-dep-grp">
                                                 <label class="field-label">Dependientes económicos</label>
                                                 <input wire:model.defer="new_dependientes_economicos" type="number" min="0" class="input-project" placeholder="Ej: 3 (hijos, padres, etc.)" autocomplete="off" name="dependientes_economicos_grupal" />
                                                 @error('new_dependientes_economicos') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
@@ -916,12 +916,12 @@
                                 </select>
                             </div>
                             @if(in_array($edit_estado_civil, ['casado', 'union_libre']))
-                                <div class="sm:col-span-2">
+                                <div class="sm:col-span-2" wire:key="edit-conyuge">
                                     <label class="field-label">Nombre del cónyuge</label>
                                     <input wire:model.defer="edit_nombre_conyuge" class="input-project" />
                                 </div>
                             @endif
-                            <div>
+                            <div wire:key="edit-dep">
                                 <label class="field-label">Dependientes económicos</label>
                                 <input wire:model.defer="edit_dependientes_economicos" type="number" min="0" class="input-project" placeholder="Ej: 3 (hijos, padres, etc.)" />
                             </div>
