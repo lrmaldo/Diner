@@ -46,6 +46,8 @@ Route::middleware(['auth'])->group(function () {
 
     // Rutas para consultas
     Route::get('/consultas/estados-cuenta', \App\Livewire\Consultas\EstadosCuenta::class)->name('consultas.estados-cuenta');
+    Route::get('/consultas/recuperacion-exigible', \App\Livewire\Consultas\RecuperacionExigible::class)->name('consultas.recuperacion.exigible');
+    Route::get('/consultas/recuperacion-asesor/{asesor_id}/{desde}/{hasta}', \App\Livewire\Consultas\RecuperacionAsesor::class)->name('consultas.recuperacion.asesor');
 
     // Rutas para operaciones
     Route::get('/operaciones/aclaracion-pagos', \App\Livewire\Operaciones\AclaracionPagos::class)->name('operaciones.aclaracion-pagos');
@@ -112,7 +114,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pagos', \App\Livewire\Pagos\Index::class)->name('pagos.index');
         Route::get('/pagos/cobro-grupal/{prestamoId}', \App\Livewire\Pagos\CobroGrupal::class)->name('pagos.cobro-grupal');
         Route::get('/pagos/desglose-efectivo/{prestamoId}', \App\Livewire\Pagos\DesgloseEfectivo::class)->name('pagos.desglose-efectivo');
-        
+
         // Caja - Entrega de Créditos
         Route::get('/caja/entrega-credito', \App\Livewire\Caja\EntregaCredito::class)->name('caja.entrega-credito');
         Route::get('/caja/sumar-capital', \App\Livewire\Caja\SumarCapital::class)->name('caja.sumar-capital');

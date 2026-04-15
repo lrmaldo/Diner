@@ -84,4 +84,12 @@ class User extends Authenticatable
     {
         return $this->hasRole('Asesor') || $this->role === 'Asesor';
     }
+
+    /**
+     * Relación con los préstamos donde funge como asesor
+     */
+    public function prestamosComoAsesor()
+    {
+        return $this->hasMany(Prestamo::class, 'asesor_id');
+    }
 }
