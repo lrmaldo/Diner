@@ -74,9 +74,7 @@ class RecuperacionAsesor extends Component
                         $eficiencia = $exigible > 0 ? ($recuperado / $exigible) * 100 : 100;
 
                         // Determinar datos de presentación
-                        $grupo = $prestamo->producto === 'grupal' && $prestamo->grupo
-                            ? $prestamo->grupo->nombre ?? $prestamo->grupo->id
-                            : '-';
+                        $grupo = $prestamo->id;
 
                         $representante = $prestamo->representante
                             ? trim($prestamo->representante->nombres.' '.$prestamo->representante->apellido_paterno.' '.$prestamo->representante->apellido_materno)

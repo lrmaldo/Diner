@@ -56,14 +56,9 @@
                 @forelse($resultados as $fila)
                 <tr>
                     <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900 border border-gray-200">
-                        @if($fila['grupo'] !== '-')
-                           <!-- The PDF shows "Los nÃºmeros de grupo tiene link, que si le das clic te debe llevar al estado de cuenta" -->
-                           <a href="{{ route('prestamos.show', $fila['prestamo_id']) }}" class="text-blue-600 hover:text-blue-800 hover:underline">
-                                {{ $fila['grupo'] }}
-                           </a>
-                        @else
-                            -
-                        @endif
+                        <a href="{{ route('prestamos.print', ['prestamo' => $fila['prestamo_id'], 'type' => 'estado_cuenta']) }}" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline">
+                            {{ $fila['grupo'] }}
+                        </a>
                     </td>
                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 border border-gray-200">{{ $fila['representante'] }}</td>
                     <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 border border-gray-200 text-center">{{ $fila['vencimiento'] }}</td>
