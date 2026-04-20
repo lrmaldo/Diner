@@ -54,7 +54,7 @@ class RecuperacionAsesor extends Component
 
         // Obtener los préstamos del asesor con las relaciones requeridas
         $prestamos = Prestamo::where('asesor_id', $this->asesor_id)
-            ->whereIn('estado', ['autorizado', 'pagado', 'castigado'])
+            ->whereIn('estado', ['autorizado', 'entregado', 'pagado', 'liquidado', 'castigado'])
             ->with(['cliente', 'representante', 'grupo', 'pagos'])
             ->get();
 

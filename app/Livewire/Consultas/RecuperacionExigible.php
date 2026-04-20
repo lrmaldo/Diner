@@ -55,11 +55,11 @@ class RecuperacionExigible extends Component
         $asesoresResult = [];
 
         if ($this->showReport) {
-            // Obtener los asesores que tienen prÃ©stamos autorizados o pagados
+            // Obtener los asesores que tienen prÃ©stamos autorizados o pagados o entregados
             $asesores = User::whereHas('prestamosComoAsesor', function ($q) {
-            $q->whereIn('estado', ['autorizado', 'pagado', 'castigado']);
+            $q->whereIn('estado', ['autorizado', 'entregado', 'pagado', 'liquidado', 'castigado']);
         })->with(['prestamosComoAsesor' => function ($q) {
-            $q->whereIn('estado', ['autorizado', 'pagado', 'castigado'])
+            $q->whereIn('estado', ['autorizado', 'entregado', 'pagado', 'liquidado', 'castigado'])
                 ->with('pagos'); // Cargamos todos los pagos para poder cruzar por numero_pago
         }])->get();
 
