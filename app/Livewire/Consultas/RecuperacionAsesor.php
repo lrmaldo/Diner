@@ -91,8 +91,8 @@ class RecuperacionAsesor extends Component
                         $grupo = $prestamo->id;
 
                         $representante = $prestamo->representante
-                            ? trim($prestamo->representante->nombres.' '.$prestamo->representante->apellido_paterno.' '.$prestamo->representante->apellido_materno)
-                            : ($prestamo->cliente ? trim($prestamo->cliente->nombres.' '.$prestamo->cliente->apellido_paterno.' '.$prestamo->cliente->apellido_materno) : 'Sin representante');
+                            ? trim($prestamo->representante->nombres.' '.$prestamo->representante->apellido_paterno.' '.$prestamo->representante->apellido_materno) . ' (Grupal)'
+                            : ($prestamo->cliente ? trim($prestamo->cliente->nombres.' '.$prestamo->cliente->apellido_paterno.' '.$prestamo->cliente->apellido_materno) . ' (Individual)' : 'Sin representante');
 
                         $cuotasResult[] = [
                             'prestamo_id' => $prestamo->id,
