@@ -84,6 +84,24 @@
                 </tr>
                 @endforelse
             </tbody>
+            @if(count($resultados) > 0)
+            @php
+                $resCollect = collect($resultados);
+                $totalExigible = $resCollect->sum('exigible');
+                $totalRecuperado = $resCollect->sum('recuperado');
+                $totalPendiente = $resCollect->sum('pendiente');
+                $eficienciaTotal = $totalExigible > 0 ? ($totalRecuperado / $totalExigible) * 100 : 100;
+            @endphp
+            <tfoot class="bg-blue-800 text-white font-bold">
+                <tr>
+                    <td colspan="4" class="py-3 pl-4 pr-3 text-left text-sm border border-gray-300 border-opacity-70">TOTAL</td>
+                    <td class="px-3 py-3 text-left text-sm border border-gray-300 border-opacity-70">{{ number_format($totalExigible, 0) }}</td>
+                    <td class="px-3 py-3 text-left text-sm border border-gray-300 border-opacity-70">{{ number_format($totalRecuperado, 0) }}</td>
+                    <td class="px-3 py-3 text-left text-sm border border-gray-300 border-opacity-70">{{ number_format($totalPendiente, 0) }}</td>
+                    <td class="px-3 py-3 text-left text-sm border border-gray-300 border-opacity-70">{{ number_format($eficienciaTotal, 2) }}%</td>
+                </tr>
+            </tfoot>
+            @endif
         </table>
     </div>
     @endif
