@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    @if(isset($resultados))
+    @if($showReport && isset($resultados))
     <div class="mt-8">
         <div class="mb-4 inline-block bg-blue-600 text-white px-4 py-1 rounded text-sm relative">
             <span class="font-medium">Periodo de consulta del {{ \Carbon\Carbon::parse($fechaDesde)->translatedFormat('d \d\e F \d\e Y') }} al {{ \Carbon\Carbon::parse($fechaHasta)->translatedFormat('d \d\e F \d\e Y') }}</span>

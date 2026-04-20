@@ -9,8 +9,8 @@ use Livewire\Component;
 class RecuperacionExigible extends Component
 {
     public $fechaDesde;
-
     public $fechaHasta;
+    public $showReport = false;
 
     public function mount()
     {
@@ -24,16 +24,17 @@ class RecuperacionExigible extends Component
             'fechaDesde' => 'required|date',
             'fechaHasta' => 'required|date|after_or_equal:fechaDesde',
         ]);
-
-        // El render se encarga de procesar
+        
+        $this->showReport = true;
     }
 
     public function render()
     {
         $asesoresResult = [];
 
-        // Obtener los asesores que tienen préstamos autorizados o pagados
-        $asesores = User::whereHas('prestamosComoAsesor', function ($q) {
+        if ($this->showReport) {
+            // Obtener los asesores que tienen prÃ©stamos autorizados o pagados
+            $asesores = User::whereHas('prestamosComoAsesor', function ($q) {
             $q->whereIn('estado', ['autorizado', 'pagado', 'castigado']);
         })->with(['prestamosComoAsesor' => function ($q) {
             $q->whereIn('estado', ['autorizado', 'pagado', 'castigado'])
@@ -90,6 +91,8 @@ class RecuperacionExigible extends Component
                 ];
             }
         }
+        
+        } // Closing if ($this->showReport) {
 
         return view('livewire.consultas.recuperacion-exigible', [
             'resultados' => collect($asesoresResult)->sortByDesc('exigible')->values(),
