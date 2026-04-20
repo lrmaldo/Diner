@@ -90,9 +90,12 @@ class RecuperacionAsesor extends Component
                         // Determinar datos de presentación
                         $grupo = $prestamo->id;
 
-                        $representante = $prestamo->representante
-                            ? trim($prestamo->representante->nombres.' '.$prestamo->representante->apellido_paterno.' '.$prestamo->representante->apellido_materno) . ' (Grupal)'
-                            : ($prestamo->cliente ? trim($prestamo->cliente->nombres.' '.$prestamo->cliente->apellido_paterno.' '.$prestamo->cliente->apellido_materno) . ' (Individual)' : 'Sin representante');
+                        $nombreBase = $prestamo->representante
+                            ? trim($prestamo->representante->nombres.' '.$prestamo->representante->apellido_paterno.' '.$prestamo->representante->apellido_materno)
+                            : ($prestamo->cliente ? trim($prestamo->cliente->nombres.' '.$prestamo->cliente->apellido_paterno.' '.$prestamo->cliente->apellido_materno) : 'Sin representante');
+                        
+                        $tipoProducto = ucfirst($prestamo->producto ?? 'Individual');
+                        $representante = $nombreBase . ' (' . $tipoProducto . ')';
 
                         $cuotasResult[] = [
                             'prestamo_id' => $prestamo->id,
