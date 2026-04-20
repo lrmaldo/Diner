@@ -5,19 +5,29 @@ namespace App\Livewire\Consultas;
 use App\Models\User;
 use App\Services\CalculadoraPrestamos;
 use Livewire\Component;
+use Livewire\Attributes\Url;
 
 class RecuperacionExigible extends Component
 {
+    #[Url]
     public $fechaDesde;
+    
+    #[Url]
     public $fechaHasta;
+    
+    #[Url]
     public $showReport = false;
+    
+    #[Url]
     public $sortColumn = 'exigible';
+    
+    #[Url]
     public $sortDirection = 'desc';
 
     public function mount()
     {
-        $this->fechaDesde = date('Y-m-01');
-        $this->fechaHasta = date('Y-m-t');
+        $this->fechaDesde = $this->fechaDesde ?? date('Y-m-01');
+        $this->fechaHasta = $this->fechaHasta ?? date('Y-m-t');
     }
 
     public function sortBy($column)
