@@ -48,8 +48,18 @@
                     <th scope="col" class="px-3 py-3.5 text-center text-sm font-semibold text-white border border-gray-300 border-opacity-70">Pago</th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white border border-gray-300 border-opacity-70">Exigible</th>
                     <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white border border-gray-300 border-opacity-70">Recuperado</th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white border border-gray-300 border-opacity-70">Pendiente</th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white border border-gray-300 border-opacity-70">Efici %</th>
+                    <th wire:click="sortBy('pendiente')" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white border border-gray-300 border-opacity-70 cursor-pointer hover:bg-blue-700">
+                        Pendiente
+                        @if($sortColumn === 'pendiente')
+                            <span>{!! $sortDirection === 'asc' ? '&#8593;' : '&#8595;' !!}</span>
+                        @endif
+                    </th>
+                    <th wire:click="sortBy('eficiencia')" scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white border border-gray-300 border-opacity-70 cursor-pointer hover:bg-blue-700">
+                        Efici %
+                        @if($sortColumn === 'eficiencia')
+                            <span>{!! $sortDirection === 'asc' ? '&#8593;' : '&#8595;' !!}</span>
+                        @endif
+                    </th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white">

@@ -11,11 +11,23 @@ class RecuperacionExigible extends Component
     public $fechaDesde;
     public $fechaHasta;
     public $showReport = false;
+    public $sortColumn = 'exigible';
+    public $sortDirection = 'desc';
 
     public function mount()
     {
         $this->fechaDesde = date('Y-m-01');
         $this->fechaHasta = date('Y-m-t');
+    }
+
+    public function sortBy($column)
+    {
+        if ($this->sortColumn === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortDirection = 'desc'; // Por defecto empezamos ordenando de mayor a menor
+            $this->sortColumn = $column;
+        }
     }
 
     public function generateReport()
@@ -94,8 +106,15 @@ class RecuperacionExigible extends Component
         
         } // Closing if ($this->showReport) {
 
+        $collection = collect($asesoresResult);
+        if ($this->sortColumn) {
+            $collection = $this->sortDirection === 'asc' 
+                ? $collection->sortBy($this->sortColumn) 
+                : $collection->sortByDesc($this->sortColumn);
+        }
+
         return view('livewire.consultas.recuperacion-exigible', [
-            'resultados' => collect($asesoresResult)->sortByDesc('exigible')->values(),
+            'resultados' => $collection->values(),
         ]);
     }
 }

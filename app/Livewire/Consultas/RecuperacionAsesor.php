@@ -15,11 +15,25 @@ class RecuperacionAsesor extends Component
 
     public $fechaHasta;
 
+    public $sortColumn = '';
+
+    public $sortDirection = 'asc';
+
     public function mount($asesor_id, $desde, $hasta)
     {
         $this->asesor_id = $asesor_id;
         $this->fechaDesde = $desde;
         $this->fechaHasta = $hasta;
+    }
+
+    public function sortBy($column)
+    {
+        if ($this->sortColumn === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortDirection = 'desc'; // Por defecto los numÃ©ros suelen ordenarse desc
+            $this->sortColumn = $column;
+        }
     }
 
     public function generateReport()
@@ -98,9 +112,16 @@ class RecuperacionAsesor extends Component
             }
         }
 
+        $collection = collect($cuotasResult);
+        if ($this->sortColumn) {
+            $collection = $this->sortDirection === 'asc' 
+                ? $collection->sortBy($this->sortColumn) 
+                : $collection->sortByDesc($this->sortColumn);
+        }
+
         return view('livewire.consultas.recuperacion-asesor', [
             'asesor' => $asesor,
-            'resultados' => $cuotasResult,
+            'resultados' => $collection->values()->all(),
         ]);
     }
 }
