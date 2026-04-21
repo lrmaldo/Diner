@@ -69,20 +69,48 @@ class RecuperacionAsesor extends Component
                     $prestamo->ultimo_pago ?? null
                 );
 
+                // --- DISTRIBUCIÓN FIFO PARA EL RECUPERADO ---
+                $todosLosPagos = $prestamo->pagos->sortBy([['fecha_pago', 'asc'], ['id', 'asc']])->filter(function($p) {
+                    $tipo = strtolower($p->tipo_pago ?? '');
+                    return !in_array($tipo, ['garantia', 'garantía', 'seguro', 'cargo']) && !str_contains($tipo, 'devolucion');
+                });
+
+                $colaPagos = [];
+                foreach($todosLosPagos as $p) {
+                    $capitalNeto = (float)$p->monto - (float)$p->moratorio_pagado;
+                    $colaPagos[] = [
+                        'remanente' => max(0, $capitalNeto)
+                    ];
+                }
+
+                $recuperadoPorCuota = [];
+                foreach($calendario as $c) {
+                    $montoRequerido = (float)$c['monto'];
+                    $pagadoParaEstaCuota = 0;
+                    
+                    foreach($colaPagos as &$entry) {
+                        if ($entry['remanente'] <= 0.001) continue;
+                        
+                        $tomar = min($entry['remanente'], $montoRequerido - $pagadoParaEstaCuota);
+                        if ($tomar > 0) {
+                            $pagadoParaEstaCuota += $tomar;
+                            $entry['remanente'] -= $tomar;
+                        }
+                        if ($pagadoParaEstaCuota >= $montoRequerido - 0.001) {
+                            break;
+                        }
+                    }
+                    $recuperadoPorCuota[$c['numero']] = $pagadoParaEstaCuota;
+                }
+                // --- FIN DISTRIBUCIÓN FIFO ---
+
                 foreach ($calendario as $cuota) {
                     // Validar si esta cuota debe pagarse en el rango indicado
                     if ($cuota['fecha'] >= $this->fechaDesde && $cuota['fecha'] <= $this->fechaHasta) {
 
                         $exigible = $cuota['monto'];
 
-                        // Encontrar cuánto se ha pagado a este numero de pago.
-                        // Nota: el PDF dice "sumatoria del monto que el cliente pago".
-                        // Si el cliente pagó la cuota 1 en múltiples abonos, se suman los pagos que tengan
-                        // numero_pago = $cuota['numero']
-                        $recuperado = $prestamo->pagos
-                            ->where('numero_pago', $cuota['numero'])
-                            ->where('tipo_pago', '!=', 'cargo')
-                            ->sum('monto');
+                        $recuperado = $recuperadoPorCuota[$cuota['numero']] ?? 0;
 
                         $pendiente = max(0, $exigible - $recuperado);
                         $eficiencia = $exigible > 0 ? ($recuperado / $exigible) * 100 : 100;

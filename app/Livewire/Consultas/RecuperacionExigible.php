@@ -79,17 +79,47 @@ class RecuperacionExigible extends Component
                         $prestamo->ultimo_pago ?? null
                     );
 
+                    // --- DISTRIBUCIÓN FIFO PARA EL RECUPERADO ---
+                    $todosLosPagos = $prestamo->pagos->sortBy([['fecha_pago', 'asc'], ['id', 'asc']])->filter(function($p) {
+                        $tipo = strtolower($p->tipo_pago ?? '');
+                        return !in_array($tipo, ['garantia', 'garantía', 'seguro', 'cargo']) && !str_contains($tipo, 'devolucion');
+                    });
+
+                    $colaPagos = [];
+                    foreach($todosLosPagos as $p) {
+                        $capitalNeto = (float)$p->monto - (float)$p->moratorio_pagado;
+                        $colaPagos[] = [
+                            'remanente' => max(0, $capitalNeto)
+                        ];
+                    }
+
+                    $recuperadoPorCuota = [];
+                    foreach($calendario as $c) {
+                        $montoRequerido = (float)$c['monto'];
+                        $pagadoParaEstaCuota = 0;
+                        
+                        foreach($colaPagos as &$entry) {
+                            if ($entry['remanente'] <= 0.001) continue;
+                            
+                            $tomar = min($entry['remanente'], $montoRequerido - $pagadoParaEstaCuota);
+                            if ($tomar > 0) {
+                                $pagadoParaEstaCuota += $tomar;
+                                $entry['remanente'] -= $tomar;
+                            }
+                            if ($pagadoParaEstaCuota >= $montoRequerido - 0.001) {
+                                break;
+                            }
+                        }
+                        $recuperadoPorCuota[$c['numero']] = $pagadoParaEstaCuota;
+                    }
+                    // --- FIN DISTRIBUCIÓN FIFO ---
+
                     // Sumar el exigible que cae en las fechas indicadas
                     foreach ($calendario as $cuota) {
                         if ($cuota['fecha'] >= $this->fechaDesde && $cuota['fecha'] <= $this->fechaHasta) {
                             $exigibleTotal += $cuota['monto'];
 
-                            // Para mantener concordancia con el detalle del asesor,
-                            // Recuperado es la suma de abonos hacia este número de cuota
-                            $recuperadoCuota = $prestamo->pagos
-                                ->where('numero_pago', $cuota['numero'])
-                                ->where('tipo_pago', '!=', 'cargo')
-                                ->sum('monto');
+                            $recuperadoCuota = $recuperadoPorCuota[$cuota['numero']] ?? 0;
 
                             $recuperadoTotal += $recuperadoCuota;
                         }
