@@ -1638,15 +1638,15 @@
                     // tenía fecha posterior a la generación del reporte o timestamps con horas futuras.
                     $pagosHastaHoy = $todosLosPagos;
 
-                    $pagadoPorNumero = $pagosHastaHoy
-                        ->whereNotNull('numero_pago')
-                        ->groupBy('numero_pago')
-                        ->map(fn ($pagos) => (float) ($pagos->sum('monto') - $pagos->sum('moratorio_pagado')))
-                        ->toArray();
-
-                    $pagosSinNumeroTotal = (float) ($pagosHastaHoy
-                        ->whereNull('numero_pago')
-                        ->sum('monto') - $pagosHastaHoy->whereNull('numero_pago')->sum('moratorio_pagado'));
+                    // Usar la distribución FIFO ya calculada en $pagosRegistrados (tabla "Número de pagos")
+                    // para garantizar consistencia. Si usamos numero_pago directamente de BD, un pago parcial
+                    // registrado bajo el número de cuota incorrecto genera discrepancias (capital/interés vencido
+                    // aparece aunque la cuota ya esté cubierta por la lógica FIFO acumulada).
+                    $pagadoPorNumero = [];
+                    foreach ($pagosRegistrados as $numCuota => $pagosEnCuota) {
+                        $pagadoPorNumero[(int) $numCuota] = (float) $pagosEnCuota->sum('monto');
+                    }
+                    $pagosSinNumeroTotal = 0.0; // Ya distribuido completamente por FIFO en $pagosRegistrados
 
                     $montoVencido = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
                         $calendarioPagos,
@@ -1908,15 +1908,12 @@
                             // Usar todos los pagos (filtrando por cliente) para consistencia
                             $pagosHastaHoyCliente = $todosLosPagos->where('cliente_id', $cliente->id);
 
-                            $pagadoPorNumeroCliente = $pagosHastaHoyCliente
-                                ->whereNotNull('numero_pago')
-                                ->groupBy('numero_pago')
-                                ->map(fn ($pagos) => (float) ($pagos->sum('monto') - $pagos->sum('moratorio_pagado')))
-                                ->toArray();
-
-                            $pagosSinNumeroClienteTotal = (float) ($pagosHastaHoyCliente
-                                ->whereNull('numero_pago')
-                                ->sum('monto') - $pagosHastaHoyCliente->whereNull('numero_pago')->sum('moratorio_pagado'));
+                            // Usar FIFO puro: tratar todos los pagos del cliente como sin número de cuota
+                            // para que calcularMontoVencidoDesdeCalendario los aplique en orden FIFO.
+                            // Esto evita discrepancias cuando numero_pago fue registrado incorrectamente
+                            // (ej. pago parcial completado la semana siguiente bajo número de cuota incorrecto).
+                            $pagadoPorNumeroCliente = [];
+                            $pagosSinNumeroClienteTotal = (float) ($pagosHastaHoyCliente->sum('monto') - $pagosHastaHoyCliente->sum('moratorio_pagado'));
 
                             $montoVencidoCliente = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
                                 $clientSchedule,
