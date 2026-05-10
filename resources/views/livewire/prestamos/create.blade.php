@@ -482,12 +482,12 @@
                                                 @error('new_anios_experiencia') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
-                                                <label class="field-label">Ingreso mensual</label>
+                                                <label class="field-label">Ingreso mensual *</label>
                                                 <input wire:model.defer="new_ingreso_mensual" type="number" step="0.01" class="input-project" />
                                                 @error('new_ingreso_mensual') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
                                             <div>
-                                                <label class="field-label">Gasto mensual familiar</label>
+                                                <label class="field-label">Gasto mensual familiar *</label>
                                                 <input wire:model.defer="new_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
                                                 @error('new_gasto_mensual_familiar') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                                             </div>
@@ -994,12 +994,14 @@
                                 <input wire:model.defer="edit_anios_experiencia" type="number" min="0" class="input-project" />
                             </div>
                             <div>
-                                <label class="field-label">Ingreso mensual</label>
+                                <label class="field-label">Ingreso mensual *</label>
                                 <input wire:model.defer="edit_ingreso_mensual" type="number" step="0.01" class="input-project" />
+                                @error('edit_ingreso_mensual') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                             </div>
                             <div>
-                                <label class="field-label">Gasto mensual familiar</label>
+                                <label class="field-label">Gasto mensual familiar *</label>
                                 <input wire:model.defer="edit_gasto_mensual_familiar" type="number" step="0.01" class="input-project" />
+                                @error('edit_gasto_mensual_familiar') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
                             </div>
                             @if($producto === 'individual')
                             <div class="sm:col-span-2">
