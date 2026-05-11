@@ -219,12 +219,32 @@ class CobroGrupal extends Component
     {
         foreach ($this->prestamo->clientes as $cliente) {
             $this->clientesSeleccionados[$cliente->id] = $value;
+            
+            if (! $value) {
+                $this->montosPorCliente[$cliente->id] = 0;
+                $this->moratoriosPorCliente[$cliente->id] = 0;
+            } else {
+                $montoAutorizado = $cliente->pivot->monto_autorizado ?? 0;
+                $this->montosPorCliente[$cliente->id] = $this->calcularMontoSugerido($montoAutorizado);
+            }
         }
         $this->calcularTotales();
     }
 
-    public function updatedClientesSeleccionados()
+    public function updatedClientesSeleccionados($value, $key = null)
     {
+        if ($key !== null) {
+            if (! $value) {
+                $this->montosPorCliente[$key] = 0;
+                $this->moratoriosPorCliente[$key] = 0;
+            } else {
+                $cliente = $this->prestamo->clientes->firstWhere('id', $key);
+                if ($cliente) {
+                    $montoAutorizado = $cliente->pivot->monto_autorizado ?? 0;
+                    $this->montosPorCliente[$key] = $this->calcularMontoSugerido($montoAutorizado);
+                }
+            }
+        }
         $this->calcularTotales();
     }
 
