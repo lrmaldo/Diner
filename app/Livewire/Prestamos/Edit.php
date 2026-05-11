@@ -444,7 +444,25 @@ class Edit extends Component
         $prestamo = Prestamo::findOrFail($this->prestamo_id);
         $cliente = Cliente::findOrFail($clienteId);
         // attach or update pivot without creating duplicates in the local array
-        $prestamo->clientes()->syncWithoutDetaching([$cliente->id => ['monto_solicitado' => $monto]]);
+        if ($prestamo->clientes()->where('cliente_id', $cliente->id)->exists()) {
+            $prestamo->clientes()->updateExistingPivot($cliente->id, ['monto_solicitado' => $monto]);
+        } else {
+            $prestamo->clientes()->attach($cliente->id, ['monto_solicitado' => $monto]);
+        }
+
+        // Recalcular y guardar el monto total del préstamo grupal
+        $this->normalizeClientesAgregados();
+        $total = 0.0;
+        foreach ($this->clientesAgregados as $row) {
+            $m = $row['cliente_id'] == $cliente->id ? $monto : ($row['monto_solicitado'] ?? 0);
+            if (is_numeric($m) && (float) $m > 0) {
+                $total += (float) $m;
+            }
+        }
+        if ($total > 0) {
+            $prestamo->monto_total = $total;
+            $prestamo->save();
+        }
 
         // ensure clientesAgregados is normalized before searching/updating
         $this->normalizeClientesAgregados();
@@ -499,7 +517,11 @@ class Edit extends Component
             if ($this->prestamo_id && $cliente) {
                 $prestamo = Prestamo::find($this->prestamo_id);
                 if ($prestamo) {
-                    $prestamo->clientes()->syncWithoutDetaching([$cliente->id => ['monto_solicitado' => 0]]);
+                    if ($prestamo->clientes()->where('cliente_id', $cliente->id)->exists()) {
+                        $prestamo->clientes()->updateExistingPivot($cliente->id, ['monto_solicitado' => 0]);
+                    } else {
+                        $prestamo->clientes()->attach($cliente->id, ['monto_solicitado' => 0]);
+                    }
                 }
             }
         }
@@ -557,6 +579,19 @@ class Edit extends Component
             $prestamo = Prestamo::find($this->prestamo_id);
             if ($prestamo) {
                 $prestamo->clientes()->detach($row['cliente_id']);
+                
+                // Recalcular y guardar el monto total del préstamo
+                $total = 0.0;
+                foreach ($this->clientesAgregados as $idx => $r) {
+                    if ($idx !== $index) {
+                        $m = $r['monto_solicitado'] ?? 0;
+                        if (is_numeric($m) && (float) $m > 0) {
+                            $total += (float) $m;
+                        }
+                    }
+                }
+                $prestamo->monto_total = $total > 0 ? $total : 0;
+                $prestamo->save();
             }
         }
 
@@ -872,13 +907,40 @@ if ($this->producto === 'grupal') {
             if ($this->prestamo_id) {
                 $prestamo = Prestamo::find($this->prestamo_id);
                 if ($prestamo) {
-                    $prestamo->clientes()->syncWithoutDetaching([$cliente->id => ['monto_solicitado' => (float) ($cliente->credito_solicitado ?? 0)]]);
+                    if ($prestamo->clientes()->where('cliente_id', $cliente->id)->exists()) {
+                        $prestamo->clientes()->updateExistingPivot($cliente->id, ['monto_solicitado' => (float) ($cliente->credito_solicitado ?? 0)]);
+                    } else {
+                        $prestamo->clientes()->attach($cliente->id, ['monto_solicitado' => (float) ($cliente->credito_solicitado ?? 0)]);
+                    }
+                    
+                    // Recalcular y guardar el monto total del préstamo grupal
+                    $this->normalizeClientesAgregados();
+                    $total = 0.0;
+                    foreach ($this->clientesAgregados as $row) {
+                        $m = $row['monto_solicitado'] ?? 0;
+                        if (is_numeric($m) && (float) $m > 0) {
+                            $total += (float) $m;
+                        }
+                    }
+                    if ($total > 0) {
+                        $prestamo->monto_total = $total;
+                        $prestamo->save();
+                    }
                 }
             }
         } elseif ($this->producto === 'individual') {
             // en individual, aplicar el monto del crédito solicitado como monto del préstamo
             $this->monto = (float) ($cliente->credito_solicitado ?? 0);
             $this->cliente_nombre_selected = trim("{$cliente->nombres} {$cliente->apellido_paterno} {$cliente->apellido_materno}");
+            
+            // Actualizar el préstamo físico
+            if ($this->prestamo_id) {
+                $prestamo = Prestamo::find($this->prestamo_id);
+                if ($prestamo) {
+                    $prestamo->monto_total = $this->monto;
+                    $prestamo->save();
+                }
+            }
         }
         $this->showMessage('success', 'Cliente creado y seleccionado');
     }
@@ -1106,6 +1168,21 @@ if ($this->producto === 'grupal') {
             $this->monto = (float) ($c->credito_solicitado ?? 0);
             $this->cliente_id = $c->id;
             $this->cliente_nombre_selected = trim("{$c->nombres} {$c->apellido_paterno} {$c->apellido_materno}");
+            
+            // Actualizar el préstamo físico
+            if ($this->prestamo_id) {
+                $prestamo = Prestamo::find($this->prestamo_id);
+                if ($prestamo) {
+                    $prestamo->monto_total = $this->monto;
+                    $prestamo->save();
+                    // Sincronizar el valor también en la tabla pivot
+                    if ($prestamo->clientes()->where('cliente_id', $c->id)->exists()) {
+                        $prestamo->clientes()->updateExistingPivot($c->id, ['monto_solicitado' => $this->monto]);
+                    } else {
+                        $prestamo->clientes()->attach($c->id, ['monto_solicitado' => $this->monto]);
+                    }
+                }
+            }
         } else {
             // grupal: actualizar o insertar en clientesAgregados
             $this->normalizeClientesAgregados();
@@ -1128,7 +1205,25 @@ if ($this->producto === 'grupal') {
             if ($this->prestamo_id) {
                 $prestamo = Prestamo::find($this->prestamo_id);
                 if ($prestamo) {
-                    $prestamo->clientes()->syncWithoutDetaching([$c->id => ['monto_solicitado' => (float) ($c->credito_solicitado ?? 0)]]);
+                    if ($prestamo->clientes()->where('cliente_id', $c->id)->exists()) {
+                        $prestamo->clientes()->updateExistingPivot($c->id, ['monto_solicitado' => (float) ($c->credito_solicitado ?? 0)]);
+                    } else {
+                        $prestamo->clientes()->attach($c->id, ['monto_solicitado' => (float) ($c->credito_solicitado ?? 0)]);
+                    }
+                    
+                    // Recalcular y guardar el monto total del préstamo grupal
+                    $this->normalizeClientesAgregados();
+                    $total = 0.0;
+                    foreach ($this->clientesAgregados as $row) {
+                        $m = $row['monto_solicitado'] ?? 0;
+                        if (is_numeric($m) && (float) $m > 0) {
+                            $total += (float) $m;
+                        }
+                    }
+                    if ($total > 0) {
+                        $prestamo->monto_total = $total;
+                        $prestamo->save();
+                    }
                 }
             }
         }
