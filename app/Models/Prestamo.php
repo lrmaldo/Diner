@@ -211,19 +211,20 @@ class Prestamo extends Model
         $tasaInteres = (float) $this->tasa_interes;
         $plazo = strtolower(trim($this->plazo));
         $periodicidad = strtolower(trim($this->periodicidad));
-        
+
         $config = $this->determinarConfiguracionPago($plazo, $periodicidad);
-        
-        if (!$config) {
+
+        if (! $config) {
             // Fallback: cálculo básico
-             $interesTotal = $monto * ($tasaInteres / 100);
-             return $monto + $interesTotal;
+            $interesTotal = $monto * ($tasaInteres / 100);
+
+            return $monto + $interesTotal;
         }
 
         $interes = (($monto / 100) * $tasaInteres) * $config['meses_interes'];
         $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
         $iva = ($interes / 100) * $ivaPorcentaje;
-        
+
         return $monto + $interes + $iva;
     }
 
@@ -357,6 +358,7 @@ class Prestamo extends Model
             return (int) $plazo;
         }
         preg_match('/(\d+)/', $plazo, $matches);
+
         return isset($matches[1]) ? (int) $matches[1] : 1;
     }
 
@@ -412,6 +414,7 @@ class Prestamo extends Model
         ];
 
         $clave = $plazo.'_'.$periodicidad;
+
         return $configuraciones[$clave] ?? null;
     }
 
@@ -422,22 +425,23 @@ class Prestamo extends Model
         $plazo = strtolower(trim($this->plazo));
         $periodicidad = strtolower(trim($this->periodicidad));
         $fechaPrimerPago = $fechaInicio ?? $this->fecha_primer_pago ?? now();
-        
+
         $config = $this->determinarConfiguracionPago($plazo, $periodicidad);
-        
-        if (!$config) {
+
+        if (! $config) {
             // Implementación básica simplificada si no hay configuración
             // Se puede expandir luego copiando calcularCalendarioBasico si es necesario
-             $interesTotal = $monto * ($tasaInteres / 100);
-             $montoTotal = $monto + $interesTotal;
-             return []; // Fallback simple o implementar completo
+            $interesTotal = $monto * ($tasaInteres / 100);
+            $montoTotal = $monto + $interesTotal;
+
+            return []; // Fallback simple o implementar completo
         }
 
         $interes = (($monto / 100) * $tasaInteres) * $config['meses_interes'];
         $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
         $iva = ($interes / 100) * $ivaPorcentaje;
         $montoTotal = $interes + $iva + $monto;
-        
+
         $numeroPagos = $config['total_pagos'];
 
         $calendario = [];
@@ -446,11 +450,11 @@ class Prestamo extends Model
         $diasFeriados = \App\Models\Holiday::whereYear('date', $fechaActual->year)
             ->orWhereYear('date', $fechaActual->copy()->addYear()->year)
             ->pluck('date')
-            ->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))
+            ->map(fn ($date) => Carbon::parse($date)->format('Y-m-d'))
             ->toArray();
 
         // Determinar intervalo en días según periodicidad
-        $intervaloDias = match($periodicidad) {
+        $intervaloDias = match ($periodicidad) {
             'semanal', 'semana', 'weekly' => 7,
             'catorcenal', 'quincenal', 'quincena', 'biweekly' => 14,
             'mensual', 'mes', 'monthly' => 30,
@@ -468,14 +472,14 @@ class Prestamo extends Model
                 $fechaPago = $fechaActual->copy();
             } else {
                 $fechaPago = $fechaActual->copy()->addDays($intervaloDias);
-                
+
                 while (in_array($fechaPago->format('Y-m-d'), $diasFeriados) || $fechaPago->dayOfWeek === Carbon::SUNDAY) {
                     $fechaPago->addDay();
                 }
             }
 
             // Nota: Aquí no verificamos ultimoPago variable como en PDF porque asumimos dinámico
-            
+
             $montoPago = ($i === $numeroPagos) ? $montoUltimoPago : $montoPorPagoBase;
 
             $calendario[] = [
@@ -494,52 +498,120 @@ class Prestamo extends Model
     {
         $calendario = $this->simularCalendarioPago($montoAutorizado);
         $fechaHoy = now()->startOfDay();
-        
-        // Obtener pagos del cliente
+
+        // Obtener pagos del cliente (solo capital, sin moratorios)
         $pagosCliente = $this->pagos->where('cliente_id', $clienteId);
-        
+
         // Total de moratorios pagados hasta la fecha
         $moratorioPagadoTotal = $pagosCliente->sum('moratorio_pagado');
-        
-        // Calcular atrasos HISTÓRICOS (incluyendo pagados tarde)
+
+        // ===================================================================================
+        // CORRECCIÓN CRÍTICA: Usar lógica FIFO (bucket) para determinar cuotas cubiertas
+        // En lugar de depender del campo numero_pago que puede no estar sincronizado
+        // ===================================================================================
+
+        // Filtrar solo pagos de capital (excluyendo garantías y pagos día cero)
+        $fechasRef = array_filter([
+            $this->fecha_autorizacion ? $this->fecha_autorizacion->startOfDay()->timestamp : null,
+            $this->fecha_entrega ? $this->fecha_entrega->startOfDay()->timestamp : null,
+            $this->created_at ? $this->created_at->startOfDay()->timestamp : null,
+        ]);
+        $timestampCorte = ! empty($fechasRef) ? min($fechasRef) : null;
+        $fechaCorteDate = $timestampCorte ? Carbon::createFromTimestamp($timestampCorte)->startOfDay() : null;
+        $fechaCorteStr = $fechaCorteDate ? $fechaCorteDate->format('Y-m-d') : null;
+
+        $pagosCapitalCliente = $pagosCliente->filter(function ($p) use ($fechaCorteStr) {
+            $tipo = strtolower($p->tipo_pago ?? '');
+            $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+            $esDevolucion = str_contains($tipo, 'devolucion');
+
+            $pagoDateStr = $p->fecha_pago->format('Y-m-d');
+            $esDiaCero = $fechaCorteStr && $pagoDateStr < $fechaCorteStr;
+
+            return ! $esGarantia && ! $esDiaCero && ! $esDevolucion;
+        });
+
+        // Aplicar lógica FIFO: distribuir pagos de capital en las cuotas
+        $capitalDisponible = 0;
+        foreach ($pagosCapitalCliente as $pago) {
+            // Capital neto = monto - moratorio pagado
+            $capitalDisponible += ((float) $pago->monto - (float) $pago->moratorio_pagado);
+        }
+
+        // Determinar qué cuotas están cubiertas con el capital disponible
+        $cuotasCubiertas = [];
+        $capitalRestante = $capitalDisponible;
+
+        foreach ($calendario as $cuota) {
+            $montoCuota = (float) $cuota['monto'];
+            $numero = (int) $cuota['numero'];
+
+            if ($capitalRestante >= ($montoCuota - 0.01)) { // Tolerancia de 1 centavo
+                $cuotasCubiertas[$numero] = true;
+                $capitalRestante -= $montoCuota;
+            } else {
+                $cuotasCubiertas[$numero] = false;
+            }
+        }
+
+        // Calcular multas generadas usando la distribución FIFO
         $multasGeneradasCount = 0;
+        $fechasPagoOrdenadas = $pagosCapitalCliente->sortBy('fecha_pago')->values();
+        $acumuladoPorFecha = [];
+        $capitalAcumulado = 0;
+
+        foreach ($fechasPagoOrdenadas as $pago) {
+            $capitalAcumulado += ((float) $pago->monto - (float) $pago->moratorio_pagado);
+            $fechaPagoStr = $pago->fecha_pago->format('Y-m-d');
+            $acumuladoPorFecha[$fechaPagoStr] = $capitalAcumulado;
+        }
 
         foreach ($calendario as $pagoProg) {
             $fechaVenc = Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
-            $numero = $pagoProg['numero'];
-            $montoCuota = $pagoProg['monto'];
+            $numero = (int) $pagoProg['numero'];
+            $montoCuota = (float) $pagoProg['monto'];
 
-            // 1. Filtrar pagos que cubren esta cuota
-            // Usamos numero_pago exacto por consistencia con otros módulos
-            $pagosCuota = $pagosCliente->where('numero_pago', $numero);
-            $montoPagadoCuota = $pagosCuota->sum('monto');
-
-            // Caso A: Cuota NO pagada completamente
-            if ($montoPagadoCuota < ($montoCuota - 1)) { // Tolerancia $1
+            // Caso A: Cuota NO pagada completamente (según FIFO)
+            if (! ($cuotasCubiertas[$numero] ?? false)) {
+                // Si la fecha de vencimiento ya pasó, se genera multa
                 if ($fechaVenc->lt($fechaHoy)) {
                     $multasGeneradasCount++;
                 }
-            } 
-            // Caso B: Cuota pagada, verificar si fue tardía
+            }
+            // Caso B: Cuota pagada (según FIFO), verificar si fue tardía
             else {
-                // Verificar la fecha del pago que completó la cuota
-                // Tomamos la fecha del último pago registrado para este número
-                $ultimoPago = $pagosCuota->sortByDesc('fecha_pago')->first();
-                if ($ultimoPago && $ultimoPago->fecha_pago->startOfDay()->gt($fechaVenc)) {
+                // Determinar cuándo se completó esta cuota según FIFO
+                $capitalNecesarioHasta = 0;
+                foreach ($calendario as $c) {
+                    if ((int) $c['numero'] <= $numero) {
+                        $capitalNecesarioHasta += (float) $c['monto'];
+                    }
+                }
+
+                // Buscar la fecha en que se alcanzó ese capital
+                $fechaCompletada = null;
+                foreach ($acumuladoPorFecha as $fecha => $acum) {
+                    if ($acum >= ($capitalNecesarioHasta - 0.01)) {
+                        $fechaCompletada = Carbon::parse($fecha)->startOfDay();
+                        break;
+                    }
+                }
+
+                // Si se completó después de la fecha de vencimiento, genera multa
+                if ($fechaCompletada && $fechaCompletada->gt($fechaVenc)) {
                     $multasGeneradasCount++;
                 }
             }
         }
 
         if ($multasGeneradasCount <= 0) {
-            // Si no hay multas generadas, pero hay un saldo negativo por pagos excesivos a moratorio (error de captura?), retornamos 0
             return 0;
         }
 
         // Multa unitaria: 5% del valor del pago
-        $montoPago = !empty($calendario) ? $calendario[0]['monto'] : 0;
+        $montoPago = ! empty($calendario) ? $calendario[0]['monto'] : 0;
         $multaUnitaria = $montoPago * 0.05;
-        
+
         $totalGenerado = $multasGeneradasCount * $multaUnitaria;
 
         // Saldo Moratorio = Generado - Pagado
@@ -550,33 +622,100 @@ class Prestamo extends Model
     {
         $calendario = $this->simularCalendarioPago($montoAutorizado);
         $fechaHoy = now()->startOfDay();
-        
+
         $pagosCliente = $this->pagos->where('cliente_id', $clienteId);
         $moratorioPagadoTotal = $pagosCliente->sum('moratorio_pagado');
-        
+
+        // ===================================================================================
+        // CORRECCIÓN CRÍTICA: Usar lógica FIFO (bucket) para determinar cuotas cubiertas
+        // ===================================================================================
+
+        // Filtrar solo pagos de capital (excluyendo garantías y pagos día cero)
+        $fechasRef = array_filter([
+            $this->fecha_autorizacion ? $this->fecha_autorizacion->startOfDay()->timestamp : null,
+            $this->fecha_entrega ? $this->fecha_entrega->startOfDay()->timestamp : null,
+            $this->created_at ? $this->created_at->startOfDay()->timestamp : null,
+        ]);
+        $timestampCorte = ! empty($fechasRef) ? min($fechasRef) : null;
+        $fechaCorteDate = $timestampCorte ? Carbon::createFromTimestamp($timestampCorte)->startOfDay() : null;
+        $fechaCorteStr = $fechaCorteDate ? $fechaCorteDate->format('Y-m-d') : null;
+
+        $pagosCapitalCliente = $pagosCliente->filter(function ($p) use ($fechaCorteStr) {
+            $tipo = strtolower($p->tipo_pago ?? '');
+            $esGarantia = $tipo === 'garantia' || $tipo === 'garantía' || $tipo === 'seguro';
+            $esDevolucion = str_contains($tipo, 'devolucion');
+
+            $pagoDateStr = $p->fecha_pago->format('Y-m-d');
+            $esDiaCero = $fechaCorteStr && $pagoDateStr < $fechaCorteStr;
+
+            return ! $esGarantia && ! $esDiaCero && ! $esDevolucion;
+        });
+
+        // Aplicar lógica FIFO
+        $capitalDisponible = 0;
+        foreach ($pagosCapitalCliente as $pago) {
+            $capitalDisponible += ((float) $pago->monto - (float) $pago->moratorio_pagado);
+        }
+
+        $cuotasCubiertas = [];
+        $capitalRestante = $capitalDisponible;
+
+        foreach ($calendario as $cuota) {
+            $montoCuota = (float) $cuota['monto'];
+            $numero = (int) $cuota['numero'];
+
+            if ($capitalRestante >= ($montoCuota - 0.01)) {
+                $cuotasCubiertas[$numero] = true;
+                $capitalRestante -= $montoCuota;
+            } else {
+                $cuotasCubiertas[$numero] = false;
+            }
+        }
+
+        // Calcular multas generadas
         $multasGeneradasCount = 0;
+        $fechasPagoOrdenadas = $pagosCapitalCliente->sortBy('fecha_pago')->values();
+        $acumuladoPorFecha = [];
+        $capitalAcumulado = 0;
+
+        foreach ($fechasPagoOrdenadas as $pago) {
+            $capitalAcumulado += ((float) $pago->monto - (float) $pago->moratorio_pagado);
+            $fechaPagoStr = $pago->fecha_pago->format('Y-m-d');
+            $acumuladoPorFecha[$fechaPagoStr] = $capitalAcumulado;
+        }
 
         foreach ($calendario as $pagoProg) {
             $fechaVenc = Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->startOfDay();
-            $numero = $pagoProg['numero'];
-            $montoCuota = $pagoProg['monto'];
+            $numero = (int) $pagoProg['numero'];
+            $montoCuota = (float) $pagoProg['monto'];
 
-            $pagosCuota = $pagosCliente->where('numero_pago', $numero);
-            $montoPagadoCuota = $pagosCuota->sum('monto');
-
-            if ($montoPagadoCuota < ($montoCuota - 1)) { 
+            if (! ($cuotasCubiertas[$numero] ?? false)) {
                 if ($fechaVenc->lt($fechaHoy)) {
                     $multasGeneradasCount++;
                 }
             } else {
-                $ultimoPago = $pagosCuota->sortByDesc('fecha_pago')->first();
-                if ($ultimoPago && $ultimoPago->fecha_pago->startOfDay()->gt($fechaVenc)) {
+                $capitalNecesarioHasta = 0;
+                foreach ($calendario as $c) {
+                    if ((int) $c['numero'] <= $numero) {
+                        $capitalNecesarioHasta += (float) $c['monto'];
+                    }
+                }
+
+                $fechaCompletada = null;
+                foreach ($acumuladoPorFecha as $fecha => $acum) {
+                    if ($acum >= ($capitalNecesarioHasta - 0.01)) {
+                        $fechaCompletada = Carbon::parse($fecha)->startOfDay();
+                        break;
+                    }
+                }
+
+                if ($fechaCompletada && $fechaCompletada->gt($fechaVenc)) {
                     $multasGeneradasCount++;
                 }
             }
         }
 
-        $montoPago = !empty($calendario) ? $calendario[0]['monto'] : 0;
+        $montoPago = ! empty($calendario) ? $calendario[0]['monto'] : 0;
         $multaUnitaria = $montoPago * 0.05;
         $totalGenerado = $multasGeneradasCount * $multaUnitaria;
         $saldo = max(0, $totalGenerado - $moratorioPagadoTotal);
@@ -584,7 +723,7 @@ class Prestamo extends Model
         return [
             'penalizacion' => $totalGenerado,
             'recuperado' => $moratorioPagadoTotal,
-            'saldo' => $saldo
+            'saldo' => $saldo,
         ];
     }
 
@@ -593,34 +732,34 @@ class Prestamo extends Model
         // 1. Calcular Deuda Original Total (Capital + Interes + IVA)
         $tasaInteres = (float) $this->tasa_interes;
         $config = $this->determinarConfiguracionPago(
-            strtolower(trim($this->plazo)), 
+            strtolower(trim($this->plazo)),
             strtolower(trim($this->periodicidad))
         );
-        
+
         $mesesInteres = $config ? $config['meses_interes'] : 4;
-        
+
         $interesBase = (($montoAutorizado / 100) * $tasaInteres) * $mesesInteres;
         $ivaPorcentaje = \App\Models\Configuration::get('iva_percentage', 16);
         $ivaBase = ($interesBase / 100) * $ivaPorcentaje;
-        
+
         $totalDeudaOriginal = $montoAutorizado + $interesBase + $ivaBase;
-        
+
         // 2. Obtener Pagos Realizados (incluye moratorios pagados, capital, e interes)
         $pagosCliente = $this->pagos->where('cliente_id', $clienteId);
         $totalPagadoReal = $pagosCliente->sum('monto');
         $moratoriosPagados = $pagosCliente->sum('moratorio_pagado');
-        
+
         // 3. Calcular Moratorios Vigentes (generados hoy)
         // Se calculan solo como referencia pero NO se suman al saldo para liquidar (petición de usuario)
         // $saldoMoratorio = $this->calcularMoratorioVigente($clienteId, $montoAutorizado);
-        
+
         // Formula Final:
         // Saldo = (DeudaOriginal - (PagadoTotal - MoratoriosPagados))
         // Explicación: Los pagos cubren moratorios primero en el registro, pero el saldo restante
         // debe reflejar solo el capital + interes pendiente, sin sumar multas no pagadas.
-        
+
         $saldoLiquidar = $totalDeudaOriginal - ($totalPagadoReal - $moratoriosPagados);
-        
+
         return floor(max(0, $saldoLiquidar));
     }
 }
