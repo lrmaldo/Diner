@@ -1130,6 +1130,26 @@
                          return !$esGarantia && !$esDiaCero && !$esDevolucion;
                     });
 
+                    // ===================================================================================
+                    // Pre-calcular calendarios individuales para préstamos grupales
+                    // DEBE estar ANTES de la distribución de pagos
+                    // ===================================================================================
+                    $clientSchedules = [];
+                    if ($prestamo->producto === 'grupal') {
+                        foreach ($prestamo->clientes as $cliente) {
+                            $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
+                            $clientSchedules[$cliente->id] = calcularCalendarioPagos(
+                                $montoCliente,
+                                $tasaInteres,
+                                $plazo,
+                                $periodicidad,
+                                $fechaPrimerPago,
+                                $ultimoPago,
+                                'martes'
+                            );
+                        }
+                    }
+
                     // Función para simular desglose de pagos (Bucket Logic)
                     $distribuirPagos = function($calendario, $pagosDisponibles) {
                         $distribucion = collect();
@@ -1190,8 +1210,39 @@
                         return $distribucion;
                     };
 
-                    // Aplicar la distribución
-                    $pagosRegistrados = $distribuirPagos($calendarioPagos, $todosLosPagos);
+                    // ===================================================================================
+                    // CORRECCIÓN CRÍTICA: Para préstamos grupales, distribuir pagos POR CLIENTE
+                    // Esto asegura que cada cliente mantenga su propio número de pago sin importar
+                    // si otros clientes no han pagado
+                    // ===================================================================================
+                    $pagosRegistradosPorCliente = collect();
+                    $pagosRegistrados = collect(); // Agregado global para mantener compatibilidad
+                    
+                    if ($prestamo->producto === 'grupal') {
+                        // Distribuir pagos por cada cliente
+                        foreach ($prestamo->clientes as $cliente) {
+                            $pagosCliente = $todosLosPagos->where('cliente_id', $cliente->id);
+                            $calendarioCliente = $clientSchedules[$cliente->id] ?? [];
+                            
+                            if (!empty($calendarioCliente) && $pagosCliente->isNotEmpty()) {
+                                $distribucionCliente = $distribuirPagos($calendarioCliente, $pagosCliente);
+                                $pagosRegistradosPorCliente->put($cliente->id, $distribucionCliente);
+                                
+                                // Agregar a la distribución global para mantener compatibilidad con el resto del código
+                                foreach ($distribucionCliente as $numPago => $pagos) {
+                                    if (!$pagosRegistrados->has($numPago)) {
+                                        $pagosRegistrados->put($numPago, collect());
+                                    }
+                                    foreach ($pagos as $pago) {
+                                        $pagosRegistrados->get($numPago)->push($pago);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        // Para préstamos individuales, usar la lógica original
+                        $pagosRegistrados = $distribuirPagos($calendarioPagos, $todosLosPagos);
+                    }
 
                     // ===================================================================================
                     // AJUSTE PARA PAGOS "SOLO MULTA" (Capital 0, Moratorio > 0)
@@ -1207,6 +1258,13 @@
 
                     foreach($pagosSoloMulta as $pagoMulta) {
                         $targetInst = null;
+                        $clienteId = $pagoMulta->cliente_id;
+                        
+                        // Determinar qué distribución usar para buscar el target
+                        $distribucionRelevante = $pagosRegistrados;
+                        if ($prestamo->producto === 'grupal' && $clienteId && $pagosRegistradosPorCliente->has($clienteId)) {
+                            $distribucionRelevante = $pagosRegistradosPorCliente->get($clienteId);
+                        }
                         
                         // 1. Intentar usar el número de pago registrado en BD
                         if (!empty($pagoMulta->numero_pago)) {
@@ -1219,7 +1277,7 @@
                             $targetInst = 1; // Default
                             
                             // Iterar sobre los buckets con actividad (capital)
-                            foreach($pagosRegistrados as $instNum => $pagos) {
+                            foreach($distribucionRelevante as $instNum => $pagos) {
                                 // Obtener la fecha del pago más reciente en este bucket
                                 $maxFecha = $pagos->max('fecha_pago');
                                 
@@ -1242,8 +1300,8 @@
                         
                         // Verificar si el target actual tiene cobertura de capital
                         $hasCapitalCoverage = false;
-                        if ($pagosRegistrados->has($targetInst)) {
-                            foreach($pagosRegistrados->get($targetInst) as $subP) {
+                        if ($distribucionRelevante->has($targetInst)) {
+                            foreach($distribucionRelevante->get($targetInst) as $subP) {
                                 // Verificar si hay monto de capital (los pagosSoloMulta tienen monto=0)
                                 if ($subP->monto > 0.001) {
                                     $hasCapitalCoverage = true;
@@ -1256,7 +1314,7 @@
                             // Buscar el bucket más alto (menor que targetInst) que sí tenga capital
                             $betterTarget = 1;
                             
-                            foreach($pagosRegistrados as $instNum => $pagos) {
+                            foreach($distribucionRelevante as $instNum => $pagos) {
                                 // Solo mirar hacia atrás
                                 if ($instNum >= $targetInst) continue;
                                 
@@ -1274,28 +1332,32 @@
                                 }
                             }
                             
-                            // Si encontramos un "mejor target" (que tenga capital), usamos ese.
-                            // Si no encontramos nada (ej. primera cuota), se queda en 1.
-                            // Nota: Si betterTarget es 1, aún verificamos si el 1 tenía capital. Si no, pues se queda en 1.
-                            
-                            // Caso especial: Si incluso el 1 no tiene capital, la multa se queda donde estaba (o en 1)
-                            // Pero la lógica de arriba ya setea betterTarget=1 por defecto.
-                            
                             // Aplicar cambio
                             $targetInst = $betterTarget;
                         }
                         // ===================================================================================
 
-                        // Agregar a pagosRegistrados
-                        if (!$pagosRegistrados->has($targetInst)) {
-                            $pagosRegistrados->put($targetInst, collect());
-                        }
-                        
                         // Clonamos el pago de multa para ajustar su monto "visual" a 0 capital
-                        // De esta forma no suma a "Pagado en efectivo" ni "Recuperado"
                         $pagoVirtualMulta = clone $pagoMulta;
                         $pagoVirtualMulta->monto = 0; // 0 Capital
                         
+                        // Agregar a la distribución relevante (por cliente si es grupal, o global si es individual)
+                        if ($prestamo->producto === 'grupal' && $clienteId) {
+                            // Agregar a la distribución del cliente
+                            if (!$pagosRegistradosPorCliente->has($clienteId)) {
+                                $pagosRegistradosPorCliente->put($clienteId, collect());
+                            }
+                            $distribucionCliente = $pagosRegistradosPorCliente->get($clienteId);
+                            if (!$distribucionCliente->has($targetInst)) {
+                                $distribucionCliente->put($targetInst, collect());
+                            }
+                            $distribucionCliente->get($targetInst)->push($pagoVirtualMulta);
+                        }
+                        
+                        // Siempre agregar a pagosRegistrados global para mantener compatibilidad
+                        if (!$pagosRegistrados->has($targetInst)) {
+                            $pagosRegistrados->put($targetInst, collect());
+                        }
                         $pagosRegistrados->get($targetInst)->push($pagoVirtualMulta);
                     }
                     // ===================================================================================
@@ -1314,6 +1376,7 @@
                     // ===================================================================================
                     // PRE-CALCULO DE UBICACIÓN DE MULTAS
                     // Determina en qué fila debe mostrarse cada multa, dando prioridad al número de pago explícito
+                    // CORRECCIÓN: Para préstamos grupales, usar distribución por cliente
                     // ===================================================================================
                     $fineTargetMap = []; // ID Pago => Numero Cuota
                     $fineSumsByRow = []; // Numero Cuota => ['normal' => 0, 'garantia' => 0]
@@ -1321,6 +1384,13 @@
                     foreach ($todosLosPagos as $p) {
                         if ($p->moratorio_pagado > 0.001) {
                             $targetNum = null;
+                            $clienteId = $p->cliente_id;
+                            
+                            // Determinar qué distribución usar
+                            $distribucionRelevante = $pagosRegistrados;
+                            if ($prestamo->producto === 'grupal' && $clienteId && $pagosRegistradosPorCliente->has($clienteId)) {
+                                $distribucionRelevante = $pagosRegistradosPorCliente->get($clienteId);
+                            }
                             
                             // 1. Prioridad Absoluta: Número de pago registrado en BD
                             if (!empty($p->numero_pago)) {
@@ -1328,26 +1398,22 @@
                                 
                                 // REUBICACIÓN TAMBIÉN PARA PAGOS CON NUMERO REGISTRADO
                                 // Si el numero registrado apunta a futuro (sin capital), regresarlo al último pagado
-                                // Copiamos la lógica usada arriba:
                                 
                                 $hasCapitalCoverage = false;
-                                if ($pagosRegistrados->has($targetNum)) {
-                                    foreach($pagosRegistrados->get($targetNum) as $subP) {
+                                if ($distribucionRelevante->has($targetNum)) {
+                                    foreach($distribucionRelevante->get($targetNum) as $subP) {
                                         if ($subP->monto > 0.001) { $hasCapitalCoverage = true; break; }
                                     }
                                 }
                                 
                                 if (!$hasCapitalCoverage) {
                                     $betterTarget = 1;
-                                    foreach($pagosRegistrados as $instNum => $pagos) {
+                                    foreach($distribucionRelevante as $instNum => $pagos) {
                                         if ($instNum >= $targetNum) continue;
                                         $hasCap = false;
                                         foreach($pagos as $subP) { if ($subP->monto > 0.001) { $hasCap = true; break; } }
                                         if ($hasCap && $instNum > $betterTarget) { $betterTarget = $instNum; }
                                     }
-                                    // Verificación secundaria: solo mover si encontramos algun bucket con capital 
-                                    // (O si es el bucket 1, aceptamos mover ahi)
-                                    // Si no hay nada pagado en el prestamo, todo cae al 1.
                                     $targetNum = $betterTarget;
                                 }
 
@@ -1380,23 +1446,6 @@
                             } else {
                                 $fineSumsByRow[$targetNum]['normal'] += $p->moratorio_pagado;
                             }
-                        }
-                    }
-
-                    // Pre-calcular calendarios individuales para préstamos grupales
-                    $clientSchedules = [];
-                    if ($prestamo->producto === 'grupal') {
-                        foreach ($prestamo->clientes as $cliente) {
-                            $montoCliente = $cliente->pivot->monto_autorizado ?? $cliente->pivot->monto_solicitado ?? 0;
-                            $clientSchedules[$cliente->id] = calcularCalendarioPagos(
-                                $montoCliente,
-                                $tasaInteres,
-                                $plazo,
-                                $periodicidad,
-                                $fechaPrimerPago,
-                                $ultimoPago,
-                                'martes'
-                            );
                         }
                     }
 
@@ -1562,8 +1611,12 @@
                                 $clientPago = collect($clientSchedule)->firstWhere('numero', $pago['numero']);
                                 $montoClientePago = $clientPago['monto'] ?? 0;
 
-                                $pagoCliente = $pagoRealizado ? $pagoRealizado->where('cliente_id', $cliente->id)->sortByDesc('fecha_pago')->first() : null;
+                                // CORRECCIÓN: Usar distribución por cliente en lugar de global
+                                $distribucionCliente = $pagosRegistradosPorCliente->get($cliente->id, collect());
+                                $pagoClienteEnCuota = $distribucionCliente->get($pago['numero']);
+                                $pagoCliente = $pagoClienteEnCuota ? $pagoClienteEnCuota->sortByDesc('fecha_pago')->first() : null;
                                 $fechaPagoCliente = $pagoCliente ? $pagoCliente->fecha_pago->format('d-m-y') : '';
+                                $montoPagadoCliente = $pagoClienteEnCuota ? $pagoClienteEnCuota->sum('monto') : 0;
                             @endphp
                             <tr class="accordion-row-{{ $pago['numero'] }} group-detail-row" style="display: none; background-color: #fff;">
                                 <td style="border-top: none;"></td>
@@ -1573,7 +1626,8 @@
                                 </td>
                                 <td style="font-size: 0.9em; color: #555; border-top: none;">{{ $fechaPagoCliente }}</td>
                                 <td style="font-size: 0.9em; color: #555; border-top: none;">{{ number_format($montoClientePago, 0) }}</td>
-                                <td colspan="6" style="border-top: none;"></td>
+                                <td style="font-size: 0.9em; color: #555; border-top: none;">{{ $montoPagadoCliente > 0 ? number_format($montoPagadoCliente, 0) : '' }}</td>
+                                <td colspan="5" style="border-top: none;"></td>
                             </tr>
                         @endforeach
                     @endif
