@@ -16,6 +16,8 @@ class ReportesControl extends Component
 
     public $opciones = [];
 
+    public $showReport = false;
+
     public function mount()
     {
         Carbon::setLocale('es');
@@ -37,6 +39,7 @@ class ReportesControl extends Component
 
     public function generar()
     {
+        $this->showReport = true;
         // En este punto simplemente indicamos que se ha generado la consulta
         // La vista utilizará los datos calculados
         session()->flash('message', 'Reporte generado con los parámetros seleccionados.');

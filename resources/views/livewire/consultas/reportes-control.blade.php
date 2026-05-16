@@ -29,6 +29,7 @@
         </div>
     </div>
 
+    @if($showReport)
     {{-- Paletas de Información --}}
     <div class="mt-8 flex flex-row flex-wrap xl:flex-nowrap justify-between items-stretch gap-4 p-4 bg-gray-50 rounded-xl border border-gray-300 w-full">
         
@@ -179,5 +180,6 @@
             </tbody>
         </table>
     </div>
+    @endif
 
 </div>
