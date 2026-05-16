@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/consultas/estados-cuenta', \App\Livewire\Consultas\EstadosCuenta::class)->name('consultas.estados-cuenta');
     Route::get('/consultas/recuperacion-exigible', \App\Livewire\Consultas\RecuperacionExigible::class)->name('consultas.recuperacion.exigible');
     Route::get('/consultas/recuperacion-asesor/{asesor_id}/{desde}/{hasta}', \App\Livewire\Consultas\RecuperacionAsesor::class)->name('consultas.recuperacion.asesor');
+    Route::get('/consultas/reportes-control', \App\Livewire\Consultas\ReportesControl::class)->middleware('role:Administrador')->name('consultas.reportes-control');
 
     // Rutas para operaciones
     Route::get('/operaciones/aclaracion-pagos', \App\Livewire\Operaciones\AclaracionPagos::class)->name('operaciones.aclaracion-pagos');
