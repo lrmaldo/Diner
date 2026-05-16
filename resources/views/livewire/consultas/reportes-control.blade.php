@@ -13,7 +13,7 @@
                 </div>
             @endif
             
-            <form wire:submit="generar" class="p-0 space-y-4">
+            <form wire:submit.prevent="generar" class="p-0 space-y-4">
                 <select wire:model="parametro" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm text-center">
                     @foreach($opciones as $key => $label)
                         <option value="{{ $key }}">{{ $label }}</option>
@@ -77,15 +77,15 @@
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['actual'] }}:</span>
-                    <span class="font-bold">-</span>
+                    <span class="font-bold">{{ number_format($this->datosFidelizacion['al_dia'] ?? 0, 2) }}%</span>
                 </div>
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['mes1'] }}:</span>
-                    <span class="font-bold">-</span>
+                    <span class="font-bold">{{ number_format($this->datosFidelizacion['mes1'] ?? 0, 2) }}%</span>
                 </div>
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['mes2'] }}:</span>
-                    <span class="font-bold">-</span>
+                    <span class="font-bold">{{ number_format($this->datosFidelizacion['mes2'] ?? 0, 2) }}%</span>
                 </div>
             </div>
         </div>
@@ -139,7 +139,7 @@
             </thead>
             <tbody>
                 @foreach($this->datosCarteraPorAsesor as $fila)
-                    <tr class="hover:bg-gray-50 border-b border-gray-300 text-xs">
+                    <tr wire:key="asesor-{{ md5($fila['asesor']) }}" class="hover:bg-gray-50 border-b border-gray-300 text-xs">
                         <td class="py-2 px-2 border-r border-gray-300 font-medium">{{ $fila['asesor'] }}</td>
                         
                         @foreach(['c_vigente', 'cv_1_7', 'cv_8_30', 'cv_31_90', 'cv_91_180', 'cv_181_365', 'cv_mas_365', 'cv_total'] as $col)
@@ -183,6 +183,7 @@
     @endif
 
 </div>
+
 
 
 

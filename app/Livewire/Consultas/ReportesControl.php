@@ -42,7 +42,7 @@ class ReportesControl extends Component
         $this->showReport = true;
         // En este punto simplemente indicamos que se ha generado la consulta
         // La vista utilizará los datos calculados
-        session()->flash('message', 'Reporte generado con los Parámetros seleccionados.');
+        session()->flash('message', 'Reporte generado con los parámetros seleccionados.');
     }
 
     // Propiedades computadas para calcular la Información de las cajas (Paletas)
