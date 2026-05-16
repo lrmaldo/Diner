@@ -1,7 +1,7 @@
 ﻿<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
     <div class="bg-white border border-gray-300 max-w-2xl mx-auto">
         <div class="bg-red-600 text-white font-bold text-center py-2 flex justify-between items-center px-4">
-            <div class="flex-grow text-center text-lg">ParÃ¡metros de consulta</div>
+            <div class="flex-grow text-center text-lg">Parámetros de consulta</div>
             <svg class="h-5 w-5 text-white opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
             </svg>
@@ -30,7 +30,7 @@
     </div>
 
     @if($showReport)
-    {{-- Paletas de InformaciÃ³n --}}
+    {{-- Paletas de Información --}}
     <div class="mt-8 flex flex-row flex-wrap xl:flex-nowrap justify-between items-stretch gap-4 p-4 bg-gray-50 rounded-xl border border-gray-300 w-full">
         
         {{-- Paleta: Clientes (Rosa) --}}
@@ -52,9 +52,9 @@
             </div>
         </div>
 
-        {{-- Paleta: ColocaciÃ³n (Rojo) --}}
+        {{-- Paleta: Colocación (Rojo) --}}
         <div class="flex-1 bg-red-600 rounded-lg text-white p-4 shadow min-w-32">
-            <h3 class="font-bold text-center border-b border-red-500 pb-2 mb-2">ColocaciÃ³n</h3>
+            <h3 class="font-bold text-center border-b border-red-500 pb-2 mb-2">Colocación</h3>
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['actual'] }}:</span>
@@ -71,9 +71,9 @@
             </div>
         </div>
 
-        {{-- Paleta: FidelizaciÃ³n (Amarillo Verde) --}}
+        {{-- Paleta: Fidelización (Amarillo Verde) --}}
         <div class="flex-1 bg-yellow-400 rounded-lg text-white p-4 shadow min-w-32">
-            <h3 class="font-bold text-center border-b border-yellow-300 pb-2 mb-2 text-shadow-sm">FidelizaciÃ³n</h3>
+            <h3 class="font-bold text-center border-b border-yellow-300 pb-2 mb-2 text-shadow-sm">Fidelización</h3>
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['actual'] }}:</span>
@@ -132,7 +132,7 @@
                     <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv de 181 a 365</th>
                     <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv de mas de 365 dias</th>
                     <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv total</th>
-                    <th class="py-2 px-2 border border-gray-300 text-center font-bold text-xs">crÃ©ditos</th>
+                    <th class="py-2 px-2 border border-gray-300 text-center font-bold text-xs">créditos</th>
                     <th class="py-2 px-2 border border-gray-300 text-center font-bold text-xs">clientes</th>
                     <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Saldo total</th>
                 </tr>

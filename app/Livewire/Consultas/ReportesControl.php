@@ -41,14 +41,14 @@ class ReportesControl extends Component
     {
         $this->showReport = true;
         // En este punto simplemente indicamos que se ha generado la consulta
-        // La vista utilizarÃ¡ los datos calculados
-        session()->flash('message', 'Reporte generado con los parÃ¡metros seleccionados.');
+        // La vista utilizará los datos calculados
+        session()->flash('message', 'Reporte generado con los Parámetros seleccionados.');
     }
 
-    // Propiedades computadas para calcular la informaciÃ³n de las cajas (Paletas)
+    // Propiedades computadas para calcular la Información de las cajas (Paletas)
 
     // Mes actual, mes anterior y hace 2 meses
-    // MÃ©todo para obtener la fecha base segÃºn el parÃ¡metro seleccionado
+    // Método para obtener la fecha base según el parámetro seleccionado
     private function getBaseDate()
     {
         if ($this->parametro === 'al_dia') {
