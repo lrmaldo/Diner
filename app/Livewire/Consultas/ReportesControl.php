@@ -22,12 +22,12 @@ class ReportesControl extends Component
     {
         Carbon::setLocale('es');
 
-        $this->opciones['al_dia'] = 'Al dÃƒÂ­a';
+        $this->opciones['al_dia'] = 'Al dia';
 
         $fecha = Carbon::now();
 
         for ($i = 0; $i <= 24; $i++) {
-            $fechaCiclo = $fecha->copy()->subMonths($i);
+            $fechaCiclo = $fecha->copy()->subMonthsNoOverflow($i);
             $mes = $fechaCiclo->translatedFormat('F');
             $anio = $fechaCiclo->year;
 
@@ -41,14 +41,14 @@ class ReportesControl extends Component
     {
         $this->showReport = true;
         // En este punto simplemente indicamos que se ha generado la consulta
-        // La vista utilizarÃƒÂ¡ los datos calculados
-        session()->flash('message', 'Reporte generado con los parÃƒÂ¡metros seleccionados.');
+        // La vista utilizarÃƒÆ’Ã‚Â¡ los datos calculados
+        session()->flash('message', 'Reporte generado con los parÃƒÆ’Ã‚Â¡metros seleccionados.');
     }
 
-    // Propiedades computadas para calcular la informaciÃƒÂ³n de las cajas (Paletas)
+    // Propiedades computadas para calcular la informaciÃƒÆ’Ã‚Â³n de las cajas (Paletas)
 
     // Mes actual, mes anterior y hace 2 meses
-    // MÃ©todo para obtener la fecha base segÃºn el parÃ¡metro seleccionado
+    // MÃƒÂ©todo para obtener la fecha base segÃƒÂºn el parÃƒÂ¡metro seleccionado
     private function getBaseDate()
     {
         if ($this->parametro === 'al_dia') {
@@ -62,12 +62,12 @@ class ReportesControl extends Component
     public function mesesNombres()
     {
         $fechaBase = $this->getBaseDate();
-        $mesText = $this->parametro === 'al_dia' ? 'Al dÃ­a' : ucfirst($fechaBase->translatedFormat('F'));
+        $mesText = $this->parametro === 'al_dia' ? 'Al dÃƒÂ­a' : ucfirst($fechaBase->translatedFormat('F'));
 
         return [
             'actual' => $mesText,
-            'mes1' => ucfirst($fechaBase->copy()->subMonth(1)->translatedFormat('F')),
-            'mes2' => ucfirst($fechaBase->copy()->subMonth(2)->translatedFormat('F')),
+            'mes1' => ucfirst($fechaBase->copy()->subMonthsNoOverflow(1)->translatedFormat('F')),
+            'mes2' => ucfirst($fechaBase->copy()->subMonthsNoOverflow(2)->translatedFormat('F')),
         ];
     }
 
@@ -76,8 +76,8 @@ class ReportesControl extends Component
     {
         $fechaBase = $this->getBaseDate();
         $finActual = $fechaBase->copy()->endOfDay();
-        $finMes1 = $fechaBase->copy()->subMonth(1)->endOfMonth();
-        $finMes2 = $fechaBase->copy()->subMonth(2)->endOfMonth();
+        $finMes1 = $fechaBase->copy()->subMonthsNoOverflow(1)->endOfMonth();
+        $finMes2 = $fechaBase->copy()->subMonthsNoOverflow(2)->endOfMonth();
 
         return [
             'al_dia' => \App\Models\Cliente::where('created_at', '<=', $finActual)->count(),
@@ -92,10 +92,10 @@ class ReportesControl extends Component
         $fechaBase = $this->getBaseDate();
         $inicioActual = $fechaBase->copy()->startOfMonth();
         $finActual = $fechaBase->copy()->endOfDay();
-        $inicioMes1 = $fechaBase->copy()->subMonth(1)->startOfMonth();
-        $finMes1 = $fechaBase->copy()->subMonth(1)->endOfMonth();
-        $inicioMes2 = $fechaBase->copy()->subMonth(2)->startOfMonth();
-        $finMes2 = $fechaBase->copy()->subMonth(2)->endOfMonth();
+        $inicioMes1 = $fechaBase->copy()->subMonthsNoOverflow(1)->startOfMonth();
+        $finMes1 = $fechaBase->copy()->subMonthsNoOverflow(1)->endOfMonth();
+        $inicioMes2 = $fechaBase->copy()->subMonthsNoOverflow(2)->startOfMonth();
+        $finMes2 = $fechaBase->copy()->subMonthsNoOverflow(2)->endOfMonth();
 
         return [
             'al_dia' => \App\Models\Prestamo::where('estado', 'Entregado')
