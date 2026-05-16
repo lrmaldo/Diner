@@ -13,7 +13,7 @@
                 </div>
             @endif
             
-            <form wire:submit.prevent="generar" class="p-0 space-y-4">
+            <div class="p-0 space-y-4">
                 <select wire:model="parametro" class="block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm text-center">
                     @foreach($opciones as $key => $label)
                         <option value="{{ $key }}">{{ $label }}</option>
@@ -21,11 +21,11 @@
                 </select>
                 
                 <div class="flex justify-center pt-4">
-                    <button type="submit" class="inline-flex justify-center py-2 px-8 border border-red-700 shadow-sm text-sm font-bold rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <button type="button" wire:click="generar" class="inline-flex justify-center py-2 px-8 border border-red-700 shadow-sm text-sm font-bold rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                         Generar
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -183,6 +183,7 @@
     @endif
 
 </div>
+
 
 
 

@@ -45,10 +45,10 @@ class ReportesControl extends Component
         session()->flash('message', 'Reporte generado con los parámetros seleccionados.');
     }
 
-    // Propiedades computadas para calcular la Información de las cajas (Paletas)
+    // Propiedades computadas para calcular la InformaciÃ³n de las cajas (Paletas)
 
     // Mes actual, mes anterior y hace 2 meses
-    // Método para obtener la fecha base según el parámetro seleccionado
+    // MÃ©todo para obtener la fecha base segÃºn el parÃ¡metro seleccionado
     private function getBaseDate()
     {
         if ($this->parametro === 'al_dia') {
