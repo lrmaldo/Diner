@@ -41,14 +41,14 @@ class ReportesControl extends Component
     {
         $this->showReport = true;
         // En este punto simplemente indicamos que se ha generado la consulta
-        // La vista utilizará los datos calculados
-        session()->flash('message', 'Reporte generado con los parámetros seleccionados.');
+        // La vista utilizarÃ¡ los datos calculados
+        session()->flash('message', 'Reporte generado con los parÃ¡metros seleccionados.');
     }
 
-    // Propiedades computadas para calcular la información de las cajas (Paletas)
+    // Propiedades computadas para calcular la informaciÃ³n de las cajas (Paletas)
 
     // Mes actual, mes anterior y hace 2 meses
-    // Método para obtener la fecha base según el parámetro seleccionado
+    // MÃ©todo para obtener la fecha base segÃºn el parÃ¡metro seleccionado
     private function getBaseDate()
     {
         if ($this->parametro === 'al_dia') {
@@ -62,7 +62,7 @@ class ReportesControl extends Component
     public function mesesNombres()
     {
         $fechaBase = $this->getBaseDate();
-        $mesText = $this->parametro === 'al_dia' ? 'Al dÃƒÆ’Ã‚Â­a' : ucfirst($fechaBase->translatedFormat('F'));
+        $mesText = $this->parametro === 'al_dia' ? 'Al dia' : ucfirst($fechaBase->translatedFormat('F'));
 
         return [
             'actual' => $mesText,
@@ -166,6 +166,33 @@ class ReportesControl extends Component
         $fechaBase = $this->getBaseDate()->endOfDay();
 
         return (new \App\Services\ReportesControlService)->calcularMontoActivo($fechaBase);
+    }
+
+    #[Computed]
+    public function datosFidelizacion()
+    {
+        $fechaBase = $this->getBaseDate();
+        $servicio = new \App\Services\ReportesControlService;
+
+        if ($this->parametro === 'al_dia') {
+            $inicioActual = $fechaBase->copy()->startOfMonth();
+            $finActual = $fechaBase->copy()->endOfDay();
+        } else {
+            $inicioActual = $fechaBase->copy()->startOfMonth();
+            $finActual = $fechaBase->copy()->endOfMonth()->endOfDay();
+        }
+
+        $inicioMes1 = $fechaBase->copy()->subMonthsNoOverflow(1)->startOfMonth();
+        $finMes1 = $fechaBase->copy()->subMonthsNoOverflow(1)->endOfMonth()->endOfDay();
+
+        $inicioMes2 = $fechaBase->copy()->subMonthsNoOverflow(2)->startOfMonth();
+        $finMes2 = $fechaBase->copy()->subMonthsNoOverflow(2)->endOfMonth()->endOfDay();
+
+        return [
+            'al_dia' => $servicio->calcularFidelizacion($inicioActual, $finActual),
+            'mes1' => $servicio->calcularFidelizacion($inicioMes1, $finMes1),
+            'mes2' => $servicio->calcularFidelizacion($inicioMes2, $finMes2),
+        ];
     }
 
     public function render()
