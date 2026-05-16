@@ -22,7 +22,7 @@ class ReportesControl extends Component
     {
         Carbon::setLocale('es');
 
-        $this->opciones['al_dia'] = 'Al día';
+        $this->opciones['al_dia'] = 'Al dÃ­a';
 
         $fecha = Carbon::now();
 
@@ -41,40 +41,46 @@ class ReportesControl extends Component
     {
         $this->showReport = true;
         // En este punto simplemente indicamos que se ha generado la consulta
-        // La vista utilizará los datos calculados
-        session()->flash('message', 'Reporte generado con los parámetros seleccionados.');
+        // La vista utilizarÃ¡ los datos calculados
+        session()->flash('message', 'Reporte generado con los parÃ¡metros seleccionados.');
     }
 
-    // Propiedades computadas para calcular la información de las cajas (Paletas)
+    // Propiedades computadas para calcular la informaciÃ³n de las cajas (Paletas)
 
     // Mes actual, mes anterior y hace 2 meses
+    // Método para obtener la fecha base según el parámetro seleccionado
+    private function getBaseDate()
+    {
+        if ($this->parametro === 'al_dia') {
+            return Carbon::now();
+        }
+
+        return Carbon::parse($this->parametro);
+    }
+
     #[Computed]
     public function mesesNombres()
     {
-        $hoy = \Carbon\Carbon::now();
+        $fechaBase = $this->getBaseDate();
+        $mesText = $this->parametro === 'al_dia' ? 'Al día' : ucfirst($fechaBase->translatedFormat('F'));
 
         return [
-            'actual' => 'Al día',
-            'mes1' => ucfirst($hoy->copy()->subMonth(1)->translatedFormat('F')),
-            'mes2' => ucfirst($hoy->copy()->subMonth(2)->translatedFormat('F')),
+            'actual' => $mesText,
+            'mes1' => ucfirst($fechaBase->copy()->subMonth(1)->translatedFormat('F')),
+            'mes2' => ucfirst($fechaBase->copy()->subMonth(2)->translatedFormat('F')),
         ];
     }
 
     #[Computed]
     public function datosClientes()
     {
-        $hoy = \Carbon\Carbon::now();
-        $inicioMesActual = $hoy->copy()->startOfMonth();
+        $fechaBase = $this->getBaseDate();
+        $finActual = $fechaBase->copy()->endOfDay();
+        $finMes1 = $fechaBase->copy()->subMonth(1)->endOfMonth();
+        $finMes2 = $fechaBase->copy()->subMonth(2)->endOfMonth();
 
-        $finMes1 = $hoy->copy()->subMonth(1)->endOfMonth();
-
-        $finMes2 = $hoy->copy()->subMonth(2)->endOfMonth();
-
-        // Nota: Según instrucciones: Cliente activo = con capital (vigente o vencido) o con último pago <= 365 días
-        // Aquí puedes ajustar la consulta real según tus tablas Capitalizacion y Pagos.
-        // Simulando datos para la vista:
         return [
-            'al_dia' => \App\Models\Cliente::count(), // Muestra total para ejemplo, deberás ajustar con la condición
+            'al_dia' => \App\Models\Cliente::where('created_at', '<=', $finActual)->count(),
             'mes1' => \App\Models\Cliente::where('created_at', '<=', $finMes1)->count(),
             'mes2' => \App\Models\Cliente::where('created_at', '<=', $finMes2)->count(),
         ];
@@ -83,20 +89,18 @@ class ReportesControl extends Component
     #[Computed]
     public function datosColocacion()
     {
-        $hoy = \Carbon\Carbon::now();
-        $inicioMesActual = $hoy->copy()->startOfMonth();
+        $fechaBase = $this->getBaseDate();
+        $inicioActual = $fechaBase->copy()->startOfMonth();
+        $finActual = $fechaBase->copy()->endOfDay();
+        $inicioMes1 = $fechaBase->copy()->subMonth(1)->startOfMonth();
+        $finMes1 = $fechaBase->copy()->subMonth(1)->endOfMonth();
+        $inicioMes2 = $fechaBase->copy()->subMonth(2)->startOfMonth();
+        $finMes2 = $fechaBase->copy()->subMonth(2)->endOfMonth();
 
-        $inicioMes1 = $hoy->copy()->subMonth(1)->startOfMonth();
-        $finMes1 = $hoy->copy()->subMonth(1)->endOfMonth();
-
-        $inicioMes2 = $hoy->copy()->subMonth(2)->startOfMonth();
-        $finMes2 = $hoy->copy()->subMonth(2)->endOfMonth();
-
-        // Monto "colocado" -> suma de Montos solicitados entregados en esas fechas.
         return [
             'al_dia' => \App\Models\Prestamo::where('estado', 'Entregado')
-                ->whereBetween('fecha_entrega', [$inicioMesActual, $hoy])
-                ->sum('monto_total'), // Puedes cambiar 'monto_total' por la variable que guarda el crédito solicitado
+                ->whereBetween('fecha_entrega', [$inicioActual, $finActual])
+                ->sum('monto_total'),
 
             'mes1' => \App\Models\Prestamo::where('estado', 'Entregado')
                 ->whereBetween('fecha_entrega', [$inicioMes1, $finMes1])
@@ -111,7 +115,7 @@ class ReportesControl extends Component
     #[Computed]
     public function datosCarteraPorAsesor()
     {
-        // En el futuro, aquí iteraremos sobre los asesores para sacar todos estos datos calculando saldos y días de atraso.
+        // En el futuro, aquÃ­ iteraremos sobre los asesores para sacar todos estos datos calculando saldos y dÃ­as de atraso.
         // Simulando datos para mostrar la tabla tal como se pide en la imagen:
         return [
             [
@@ -129,7 +133,7 @@ class ReportesControl extends Component
                 'saldo_total' => 575000,
             ],
             [
-                'asesor' => 'Ángel martin chan',
+                'asesor' => 'Ãngel martin chan',
                 'c_vigente' => ['saldo' => 100000, 'clientes' => 52, 'porcentaje' => 66.6],
                 'cv_1_7' => ['saldo' => 10000, 'clientes' => 2, 'porcentaje' => 6.6],
                 'cv_8_30' => ['saldo' => 10000, 'clientes' => 2, 'porcentaje' => 6.6],
@@ -148,7 +152,7 @@ class ReportesControl extends Component
     #[Computed]
     public function datosCarteraTotales()
     {
-        // Simulando suma de datos para la fila "Totales" (fila final en rojo extraída de la imagen)
+        // Simulando suma de datos para la fila "Totales" (fila final en rojo extraÃ­da de la imagen)
         return [
             'c_vigente' => ['saldo' => 600000, 'clientes' => 187, 'porcentaje' => 82.7],
             'cv_1_7' => ['saldo' => 20000, 'clientes' => 5, 'porcentaje' => 2.7],
