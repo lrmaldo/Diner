@@ -116,4 +116,68 @@
             </div>
         </div>
     </div>
+
+    {{-- Tabla de Saldo de Cartera (Atrasos) --}}
+    <div class="mt-12 overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-300 text-sm">
+            <thead class="bg-red-600 text-white">
+                <tr>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold w-48 text-xs">Asesor</th>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">C. vigente</th>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv de 1 a 7 dias</th>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv de 8 a 30 dias</th>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv de 31 a 90 dias</th>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv de 91 a 180</th>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv de 181 a 365</th>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv de mas de 365 dias</th>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Cv total</th>
+                    <th class="py-2 px-2 border border-gray-300 text-center font-bold text-xs">créditos</th>
+                    <th class="py-2 px-2 border border-gray-300 text-center font-bold text-xs">clientes</th>
+                    <th class="py-2 px-2 border border-gray-300 text-left font-bold text-xs">Saldo total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($this->datosCarteraPorAsesor as $fila)
+                    <tr class="hover:bg-gray-50 border-b border-gray-300 text-xs">
+                        <td class="py-2 px-2 border-r border-gray-300 font-medium">{{ $fila['asesor'] }}</td>
+                        
+                        @foreach(['c_vigente', 'cv_1_7', 'cv_8_30', 'cv_31_90', 'cv_91_180', 'cv_181_365', 'cv_mas_365', 'cv_total'] as $col)
+                            <td class="border-r border-gray-300 p-1 align-top w-28">
+                                <div class="flex flex-col space-y-1">
+                                    <span>{{ number_format($fila[$col]['saldo']) }}</span>
+                                    <span>{{ $fila[$col]['clientes'] }}</span>
+                                    <span>{{ $fila[$col]['porcentaje'] }}%</span>
+                                </div>
+                            </td>
+                        @endforeach
+                        
+                        <td class="border-r border-gray-300 text-center p-2">{{ number_format($fila['creditos']) }}</td>
+                        <td class="border-r border-gray-300 text-center p-2">{{ number_format($fila['clientes']) }}</td>
+                        <td class="p-2 font-medium">{{ number_format($fila['saldo_total']) }}</td>
+                    </tr>
+                @endforeach
+                
+                {{-- Fila de Totales --}}
+                @php $totales = $this->datosCarteraTotales; @endphp
+                <tr class="bg-red-600 text-white font-bold text-xs">
+                    <td class="py-2 px-2 border border-red-700">Totales</td>
+                    
+                    @foreach(['c_vigente', 'cv_1_7', 'cv_8_30', 'cv_31_90', 'cv_91_180', 'cv_181_365', 'cv_mas_365', 'cv_total'] as $col)
+                        <td class="border border-red-700 p-1 align-top w-28">
+                            <div class="flex flex-col space-y-1">
+                                <span>{{ number_format($totales[$col]['saldo']) }}</span>
+                                <span>{{ $totales[$col]['clientes'] }}</span>
+                                <span>{{ $totales[$col]['porcentaje'] }}%</span>
+                            </div>
+                        </td>
+                    @endforeach
+                    
+                    <td class="border border-red-700 text-center p-2">{{ number_format($totales['creditos']) }}</td>
+                    <td class="border border-red-700 text-center p-2">{{ number_format($totales['clientes']) }}</td>
+                    <td class="border border-red-700 p-2 font-medium">{{ number_format($totales['saldo_total']) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
 </div>
