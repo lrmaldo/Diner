@@ -41,14 +41,14 @@ class ReportesControl extends Component
     {
         $this->showReport = true;
         // En este punto simplemente indicamos que se ha generado la consulta
-        // La vista utilizarÃƒÆ’Ã‚Â¡ los datos calculados
-        session()->flash('message', 'Reporte generado con los parÃƒÆ’Ã‚Â¡metros seleccionados.');
+        // La vista utilizará los datos calculados
+        session()->flash('message', 'Reporte generado con los parámetros seleccionados.');
     }
 
-    // Propiedades computadas para calcular la informaciÃƒÆ’Ã‚Â³n de las cajas (Paletas)
+    // Propiedades computadas para calcular la información de las cajas (Paletas)
 
     // Mes actual, mes anterior y hace 2 meses
-    // MÃƒÂ©todo para obtener la fecha base segÃƒÂºn el parÃƒÂ¡metro seleccionado
+    // Método para obtener la fecha base según el parámetro seleccionado
     private function getBaseDate()
     {
         if ($this->parametro === 'al_dia') {
@@ -62,7 +62,7 @@ class ReportesControl extends Component
     public function mesesNombres()
     {
         $fechaBase = $this->getBaseDate();
-        $mesText = $this->parametro === 'al_dia' ? 'Al dÃƒÂ­a' : ucfirst($fechaBase->translatedFormat('F'));
+        $mesText = $this->parametro === 'al_dia' ? 'Al dÃƒÆ’Ã‚Â­a' : ucfirst($fechaBase->translatedFormat('F'));
 
         return [
             'actual' => $mesText,
@@ -130,6 +130,42 @@ class ReportesControl extends Component
     public function datosCarteraTotales()
     {
         return $this->reportesData['totales'] ?? [];
+    }
+
+    #[Computed]
+    public function datosExigible()
+    {
+        $fechaBase = $this->getBaseDate();
+        $servicio = new \App\Services\ReportesControlService;
+
+        // Si es "al_dia", de principio de mes a la fecha de hoy, como nos comentaron:
+        if ($this->parametro === 'al_dia') {
+            $inicioActual = $fechaBase->copy()->startOfMonth();
+            $finActual = $fechaBase->copy()->endOfDay();
+        } else {
+            $inicioActual = $fechaBase->copy()->startOfMonth();
+            $finActual = $fechaBase->copy()->endOfMonth()->endOfDay();
+        }
+
+        $inicioMes1 = $fechaBase->copy()->subMonthsNoOverflow(1)->startOfMonth();
+        $finMes1 = $fechaBase->copy()->subMonthsNoOverflow(1)->endOfMonth()->endOfDay();
+
+        $inicioMes2 = $fechaBase->copy()->subMonthsNoOverflow(2)->startOfMonth();
+        $finMes2 = $fechaBase->copy()->subMonthsNoOverflow(2)->endOfMonth()->endOfDay();
+
+        return [
+            'al_dia' => $servicio->calcularEficienciaExigible($inicioActual, $finActual),
+            'mes1' => $servicio->calcularEficienciaExigible($inicioMes1, $finMes1),
+            'mes2' => $servicio->calcularEficienciaExigible($inicioMes2, $finMes2),
+        ];
+    }
+
+    #[Computed]
+    public function datosMontoActivo()
+    {
+        $fechaBase = $this->getBaseDate()->endOfDay();
+
+        return (new \App\Services\ReportesControlService)->calcularMontoActivo($fechaBase);
     }
 
     public function render()

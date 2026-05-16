@@ -96,15 +96,15 @@
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['actual'] }}:</span>
-                    <span class="font-bold">-</span>
+                    <span class="font-bold">{{ number_format($this->datosExigible['al_dia'], 2) }}%</span>
                 </div>
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['mes1'] }}:</span>
-                    <span class="font-bold">-</span>
+                    <span class="font-bold">{{ number_format($this->datosExigible['mes1'], 2) }}%</span>
                 </div>
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['mes2'] }}:</span>
-                    <span class="font-bold">-</span>
+                    <span class="font-bold">{{ number_format($this->datosExigible['mes2'], 2) }}%</span>
                 </div>
             </div>
         </div>
@@ -113,7 +113,7 @@
         <div class="flex-1 bg-cyan-400 rounded-lg text-white p-4 shadow flex flex-col justify-center min-w-32">
             <h3 class="font-bold text-center border-b border-cyan-300 pb-2 mb-4">Monto activo:</h3>
             <div class="text-center text-xl font-bold">
-                $ {{ number_format($this->datosCarteraTotales['saldo_total'] ?? 0, 2) }}
+                $ {{ number_format($this->datosMontoActivo, 2) }}
             </div>
         </div>
     </div>
@@ -183,4 +183,5 @@
     @endif
 
 </div>
+
 

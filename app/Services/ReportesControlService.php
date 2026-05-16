@@ -67,7 +67,7 @@ class ReportesControlService
 
                 if ($saldoRestante <= 0.01) {
                     continue;
-                } // Préstamo Liquidado a esa fecha
+                } // PrÃ©stamo Liquidado a esa fecha
 
                 // Calcular dias de Atraso
                 $pagadoPorNumero = [];
@@ -184,5 +184,140 @@ class ReportesControlService
             'asesores' => $resultados,
             'totales' => $totalesGlobales,
         ];
+    }
+
+    public function calcularEficienciaExigible(Carbon $inicio, Carbon $fin)
+    {
+        $prestamos = Prestamo::whereIn('estado', ['Entregado', 'Atrasado', 'Pagado', 'Liquidado'])
+            ->where('fecha_entrega', '<=', $fin)
+            ->with('pagos')
+            ->get();
+
+        $exigibleTotal = 0;
+        $recuperadoTotal = 0;
+
+        foreach ($prestamos as $prestamo) {
+            try {
+                $calendario = CalculadoraPrestamos::calcularCalendarioPagos(
+                    $prestamo->monto_autorizado ?? $prestamo->monto_total,
+                    $prestamo->tasa_interes,
+                    $prestamo->plazo,
+                    $prestamo->periodicidad,
+                    $prestamo->fecha_primer_pago ?? $prestamo->fecha_entrega,
+                    $prestamo->ultimo_pago ?? null
+                );
+
+                // FIFO
+                $todosLosPagos = $prestamo->pagos->sortBy([['fecha_pago', 'asc'], ['id', 'asc']])->filter(function ($p) {
+                    $tipo = strtolower($p->tipo_pago ?? '');
+
+                    return ! in_array($tipo, ['garantia', 'garantía', 'seguro', 'cargo']) && ! str_contains($tipo, 'devolucion');
+                });
+
+                $colaPagos = [];
+                foreach ($todosLosPagos as $p) {
+                    $capitalNeto = (float) $p->monto - (float) $p->moratorio_pagado;
+                    $colaPagos[] = [
+                        'remanente' => max(0, $capitalNeto),
+                    ];
+                }
+
+                $recuperadoPorCuota = [];
+                foreach ($calendario as $c) {
+                    $montoRequerido = (float) $c['monto'];
+                    $pagadoParaEstaCuota = 0;
+
+                    foreach ($colaPagos as &$entry) {
+                        if ($entry['remanente'] <= 0.001) {
+                            continue;
+                        }
+
+                        $tomar = min($entry['remanente'], $montoRequerido - $pagadoParaEstaCuota);
+                        if ($tomar > 0) {
+                            $pagadoParaEstaCuota += $tomar;
+                            $entry['remanente'] -= $tomar;
+                        }
+                        if ($pagadoParaEstaCuota >= $montoRequerido - 0.001) {
+                            break;
+                        }
+                    }
+                    $recuperadoPorCuota[$c['numero']] = $pagadoParaEstaCuota;
+                }
+
+                foreach ($calendario as $cuota) {
+                    $cFecha = Carbon::parse($cuota['fecha'])->startOfDay();
+                    if ($cFecha->between($inicio->copy()->startOfDay(), $fin->copy()->endOfDay())) {
+                        $exigibleTotal += $cuota['monto'];
+                        $recuperadoTotal += ($recuperadoPorCuota[$cuota['numero']] ?? 0);
+                    }
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        if ($exigibleTotal > 0) {
+            return min(100, round(($recuperadoTotal / $exigibleTotal) * 100, 2));
+        }
+
+        return 0;
+    }
+
+    public function calcularMontoActivo(Carbon $fechaCorte)
+    {
+        $prestamos = Prestamo::whereIn('estado', ['Entregado', 'Atrasado'])
+            ->where('fecha_entrega', '<=', $fechaCorte)
+            ->with(['pagos' => function ($q) use ($fechaCorte) {
+                $q->where('fecha_pago', '<=', $fechaCorte)->orderBy('fecha_pago', 'desc');
+            }])
+            ->get();
+
+        $montoActivo = 0;
+
+        foreach ($prestamos as $prestamo) {
+            // "su fecha del ultimo pago"
+            $fechaUltimoPagoEsperado = $prestamo->ultimo_pago ? Carbon::parse($prestamo->ultimo_pago) : null;
+
+            // Si no tenemos fecha de vencimiento clara, la calculamos del calendario?
+            if (! $fechaUltimoPagoEsperado) {
+                try {
+                    $calendario = CalculadoraPrestamos::calcularCalendarioPagos(
+                        $prestamo->monto_autorizado ?? $prestamo->monto_total,
+                        $prestamo->tasa_interes,
+                        $prestamo->plazo,
+                        $prestamo->periodicidad,
+                        $prestamo->fecha_primer_pago ?? $prestamo->fecha_entrega,
+                        null
+                    );
+                    if (count($calendario) > 0) {
+                        $ultimaCuota = end($calendario);
+                        $fechaUltimoPagoEsperado = Carbon::parse($ultimaCuota['fecha']);
+                    }
+                } catch (\Exception $e) {
+                    // Ignorar
+                }
+            }
+
+            if (! $fechaUltimoPagoEsperado) {
+                $fechaUltimoPagoEsperado = Carbon::parse($prestamo->fecha_entrega)->addMonths(4); // Fallback conservador
+            }
+
+            // Validar condición:
+            // 1. "que su fecha del ultimo pago no se aya pasado"
+            if ($fechaUltimoPagoEsperado->copy()->endOfDay() >= $fechaCorte->copy()->startOfDay()) {
+                $montoActivo += $prestamo->monto_total; // O monto_autorizado
+            } else {
+                // 2. o "si la fecha ya se paso que el ultimo deposito no exceda los 14 días"
+                $ultimoDeposito = $prestamo->pagos->first(); // Ya está ordenado desc y filtrado por fechaCorte
+                if ($ultimoDeposito) {
+                    $diasDesdeUltimoDeposito = Carbon::parse($ultimoDeposito->fecha_pago)->diffInDays($fechaCorte);
+                    if ($diasDesdeUltimoDeposito <= 14) {
+                        $montoActivo += $prestamo->monto_total;
+                    }
+                }
+            }
+        }
+
+        return $montoActivo;
     }
 }
