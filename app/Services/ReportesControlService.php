@@ -1,11 +1,11 @@
 <?php
-
 namespace App\Services;
 
 use App\Models\Cliente;
 use App\Models\Prestamo;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Services\CalculadoraPrestamos;
 
 class ReportesControlService
 {
@@ -67,7 +67,7 @@ class ReportesControlService
 
                 if ($saldoRestante <= 0.01) {
                     continue;
-                } // PrÃƒÂ©stamo Liquidado a esa fecha
+                } // PrÃƒÆ’Ã‚Â©stamo Liquidado a esa fecha
 
                 // Calcular dias de Atraso
                 $pagadoPorNumero = [];
@@ -211,7 +211,7 @@ class ReportesControlService
                 $todosLosPagos = $prestamo->pagos->sortBy([['fecha_pago', 'asc'], ['id', 'asc']])->filter(function ($p) {
                     $tipo = strtolower($p->tipo_pago ?? '');
 
-                    return ! in_array($tipo, ['garantia', 'garantÃ­a', 'seguro', 'cargo']) && ! str_contains($tipo, 'devolucion');
+                    return ! in_array($tipo, ['garantia', 'garantÃƒÂ­a', 'seguro', 'cargo']) && ! str_contains($tipo, 'devolucion');
                 });
 
                 $colaPagos = [];
@@ -302,13 +302,13 @@ class ReportesControlService
                 $fechaUltimoPagoEsperado = Carbon::parse($prestamo->fecha_entrega)->addMonths(4); // Fallback conservador
             }
 
-            // Validar condiciÃ³n:
+            // Validar condiciÃƒÂ³n:
             // 1. "que su fecha del ultimo pago no se aya pasado"
             if ($fechaUltimoPagoEsperado->copy()->endOfDay() >= $fechaCorte->copy()->startOfDay()) {
                 $montoActivo += $prestamo->monto_total; // O monto_autorizado
             } else {
-                // 2. o "si la fecha ya se paso que el ultimo deposito no exceda los 14 dÃ­as"
-                $ultimoDeposito = $prestamo->pagos->first(); // Ya estÃ¡ ordenado desc y filtrado por fechaCorte
+                // 2. o "si la fecha ya se paso que el ultimo deposito no exceda los 14 dÃƒÂ­as"
+                $ultimoDeposito = $prestamo->pagos->first(); // Ya estÃƒÂ¡ ordenado desc y filtrado por fechaCorte
                 if ($ultimoDeposito) {
                     $diasDesdeUltimoDeposito = Carbon::parse($ultimoDeposito->fecha_pago)->diffInDays($fechaCorte);
                     if ($diasDesdeUltimoDeposito <= 14) {
@@ -323,7 +323,7 @@ class ReportesControlService
 
     public function calcularFidelizacion(Carbon $inicio, Carbon $fin)
     {
-        // 1. Obtener prestamos liquidados en el periodo. Se asume que el "ultimo pago" dictamina cuándo se liquidó.
+        // 1. Obtener prestamos liquidados en el periodo. Se asume que el "ultimo pago" dictamina cuÃ¡ndo se liquidÃ³.
         $prestamosLiquidados = Prestamo::whereIn('estado', ['Pagado', 'Liquidado'])
             ->with(['pagos' => function ($q) {
                 $q->orderBy('fecha_pago', 'desc');
@@ -349,7 +349,7 @@ class ReportesControlService
         $clientesRenovados = 0;
 
         foreach ($clientesLiquidadosId as $clienteId) {
-            // Obtener la fecha en la que liquidó su préstamo en ese mes (si liquidó varios, tomamos el más reciente)
+            // Obtener la fecha en la que liquidÃ³ su prÃ©stamo en ese mes (si liquidÃ³ varios, tomamos el mÃ¡s reciente)
             $prestamosDelCliente = $prestamosLiquidados->where('cliente_id', $clienteId);
             $fechaLiquidacionBase = null;
 
@@ -364,7 +364,7 @@ class ReportesControlService
             }
 
             if ($fechaLiquidacionBase) {
-                // Verificar si tiene un préstamo con fecha de entrega posterior a la liquidación
+                // Verificar si tiene un prÃ©stamo con fecha de entrega posterior a la liquidaciÃ³n
                 $tieneRenovacion = Prestamo::where('cliente_id', $clienteId)
                     ->where('fecha_entrega', '>=', $fechaLiquidacionBase->format('Y-m-d'))
                     ->whereNotIn('id', $prestamosDelCliente->pluck('id')->toArray())

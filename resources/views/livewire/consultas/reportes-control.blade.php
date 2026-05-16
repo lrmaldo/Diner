@@ -1,4 +1,4 @@
-﻿<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
     <div class="bg-white border border-gray-300 max-w-2xl mx-auto">
         <div class="bg-red-600 text-white font-bold text-center py-2 flex justify-between items-center px-4">
             <div class="flex-grow text-center text-lg">Parámetros de consulta</div>
