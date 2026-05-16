@@ -22,7 +22,7 @@ class ReportesControl extends Component
     {
         Carbon::setLocale('es');
 
-        $this->opciones['al_dia'] = 'Al dÃ­a';
+        $this->opciones['al_dia'] = 'Al dÃƒÂ­a';
 
         $fecha = Carbon::now();
 
@@ -41,14 +41,14 @@ class ReportesControl extends Component
     {
         $this->showReport = true;
         // En este punto simplemente indicamos que se ha generado la consulta
-        // La vista utilizarÃ¡ los datos calculados
-        session()->flash('message', 'Reporte generado con los parÃ¡metros seleccionados.');
+        // La vista utilizarÃƒÂ¡ los datos calculados
+        session()->flash('message', 'Reporte generado con los parÃƒÂ¡metros seleccionados.');
     }
 
-    // Propiedades computadas para calcular la informaciÃ³n de las cajas (Paletas)
+    // Propiedades computadas para calcular la informaciÃƒÂ³n de las cajas (Paletas)
 
     // Mes actual, mes anterior y hace 2 meses
-    // Método para obtener la fecha base según el parámetro seleccionado
+    // MÃ©todo para obtener la fecha base segÃºn el parÃ¡metro seleccionado
     private function getBaseDate()
     {
         if ($this->parametro === 'al_dia') {
@@ -62,7 +62,7 @@ class ReportesControl extends Component
     public function mesesNombres()
     {
         $fechaBase = $this->getBaseDate();
-        $mesText = $this->parametro === 'al_dia' ? 'Al día' : ucfirst($fechaBase->translatedFormat('F'));
+        $mesText = $this->parametro === 'al_dia' ? 'Al dÃ­a' : ucfirst($fechaBase->translatedFormat('F'));
 
         return [
             'actual' => $mesText,
@@ -113,59 +113,23 @@ class ReportesControl extends Component
     }
 
     #[Computed]
+    public function reportesData()
+    {
+        $fechaBase = $this->getBaseDate()->endOfDay();
+
+        return (new \App\Services\ReportesControlService)->calcularCarteraPorAsesor($fechaBase);
+    }
+
+    #[Computed]
     public function datosCarteraPorAsesor()
     {
-        // En el futuro, aquÃ­ iteraremos sobre los asesores para sacar todos estos datos calculando saldos y dÃ­as de atraso.
-        // Simulando datos para mostrar la tabla tal como se pide en la imagen:
-        return [
-            [
-                'asesor' => 'Alejandra rivero chan',
-                'c_vigente' => ['saldo' => 500000, 'clientes' => 135, 'porcentaje' => 90],
-                'cv_1_7' => ['saldo' => 10000, 'clientes' => 3, 'porcentaje' => 1.7],
-                'cv_8_30' => ['saldo' => 20000, 'clientes' => 5, 'porcentaje' => 3.4],
-                'cv_31_90' => ['saldo' => 25000, 'clientes' => 3, 'porcentaje' => 4.3],
-                'cv_91_180' => ['saldo' => 10000, 'clientes' => 2, 'porcentaje' => 1.7],
-                'cv_181_365' => ['saldo' => 10000, 'clientes' => 2, 'porcentaje' => 1.7],
-                'cv_mas_365' => ['saldo' => 25000, 'clientes' => 6, 'porcentaje' => 4.3],
-                'cv_total' => ['saldo' => 75000, 'clientes' => 15, 'porcentaje' => 13.04],
-                'creditos' => 180,
-                'clientes' => 150,
-                'saldo_total' => 575000,
-            ],
-            [
-                'asesor' => 'Ãngel martin chan',
-                'c_vigente' => ['saldo' => 100000, 'clientes' => 52, 'porcentaje' => 66.6],
-                'cv_1_7' => ['saldo' => 10000, 'clientes' => 2, 'porcentaje' => 6.6],
-                'cv_8_30' => ['saldo' => 10000, 'clientes' => 2, 'porcentaje' => 6.6],
-                'cv_31_90' => ['saldo' => 10000, 'clientes' => 1, 'porcentaje' => 6.6],
-                'cv_91_180' => ['saldo' => 10000, 'clientes' => 1, 'porcentaje' => 6.6],
-                'cv_181_365' => ['saldo' => 10000, 'clientes' => 2, 'porcentaje' => 6.6],
-                'cv_mas_365' => ['saldo' => 20000, 'clientes' => 1, 'porcentaje' => 13.3],
-                'cv_total' => ['saldo' => 50000, 'clientes' => 8, 'porcentaje' => 33.3],
-                'creditos' => 80,
-                'clientes' => 60,
-                'saldo_total' => 150000,
-            ],
-        ];
+        return $this->reportesData['asesores'] ?? [];
     }
 
     #[Computed]
     public function datosCarteraTotales()
     {
-        // Simulando suma de datos para la fila "Totales" (fila final en rojo extraÃ­da de la imagen)
-        return [
-            'c_vigente' => ['saldo' => 600000, 'clientes' => 187, 'porcentaje' => 82.7],
-            'cv_1_7' => ['saldo' => 20000, 'clientes' => 5, 'porcentaje' => 2.7],
-            'cv_8_30' => ['saldo' => 30000, 'clientes' => 7, 'porcentaje' => 4.1],
-            'cv_31_90' => ['saldo' => 35000, 'clientes' => 4, 'porcentaje' => 4.8],
-            'cv_91_180' => ['saldo' => 20000, 'clientes' => 3, 'porcentaje' => 2.7],
-            'cv_181_365' => ['saldo' => 20000, 'clientes' => 4, 'porcentaje' => 2.7],
-            'cv_mas_365' => ['saldo' => 45000, 'clientes' => 7, 'porcentaje' => 6.2],
-            'cv_total' => ['saldo' => 125000, 'clientes' => 23, 'porcentaje' => 17.2],
-            'creditos' => 260,
-            'clientes' => 210,
-            'saldo_total' => 725000,
-        ];
+        return $this->reportesData['totales'] ?? [];
     }
 
     public function render()
