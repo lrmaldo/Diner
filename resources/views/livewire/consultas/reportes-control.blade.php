@@ -28,4 +28,92 @@
             </form>
         </div>
     </div>
+
+    {{-- Paletas de Información --}}
+    <div class="mt-8 flex flex-row flex-wrap justify-between items-stretch gap-4 p-4 bg-gray-50 rounded-xl border border-gray-300 mx-auto" style="max-width: 900px;">
+        
+        {{-- Paleta: Clientes (Rosa) --}}
+        <div class="flex-1 bg-pink-500 rounded-lg text-white p-4 shadow min-w-32">
+            <h3 class="font-bold text-center border-b border-pink-400 pb-2 mb-2">Clientes</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['actual'] }}:</span>
+                    <span class="font-bold">{{ number_format($this->datosClientes['al_dia']) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['mes1'] }}:</span>
+                    <span class="font-bold">{{ number_format($this->datosClientes['mes1']) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['mes2'] }}:</span>
+                    <span class="font-bold">{{ number_format($this->datosClientes['mes2']) }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Paleta: Colocación (Rojo) --}}
+        <div class="flex-1 bg-red-600 rounded-lg text-white p-4 shadow min-w-32">
+            <h3 class="font-bold text-center border-b border-red-500 pb-2 mb-2">Colocación</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['actual'] }}:</span>
+                    <span class="font-bold">${{ number_format($this->datosColocacion['al_dia'], 2) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['mes1'] }}:</span>
+                    <span class="font-bold">${{ number_format($this->datosColocacion['mes1'], 2) }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['mes2'] }}:</span>
+                    <span class="font-bold">${{ number_format($this->datosColocacion['mes2'], 2) }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Paleta: Fidelización (Amarillo Verde) --}}
+        <div class="flex-1 bg-yellow-400 rounded-lg text-white p-4 shadow min-w-32">
+            <h3 class="font-bold text-center border-b border-yellow-300 pb-2 mb-2 text-shadow-sm">Fidelización</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['actual'] }}:</span>
+                    <span class="font-bold">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['mes1'] }}:</span>
+                    <span class="font-bold">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['mes2'] }}:</span>
+                    <span class="font-bold">-</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Paleta: Exigible (Verde) --}}
+        <div class="flex-1 bg-green-500 rounded-lg text-white p-4 shadow min-w-32">
+            <h3 class="font-bold text-center border-b border-green-400 pb-2 mb-2">Exigible</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['actual'] }}:</span>
+                    <span class="font-bold">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['mes1'] }}:</span>
+                    <span class="font-bold">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>{{ $this->mesesNombres['mes2'] }}:</span>
+                    <span class="font-bold">-</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Paleta: Monto Activo (Celeste) --}}
+        <div class="flex-1 bg-cyan-400 rounded-lg text-white p-4 shadow flex flex-col justify-center min-w-32">
+            <h3 class="font-bold text-center border-b border-cyan-300 pb-2 mb-4">Monto activo:</h3>
+            <div class="text-center text-xl font-bold">
+                $ -
+            </div>
+        </div>
+    </div>
 </div>
