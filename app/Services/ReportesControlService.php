@@ -67,7 +67,25 @@ class ReportesControlService
 
                 if ($saldoRestante <= 0.01) {
                     continue;
-                } // PrÃƒÆ’Ã‚Â©stamo Liquidado a esa fecha
+                } // Préstamo Liquidado a esa fecha
+
+                // Verificar si han pasado más de 365 días desde el último pago
+                $ultimoPago = $pagosHastaFecha->sortByDesc('fecha_pago')->first();
+                $diasDesdeUltimoPago = 0;
+                
+                if ($ultimoPago) {
+                    $fechaUltimoPago = Carbon::parse($ultimoPago->fecha_pago);
+                    $diasDesdeUltimoPago = $fechaUltimoPago->diffInDays($fechaCorte);
+                } else {
+                    // Si no hay pagos, calcular desde la fecha de entrega
+                    $fechaEntrega = Carbon::parse($prestamo->fecha_entrega);
+                    $diasDesdeUltimoPago = $fechaEntrega->diffInDays($fechaCorte);
+                }
+
+                // Si han pasado más de 365 días desde el último pago, no contar como cliente activo
+                if ($diasDesdeUltimoPago > 365) {
+                    continue;
+                }
 
                 // Calcular dias de Atraso
                 $pagadoPorNumero = [];
@@ -131,14 +149,14 @@ class ReportesControlService
                 $dataAsesor[$bucket]['creditos'] += 1;
                 $dataAsesor['creditos'] += 1;
 
-                if ($bucket !== 'cv_mas_365') {
-                    $dataAsesor['saldo_total'] += $saldoRestante;
+                // Todos los préstamos que llegaron aquí son clientes activos
+                // (ya se filtró por saldo > 0 y último pago dentro de 365 días)
+                $dataAsesor['saldo_total'] += $saldoRestante;
 
-                    if (! isset($clientesAsesor[$prestamo->cliente_id])) {
-                        $clientesAsesor[$prestamo->cliente_id] = true;
-                        $dataAsesor['clientes'] += 1;
-                        $dataAsesor[$bucket]['clientes'] += 1; // Simplificacion, asignamos el cliente al su primer prestamo evaluado
-                    }
+                if (! isset($clientesAsesor[$prestamo->cliente_id])) {
+                    $clientesAsesor[$prestamo->cliente_id] = true;
+                    $dataAsesor['clientes'] += 1;
+                    $dataAsesor[$bucket]['clientes'] += 1; // Simplificacion, asignamos el cliente al su primer prestamo evaluado
                 }
             }
 
@@ -211,7 +229,7 @@ class ReportesControlService
                 $todosLosPagos = $prestamo->pagos->sortBy([['fecha_pago', 'asc'], ['id', 'asc']])->filter(function ($p) {
                     $tipo = strtolower($p->tipo_pago ?? '');
 
-                    return ! in_array($tipo, ['garantia', 'garantÃƒÂ­a', 'seguro', 'cargo']) && ! str_contains($tipo, 'devolucion');
+                    return ! in_array($tipo, ['garantia', 'garanti­a', 'seguro', 'cargo']) && ! str_contains($tipo, 'devolucion');
                 });
 
                 $colaPagos = [];
@@ -364,8 +382,10 @@ class ReportesControlService
             }
 
             if ($fechaLiquidacionBase) {
-                // Verificar si tiene un prÃ©stamo con fecha de entrega posterior a la liquidaciÃ³n
+                // Verificar si tiene un préstamo con fecha de entrega posterior a la liquidación
+                // Solo contamos préstamos realmente entregados (no cancelados ni rechazados)
                 $tieneRenovacion = Prestamo::where('cliente_id', $clienteId)
+                    ->whereIn('estado', ['Entregado', 'Atrasado', 'Pagado', 'Liquidado'])
                     ->where('fecha_entrega', '>=', $fechaLiquidacionBase->format('Y-m-d'))
                     ->whereNotIn('id', $prestamosDelCliente->pluck('id')->toArray())
                     ->exists();
