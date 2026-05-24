@@ -382,13 +382,29 @@ class ReportesControlService
             }
 
             if ($fechaLiquidacionBase) {
-                // Verificar si tiene un préstamo con fecha de entrega posterior a la liquidación
-                // Solo contamos préstamos realmente entregados (no cancelados ni rechazados)
-                $tieneRenovacion = Prestamo::where('cliente_id', $clienteId)
-                    ->whereIn('estado', ['Entregado', 'Atrasado', 'Pagado', 'Liquidado'])
-                    ->where('fecha_entrega', '>=', $fechaLiquidacionBase->format('Y-m-d'))
+                // Verificar si tiene otro préstamo LIQUIDADO posterior
+                // (no basta con tomar el préstamo, debe haberlo liquidado también)
+                $otrosPrestamosLiquidados = Prestamo::where('cliente_id', $clienteId)
+                    ->whereIn('estado', ['Pagado', 'Liquidado'])
                     ->whereNotIn('id', $prestamosDelCliente->pluck('id')->toArray())
-                    ->exists();
+                    ->with(['pagos' => function ($q) {
+                        $q->orderBy('fecha_pago', 'desc');
+                    }])
+                    ->get();
+
+                $tieneRenovacion = false;
+                
+                foreach ($otrosPrestamosLiquidados as $prestamoLiquidado) {
+                    $ultimoPagoOtroPrestamo = $prestamoLiquidado->pagos->first();
+                    if ($ultimoPagoOtroPrestamo) {
+                        $fechaLiquidacionOtroPrestamo = Carbon::parse($ultimoPagoOtroPrestamo->fecha_pago);
+                        // Si liquidó otro préstamo después, cuenta como renovación
+                        if ($fechaLiquidacionOtroPrestamo > $fechaLiquidacionBase) {
+                            $tieneRenovacion = true;
+                            break;
+                        }
+                    }
+                }
 
                 if ($tieneRenovacion) {
                     $clientesRenovados++;
