@@ -101,30 +101,13 @@ foreach ($clientesLiquidadosId as $clienteId) {
     }
     
     if ($fechaLiquidacionBase) {
-        $otrosPrestamosLiquidados = Prestamo::where('cliente_id', $clienteId)
-            ->whereIn('estado', ['Pagado', 'Liquidado'])
+        $prestamosPosteriores = Prestamo::where('cliente_id', $clienteId)
+            ->whereIn('estado', ['Entregado', 'Atrasado', 'Pagado', 'Liquidado'])
+            ->where('fecha_entrega', '>=', $fechaLiquidacionBase->format('Y-m-d'))
             ->whereNotIn('id', $prestamosDelCliente->pluck('id')->toArray())
-            ->with(['pagos' => function ($q) {
-                $q->orderBy('fecha_pago', 'desc');
-            }])
             ->get();
         
-        $tieneRenovacion = false;
-        $prestamosLiquidadosPosteriores = [];
-        
-        foreach ($otrosPrestamosLiquidados as $prestamoLiquidado) {
-            $ultimoPagoOtroPrestamo = $prestamoLiquidado->pagos->first();
-            if ($ultimoPagoOtroPrestamo) {
-                $fechaLiquidacionOtroPrestamo = Carbon::parse($ultimoPagoOtroPrestamo->fecha_pago);
-                if ($fechaLiquidacionOtroPrestamo > $fechaLiquidacionBase) {
-                    $tieneRenovacion = true;
-                    $prestamosLiquidadosPosteriores[] = [
-                        'id' => $prestamoLiquidado->id,
-                        'fecha_liquidacion' => $fechaLiquidacionOtroPrestamo->format('Y-m-d')
-                    ];
-                }
-            }
-        }
+        $tieneRenovacion = $prestamosPosteriores->count() > 0;
         
         if ($tieneRenovacion) {
             $clientesRenovados++;
@@ -137,8 +120,12 @@ foreach ($clientesLiquidadosId as $clienteId) {
             'fecha_liquidacion' => $fechaLiquidacionBase->format('Y-m-d'),
             'prestamo_liquidado_id' => $prestamosDelCliente->first()->id,
             'renovo' => $tieneRenovacion ? 'SÍ' : 'NO',
-            'prestamos_posteriores' => count($prestamosLiquidadosPosteriores),
-            'liquidaciones_posteriores' => $prestamosLiquidadosPosteriores
+            'prestamos_posteriores' => $prestamosPosteriores->count(),
+            'info_posteriores' => $prestamosPosteriores->map(fn($p) => [
+                'id' => $p->id,
+                'fecha_entrega' => $p->fecha_entrega,
+                'estado' => $p->estado
+            ])->toArray()
         ];
     }
 }
@@ -148,15 +135,15 @@ echo "Clientes que NO renovaron: " . ($clientesLiquidadosId->count() - $clientes
 
 echo "--- EJEMPLOS ---\n";
 foreach ($ejemplos as $ej) {
-    echo "\n" . ($ej['renovo'] == 'SÍ' ? '✓ RENOVÓ' : '✗ NO RENOVÓ') . " - " . $ej['cliente'] . "\n";
+    echo "\n" . ($ej['renovo'] == 'SÍ' ? '✓ RENOVÓ (se fidelizó)' : '✗ NO RENOVÓ') . " - " . $ej['cliente'] . "\n";
     echo "  Liquidó préstamo #" . $ej['prestamo_liquidado_id'] . " el " . $ej['fecha_liquidacion'] . "\n";
     if ($ej['prestamos_posteriores'] > 0) {
-        echo "  Liquidó " . $ej['prestamos_posteriores'] . " préstamo(s) después:\n";
-        foreach ($ej['liquidaciones_posteriores'] as $liq) {
-            echo "    - Préstamo #" . $liq['id'] . " liquidado el " . $liq['fecha_liquidacion'] . "\n";
+        echo "  Tomó " . $ej['prestamos_posteriores'] . " préstamo(s) después de liquidar:\n";
+        foreach ($ej['info_posteriores'] as $info) {
+            echo "    - Préstamo #" . $info['id'] . " entregado el " . $info['fecha_entrega'] . " (Estado: " . $info['estado'] . ")\n";
         }
     } else {
-        echo "  No ha liquidado otro préstamo después\n";
+        echo "  No ha tomado otro préstamo después de liquidar\n";
     }
 }
 
