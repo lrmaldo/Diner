@@ -75,14 +75,25 @@ class ReportesControl extends Component
     public function datosClientes()
     {
         $fechaBase = $this->getBaseDate();
-        $finActual = $fechaBase->copy()->endOfDay();
+        $servicio = new \App\Services\ReportesControlService;
+
         $finMes1 = $fechaBase->copy()->subMonthsNoOverflow(1)->endOfMonth();
         $finMes2 = $fechaBase->copy()->subMonthsNoOverflow(2)->endOfMonth();
 
+        // Para 'al_dia' usamos los datos que ya se calcularon en la tabla general para no reprocesar.
+        $clientesActual = $this->datosCarteraTotales['clientes'] ?? 0;
+
+        // Para los meses anteriores debemos calcular la cartera a esa fecha de corte
+        $carteraMes1 = $servicio->calcularCarteraPorAsesor($finMes1);
+        $clientesMes1 = $carteraMes1['totales']['clientes'] ?? 0;
+
+        $carteraMes2 = $servicio->calcularCarteraPorAsesor($finMes2);
+        $clientesMes2 = $carteraMes2['totales']['clientes'] ?? 0;
+
         return [
-            'al_dia' => \App\Models\Cliente::where('created_at', '<=', $finActual)->count(),
-            'mes1' => \App\Models\Cliente::where('created_at', '<=', $finMes1)->count(),
-            'mes2' => \App\Models\Cliente::where('created_at', '<=', $finMes2)->count(),
+            'al_dia' => $clientesActual,
+            'mes1' => $clientesMes1,
+            'mes2' => $clientesMes2,
         ];
     }
 
