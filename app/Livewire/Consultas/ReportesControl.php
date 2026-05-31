@@ -38,7 +38,7 @@ class ReportesControl extends Component
 
         $fecha = Carbon::now();
 
-        for ($i = 0; $i <= 24; $i++) {
+        for ($i = 1; $i <= 24; $i++) {
             $fechaCiclo = $fecha->copy()->subMonthsNoOverflow($i);
             $mes = $fechaCiclo->translatedFormat('F');
             $anio = $fechaCiclo->year;
