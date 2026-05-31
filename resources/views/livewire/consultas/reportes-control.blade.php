@@ -39,15 +39,15 @@
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['actual'] }}:</span>
-                    <span class="font-bold">{{ number_format($this->datosClientes['al_dia']) }}</span>
+                    <button type="button" wire:click="openClientesModal('al_dia')" class="font-bold underline decoration-white/50 hover:decoration-white">{{ number_format($this->datosClientes['al_dia']) }}</button>
                 </div>
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['mes1'] }}:</span>
-                    <span class="font-bold">{{ number_format($this->datosClientes['mes1']) }}</span>
+                    <button type="button" wire:click="openClientesModal('mes1')" class="font-bold underline decoration-white/50 hover:decoration-white">{{ number_format($this->datosClientes['mes1']) }}</button>
                 </div>
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['mes2'] }}:</span>
-                    <span class="font-bold">{{ number_format($this->datosClientes['mes2']) }}</span>
+                    <button type="button" wire:click="openClientesModal('mes2')" class="font-bold underline decoration-white/50 hover:decoration-white">{{ number_format($this->datosClientes['mes2']) }}</button>
                 </div>
             </div>
         </div>
@@ -180,6 +180,55 @@
             </tbody>
         </table>
     </div>
+    @endif
+
+    @if($showClientesModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/50" wire:click="closeClientesModal"></div>
+            <div class="relative bg-white rounded-lg shadow-lg w-full max-w-5xl max-h-[85vh] overflow-hidden z-10">
+                <div class="flex items-center justify-between px-4 py-3 border-b">
+                    <h3 class="text-lg font-semibold">{{ $clientesModalTitulo }}</h3>
+                    <button type="button" wire:click="closeClientesModal" class="text-gray-500 hover:text-gray-700">Cerrar</button>
+                </div>
+
+                <div class="p-4 overflow-auto max-h-[70vh]">
+                    @if(empty($clientesModalRows))
+                        <p class="text-sm text-gray-600">No hay clientes para esta consulta.</p>
+                    @else
+                        <table class="min-w-full border border-gray-200 text-sm">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="text-left px-3 py-2 border-b">ID Cliente</th>
+                                    <th class="text-left px-3 py-2 border-b">Nombre</th>
+                                    <th class="text-left px-3 py-2 border-b">CURP</th>
+                                    <th class="text-left px-3 py-2 border-b">Préstamo</th>
+                                    <th class="text-left px-3 py-2 border-b">Fecha entrega</th>
+                                    <th class="text-left px-3 py-2 border-b">Asesor</th>
+                                    <th class="text-left px-3 py-2 border-b">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($clientesModalRows as $row)
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="px-3 py-2">{{ $row['cliente_id'] }}</td>
+                                        <td class="px-3 py-2">{{ $row['nombre'] }}</td>
+                                        <td class="px-3 py-2">{{ $row['curp'] ?: 'N/A' }}</td>
+                                        <td class="px-3 py-2">#{{ $row['prestamo_id'] }}</td>
+                                        <td class="px-3 py-2">{{ $row['fecha_entrega'] ?: 'N/A' }}</td>
+                                        <td class="px-3 py-2">{{ $row['asesor'] ?: 'N/A' }}</td>
+                                        <td class="px-3 py-2">
+                                            <a href="{{ route('prestamos.print', ['prestamo' => $row['prestamo_id'], 'type' => 'estado_cuenta']) }}" target="_blank" class="inline-flex items-center px-2 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
+                                                Estado de cuenta
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+        </div>
     @endif
 
 </div>

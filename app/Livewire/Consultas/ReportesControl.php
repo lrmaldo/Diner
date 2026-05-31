@@ -18,6 +18,12 @@ class ReportesControl extends Component
 
     public $showReport = false;
 
+    public $showClientesModal = false;
+
+    public $clientesModalTitulo = '';
+
+    public $clientesModalRows = [];
+
     public function mount()
     {
         Carbon::setLocale('es');
@@ -43,6 +49,36 @@ class ReportesControl extends Component
         // En este punto simplemente indicamos que se ha generado la consulta
         // La vista utilizará los datos calculados
         session()->flash('message', 'Reporte generado con los parámetros seleccionados.');
+    }
+
+    public function openClientesModal(string $periodo): void
+    {
+        $fechaBase = $this->getBaseDate();
+
+        if ($periodo === 'al_dia') {
+            $fechaCorte = $this->parametro === 'al_dia'
+                ? $fechaBase->copy()->endOfDay()
+                : $fechaBase->copy()->endOfMonth()->endOfDay();
+            $titulo = $this->mesesNombres['actual'];
+        } elseif ($periodo === 'mes1') {
+            $fechaCorte = $fechaBase->copy()->subMonthsNoOverflow(1)->endOfMonth()->endOfDay();
+            $titulo = $this->mesesNombres['mes1'];
+        } else {
+            $fechaCorte = $fechaBase->copy()->subMonthsNoOverflow(2)->endOfMonth()->endOfDay();
+            $titulo = $this->mesesNombres['mes2'];
+        }
+
+        $servicio = new \App\Services\ReportesControlService;
+        $cartera = $servicio->calcularCarteraPorAsesor($fechaCorte);
+
+        $this->clientesModalRows = $cartera['clientes_detalle'] ?? [];
+        $this->clientesModalTitulo = 'Clientes de '.$titulo;
+        $this->showClientesModal = true;
+    }
+
+    public function closeClientesModal(): void
+    {
+        $this->showClientesModal = false;
     }
 
     // Propiedades computadas para calcular la InformaciÃ³n de las cajas (Paletas)

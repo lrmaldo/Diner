@@ -21,10 +21,11 @@ class ReportesControlService
         })->with(['prestamosComoAsesor' => function ($q) use ($fechaCorte) {
             $q->whereIn('estado', ['Entregado', 'Atrasado'])
                 ->where('fecha_entrega', '<=', $fechaCorte)
-                ->with('pagos');
+                ->with(['pagos', 'cliente']);
         }])->get();
 
         $resultados = [];
+        $clientesDetalle = [];
         $totalesGlobales = [
             'c_vigente' => ['saldo' => 0, 'clientes' => 0, 'creditos' => 0, 'porcentaje' => 0],
             'cv_1_7' => ['saldo' => 0, 'clientes' => 0, 'creditos' => 0,  'porcentaje' => 0],
@@ -159,6 +160,29 @@ class ReportesControlService
                     $dataAsesor['clientes'] += 1;
                     $dataAsesor[$bucket]['clientes'] += 1; // Simplificacion, asignamos el cliente al su primer prestamo evaluado
                 }
+
+                if ($prestamo->cliente_id) {
+                    $clienteNombre = trim(implode(' ', array_filter([
+                        $prestamo->cliente->nombres ?? null,
+                        $prestamo->cliente->apellido_paterno ?? null,
+                        $prestamo->cliente->apellido_materno ?? null,
+                    ])));
+
+                    $clienteActual = $clientesDetalle[$prestamo->cliente_id] ?? null;
+                    $fechaEntregaActual = $clienteActual['fecha_entrega'] ?? null;
+                    $fechaEntregaNueva = $prestamo->fecha_entrega ? Carbon::parse($prestamo->fecha_entrega)->toDateString() : null;
+
+                    if (! $clienteActual || ($fechaEntregaNueva && $fechaEntregaActual && $fechaEntregaNueva > $fechaEntregaActual) || ($fechaEntregaNueva && ! $fechaEntregaActual)) {
+                        $clientesDetalle[$prestamo->cliente_id] = [
+                            'cliente_id' => $prestamo->cliente_id,
+                            'nombre' => $clienteNombre !== '' ? $clienteNombre : 'Cliente #'.$prestamo->cliente_id,
+                            'curp' => $prestamo->cliente->curp ?? null,
+                            'prestamo_id' => $prestamo->id,
+                            'fecha_entrega' => $fechaEntregaNueva,
+                            'asesor' => $asesor->name,
+                        ];
+                    }
+                }
             }
 
             // Calculando CV Total (suma  1 a 365 dias)
@@ -202,6 +226,7 @@ class ReportesControlService
         return [
             'asesores' => $resultados,
             'totales' => $totalesGlobales,
+            'clientes_detalle' => array_values($clientesDetalle),
         ];
     }
 
