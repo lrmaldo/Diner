@@ -307,7 +307,7 @@
                         @if($showNewClienteForm)
                             {{-- Modal de Nuevo Cliente --}}
                             <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                <div class="fixed inset-0 bg-black/50" wire:click="$set('showNewClienteForm', false)"></div>
+                                <div class="fixed inset-0 bg-black/50"></div>
                                 <div class="relative bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 z-10" x-data="{ datosPersonales: true, datosDomiciliarios: false, datosEconomicos: false }"  @click.away="">
                                     {{-- Header del modal --}}
                                     <div class="flex items-center justify-between mb-4">
@@ -333,7 +333,7 @@
                                 {{-- Campo destacado: Crédito solicitado --}}
                                 <div class="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                                     <label class="block text-base font-semibold text-blue-900 mb-2">Crédito solicitado *</label>
-                                    <input wire:model.blur="new_credito_solicitado" type="number" step="1000" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
+                                    <input wire:model.defer="new_credito_solicitado" type="number" step="1000" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
                                     @error('new_credito_solicitado')
                                         <span class="text-red-500 text-sm font-bold mt-1 block">{{ $message }}</span>
                                     @enderror
@@ -530,7 +530,7 @@
                         @if($showNewClienteForm)
                             {{-- Modal de Nuevo Cliente Grupal --}}
                             <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                <div class="fixed inset-0 bg-black/50" wire:click="$set('showNewClienteForm', false)"></div>
+                                <div class="fixed inset-0 bg-black/50"></div>
                                 <div class="relative bg-white rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 z-10" x-data="{ datosPersonales: true, datosDomiciliarios: false, datosEconomicos: false }"  @click.away="">
                                     {{-- Header del modal --}}
                                     <div class="flex items-center justify-between mb-4">
@@ -556,7 +556,7 @@
                                     {{-- Crédito solicitado destacado --}}
                                     <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                                         <label class="field-label text-blue-900">Crédito solicitado *</label>
-                                        <input wire:model.blur="new_credito_solicitado" type="number" step="1000" class="input-project" />
+                                        <input wire:model.defer="new_credito_solicitado" type="number" step="1000" class="input-project" />
                                         @error('new_credito_solicitado')
                                             <span class="text-red-500 text-sm font-bold mt-1 block">{{ $message }}</span>
                                         @enderror
@@ -849,7 +849,7 @@
     {{-- Modal: Editar cliente seleccionado --}}
     @if($showEditClienteModal)
         <div class="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto" x-data="{ datosPersonales: true, datosDomiciliarios: false, datosEconomicos: false }">
-            <div class="fixed inset-0 bg-black/50" wire:click="$set('showEditClienteModal', false)"></div>
+            <div class="fixed inset-0 bg-black/50"></div>
             <div class="relative bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 z-10 my-8">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold">Editar cliente</h3>
@@ -863,7 +863,7 @@
                 {{-- Campo destacado: Crédito solicitado --}}
                 <div class="mb-6 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                     <label class="block text-base font-semibold text-blue-900 mb-2">Crédito solicitado *</label>
-                    <input wire:model.blur="edit_credito_solicitado" type="number" step="1000" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
+                    <input wire:model.defer="edit_credito_solicitado" type="number" step="1000" class="w-full px-4 py-3 text-lg font-medium border-2 border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="$0.00" />
                     @error('edit_credito_solicitado')
                         <span class="text-red-500 text-sm font-bold mt-1 block">{{ $message }}</span>
                     @enderror

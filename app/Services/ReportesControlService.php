@@ -1,11 +1,11 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Cliente;
 use App\Models\Prestamo;
 use App\Models\User;
 use Carbon\Carbon;
-use App\Services\CalculadoraPrestamos;
 
 class ReportesControlService
 {
@@ -72,7 +72,7 @@ class ReportesControlService
                 // Verificar si han pasado más de 365 días desde el último pago
                 $ultimoPago = $pagosHastaFecha->sortByDesc('fecha_pago')->first();
                 $diasDesdeUltimoPago = 0;
-                
+
                 if ($ultimoPago) {
                     $fechaUltimoPago = Carbon::parse($ultimoPago->fecha_pago);
                     $diasDesdeUltimoPago = $fechaUltimoPago->diffInDays($fechaCorte);
@@ -382,11 +382,18 @@ class ReportesControlService
             }
 
             if ($fechaLiquidacionBase) {
-                // Verificar si tomó otro préstamo después de liquidar (o el mismo día)
-                // (fecha de entrega del nuevo préstamo debe ser igual o posterior a la fecha de liquidación)
+                // La renovación debe ocurrir en el mismo mes en que liquidó
+                // y dentro del periodo consultado para evitar arrastres a meses previos.
+                $fechaInicioRenovacion = $fechaLiquidacionBase->copy()->startOfDay();
+                $fechaFinRenovacion = $fechaLiquidacionBase->copy()->endOfMonth()->endOfDay();
+
+                if ($fechaFinRenovacion->gt($fin->copy()->endOfDay())) {
+                    $fechaFinRenovacion = $fin->copy()->endOfDay();
+                }
+
                 $tieneRenovacion = Prestamo::where('cliente_id', $clienteId)
                     ->whereIn('estado', ['Entregado', 'Atrasado', 'Pagado', 'Liquidado'])
-                    ->where('fecha_entrega', '>=', $fechaLiquidacionBase->format('Y-m-d'))
+                    ->whereBetween('fecha_entrega', [$fechaInicioRenovacion->toDateString(), $fechaFinRenovacion->toDateString()])
                     ->whereNotIn('id', $prestamosDelCliente->pluck('id')->toArray())
                     ->exists();
 
