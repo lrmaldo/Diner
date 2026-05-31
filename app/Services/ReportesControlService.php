@@ -367,39 +367,39 @@ class ReportesControlService
         $clientesRenovados = 0;
 
         foreach ($clientesLiquidadosId as $clienteId) {
-            // Obtener la fecha en la que liquidÃ³ su prÃ©stamo en ese mes (si liquidÃ³ varios, tomamos el mÃ¡s reciente)
             $prestamosDelCliente = $prestamosLiquidados->where('cliente_id', $clienteId);
-            $fechaLiquidacionBase = null;
+            $tieneRenovacionCliente = false;
 
-            foreach ($prestamosDelCliente as $p) {
-                $ultimoPago = $p->pagos->first();
-                if ($ultimoPago) {
-                    $f = Carbon::parse($ultimoPago->fecha_pago);
-                    if (! $fechaLiquidacionBase || $f > $fechaLiquidacionBase) {
-                        $fechaLiquidacionBase = $f;
-                    }
+            foreach ($prestamosDelCliente as $prestamoLiquidado) {
+                $ultimoPago = $prestamoLiquidado->pagos->first();
+                if (! $ultimoPago) {
+                    continue;
                 }
-            }
 
-            if ($fechaLiquidacionBase) {
-                // La renovación debe ocurrir en el mismo mes en que liquidó
-                // y dentro del periodo consultado para evitar arrastres a meses previos.
-                $fechaInicioRenovacion = $fechaLiquidacionBase->copy()->startOfDay();
-                $fechaFinRenovacion = $fechaLiquidacionBase->copy()->endOfMonth()->endOfDay();
+                // La renovación debe ocurrir en el mismo mes de esta liquidación
+                // y acotada al periodo consultado.
+                $fechaLiquidacion = Carbon::parse($ultimoPago->fecha_pago)->startOfDay();
+                $fechaInicioRenovacion = $fechaLiquidacion->copy()->startOfDay();
+                $fechaFinRenovacion = $fechaLiquidacion->copy()->endOfMonth()->endOfDay();
 
                 if ($fechaFinRenovacion->gt($fin->copy()->endOfDay())) {
                     $fechaFinRenovacion = $fin->copy()->endOfDay();
                 }
 
-                $tieneRenovacion = Prestamo::where('cliente_id', $clienteId)
+                $tieneRenovacionDesdeLiquidacion = Prestamo::where('cliente_id', $clienteId)
                     ->whereIn('estado', ['Entregado', 'Atrasado', 'Pagado', 'Liquidado'])
+                    ->where('id', '<>', $prestamoLiquidado->id)
                     ->whereBetween('fecha_entrega', [$fechaInicioRenovacion->toDateString(), $fechaFinRenovacion->toDateString()])
-                    ->whereNotIn('id', $prestamosDelCliente->pluck('id')->toArray())
                     ->exists();
 
-                if ($tieneRenovacion) {
-                    $clientesRenovados++;
+                if ($tieneRenovacionDesdeLiquidacion) {
+                    $tieneRenovacionCliente = true;
+                    break;
                 }
+            }
+
+            if ($tieneRenovacionCliente) {
+                $clientesRenovados++;
             }
         }
 
