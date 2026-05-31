@@ -65,7 +65,7 @@ class ReportesControlService
                 'saldo_total' => 0,
             ];
 
-            $clientesAsesor = [];
+            $clasificacionClientesAsesor = [];
 
             foreach ($asesor->prestamosComoAsesor as $prestamo) {
                 // Filtrar pagos hasta la fecha de corte
@@ -164,30 +164,6 @@ class ReportesControlService
                 // (ya se filtró por saldo > 0 y último pago dentro de 365 días)
                 $dataAsesor['saldo_total'] += $saldoRestante;
 
-                if (! isset($clientesAsesor[$prestamo->cliente_id])) {
-                    $clientesAsesor[$prestamo->cliente_id] = true;
-                    $dataAsesor['clientes'] += 1;
-                    $dataAsesor[$bucket]['clientes'] += 1; // Simplificacion, asignamos el cliente al su primer prestamo evaluado
-
-                    if ($prestamo->cliente_id && ! isset($clientesPorBucket[$bucket][$prestamo->cliente_id])) {
-                        $clienteNombreBucket = trim(implode(' ', array_filter([
-                            $prestamo->cliente->nombres ?? null,
-                            $prestamo->cliente->apellido_paterno ?? null,
-                            $prestamo->cliente->apellido_materno ?? null,
-                        ])));
-
-                        $clientesPorBucket[$bucket][$prestamo->cliente_id] = [
-                            'cliente_id' => $prestamo->cliente_id,
-                            'nombre' => $clienteNombreBucket !== '' ? $clienteNombreBucket : 'Cliente #'.$prestamo->cliente_id,
-                            'curp' => $prestamo->cliente->curp ?? null,
-                            'prestamo_id' => $prestamo->id,
-                            'fecha_entrega' => $prestamo->fecha_entrega ? Carbon::parse($prestamo->fecha_entrega)->toDateString() : null,
-                            'asesor' => $asesor->name,
-                            'bucket' => $bucket,
-                        ];
-                    }
-                }
-
                 if ($prestamo->cliente_id) {
                     $clienteNombre = trim(implode(' ', array_filter([
                         $prestamo->cliente->nombres ?? null,
@@ -209,6 +185,42 @@ class ReportesControlService
                             'asesor' => $asesor->name,
                         ];
                     }
+
+                    $clasificacionActual = $clasificacionClientesAsesor[$prestamo->cliente_id] ?? null;
+                    $debeActualizarClasificacion = ! $clasificacionActual
+                        || $diasAtraso > ($clasificacionActual['dias_atraso'] ?? -1);
+
+                    if ($debeActualizarClasificacion) {
+                        $clasificacionClientesAsesor[$prestamo->cliente_id] = [
+                            'cliente_id' => $prestamo->cliente_id,
+                            'dias_atraso' => $diasAtraso,
+                            'bucket' => $bucket,
+                            'nombre' => $clienteNombre !== '' ? $clienteNombre : 'Cliente #'.$prestamo->cliente_id,
+                            'curp' => $prestamo->cliente->curp ?? null,
+                            'prestamo_id' => $prestamo->id,
+                            'fecha_entrega' => $fechaEntregaNueva,
+                            'asesor' => $asesor->name,
+                        ];
+                    }
+                }
+            }
+
+            // Clasificar cliente en un único bucket por su mayor atraso dentro del asesor.
+            $dataAsesor['clientes'] = count($clasificacionClientesAsesor);
+            foreach (['c_vigente', 'cv_1_7', 'cv_8_30', 'cv_31_90', 'cv_91_180', 'cv_181_365', 'cv_mas_365'] as $col) {
+                $dataAsesor[$col]['clientes'] = 0;
+            }
+
+            foreach ($clasificacionClientesAsesor as $clienteClasificado) {
+                $bucketCliente = $clienteClasificado['bucket'];
+                if (isset($dataAsesor[$bucketCliente])) {
+                    $dataAsesor[$bucketCliente]['clientes'] += 1;
+                }
+
+                $clienteId = $clienteClasificado['cliente_id'];
+                $actualGlobalBucket = $clientesPorBucket[$bucketCliente][$clienteId] ?? null;
+                if (! $actualGlobalBucket || ($clienteClasificado['dias_atraso'] ?? 0) > ($actualGlobalBucket['dias_atraso'] ?? -1)) {
+                    $clientesPorBucket[$bucketCliente][$clienteId] = $clienteClasificado;
                 }
             }
 
