@@ -228,10 +228,9 @@
                         <table class="min-w-full border border-gray-200 text-sm">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="text-left px-3 py-2 border-b">ID Cliente</th>
                                     <th class="text-left px-3 py-2 border-b">Nombre</th>
-                                    <th class="text-left px-3 py-2 border-b">CURP</th>
                                     <th class="text-left px-3 py-2 border-b">Préstamo</th>
+                                    <th class="text-left px-3 py-2 border-b">Producto</th>
                                     <th class="text-left px-3 py-2 border-b">Fecha entrega</th>
                                     <th class="text-left px-3 py-2 border-b">Asesor</th>
                                     <th class="text-left px-3 py-2 border-b">Acción</th>
@@ -240,10 +239,9 @@
                             <tbody>
                                 @foreach($clientesModalRows as $row)
                                     <tr class="border-b hover:bg-gray-50">
-                                        <td class="px-3 py-2">{{ $row['cliente_id'] }}</td>
                                         <td class="px-3 py-2">{{ $row['nombre'] }}</td>
-                                        <td class="px-3 py-2">{{ $row['curp'] ?: 'N/A' }}</td>
                                         <td class="px-3 py-2">#{{ $row['prestamo_id'] }}</td>
+                                        <td class="px-3 py-2">{{ ucfirst($row['producto'] ?? 'N/A') }}</td>
                                         <td class="px-3 py-2">{{ $row['fecha_entrega'] ?: 'N/A' }}</td>
                                         <td class="px-3 py-2">{{ $row['asesor'] ?: 'N/A' }}</td>
                                         <td class="px-3 py-2">
@@ -276,10 +274,9 @@
                         <table class="min-w-full border border-gray-200 text-sm">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="text-left px-3 py-2 border-b">ID Cliente</th>
                                     <th class="text-left px-3 py-2 border-b">Nombre</th>
-                                    <th class="text-left px-3 py-2 border-b">CURP</th>
                                     <th class="text-left px-3 py-2 border-b">Préstamo</th>
+                                    <th class="text-left px-3 py-2 border-b">Producto</th>
                                     <th class="text-left px-3 py-2 border-b">Fecha entrega</th>
                                     <th class="text-left px-3 py-2 border-b">Asesor</th>
                                     <th class="text-left px-3 py-2 border-b">Acción</th>
@@ -288,10 +285,9 @@
                             <tbody>
                                 @foreach($clientesBucketRows as $row)
                                     <tr class="border-b hover:bg-gray-50">
-                                        <td class="px-3 py-2">{{ $row['cliente_id'] }}</td>
                                         <td class="px-3 py-2">{{ $row['nombre'] }}</td>
-                                        <td class="px-3 py-2">{{ $row['curp'] ?: 'N/A' }}</td>
                                         <td class="px-3 py-2">#{{ $row['prestamo_id'] }}</td>
+                                        <td class="px-3 py-2">{{ ucfirst($row['producto'] ?? 'N/A') }}</td>
                                         <td class="px-3 py-2">{{ $row['fecha_entrega'] ?: 'N/A' }}</td>
                                         <td class="px-3 py-2">{{ $row['asesor'] ?: 'N/A' }}</td>
                                         <td class="px-3 py-2">

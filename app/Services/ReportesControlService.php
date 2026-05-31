@@ -181,6 +181,7 @@ class ReportesControlService
                             'nombre' => $clienteNombre !== '' ? $clienteNombre : 'Cliente #'.$prestamo->cliente_id,
                             'curp' => $prestamo->cliente->curp ?? null,
                             'prestamo_id' => $prestamo->id,
+                            'producto' => $prestamo->producto,
                             'fecha_entrega' => $fechaEntregaNueva,
                             'asesor' => $asesor->name,
                         ];
@@ -198,6 +199,7 @@ class ReportesControlService
                             'nombre' => $clienteNombre !== '' ? $clienteNombre : 'Cliente #'.$prestamo->cliente_id,
                             'curp' => $prestamo->cliente->curp ?? null,
                             'prestamo_id' => $prestamo->id,
+                            'producto' => $prestamo->producto,
                             'fecha_entrega' => $fechaEntregaNueva,
                             'asesor' => $asesor->name,
                         ];
