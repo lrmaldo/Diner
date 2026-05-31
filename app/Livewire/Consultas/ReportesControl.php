@@ -24,6 +24,12 @@ class ReportesControl extends Component
 
     public $clientesModalRows = [];
 
+    public $showClientesBucketModal = false;
+
+    public $clientesBucketTitulo = '';
+
+    public $clientesBucketRows = [];
+
     public function mount()
     {
         Carbon::setLocale('es');
@@ -79,6 +85,29 @@ class ReportesControl extends Component
     public function closeClientesModal(): void
     {
         $this->showClientesModal = false;
+    }
+
+    public function openClientesBucketModal(string $bucket): void
+    {
+        $labels = [
+            'c_vigente' => 'C. vigente',
+            'cv_1_7' => 'CV de 1 a 7 días',
+            'cv_8_30' => 'CV de 8 a 30 días',
+            'cv_31_90' => 'CV de 31 a 90 días',
+            'cv_91_180' => 'CV de 91 a 180 días',
+            'cv_181_365' => 'CV de 181 a 365 días',
+            'cv_mas_365' => 'CV de más de 365 días',
+        ];
+
+        $this->clientesBucketRows = $this->reportesData['clientes_por_bucket'][$bucket] ?? [];
+        $label = $labels[$bucket] ?? $bucket;
+        $this->clientesBucketTitulo = 'Clientes en '.$label;
+        $this->showClientesBucketModal = true;
+    }
+
+    public function closeClientesBucketModal(): void
+    {
+        $this->showClientesBucketModal = false;
     }
 
     // Propiedades computadas para calcular la InformaciÃ³n de las cajas (Paletas)

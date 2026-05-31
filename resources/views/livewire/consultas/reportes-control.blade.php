@@ -146,7 +146,13 @@
                             <td class="border-r border-gray-300 p-1 align-top w-28">
                                 <div class="flex flex-col space-y-1">
                                     <span>{{ number_format($fila[$col]['saldo']) }}</span>
-                                    <span>{{ $fila[$col]['clientes'] }}</span>
+                                    @if($col !== 'cv_total')
+                                        <button type="button" wire:click="openClientesBucketModal('{{ $col }}')" class="text-left underline decoration-gray-500 hover:decoration-red-600">
+                                            {{ $fila[$col]['clientes'] }}
+                                        </button>
+                                    @else
+                                        <span>{{ $fila[$col]['clientes'] }}</span>
+                                    @endif
                                     <span>{{ $fila[$col]['porcentaje'] }}%</span>
                                 </div>
                             </td>
@@ -167,7 +173,13 @@
                         <td class="border border-red-700 p-1 align-top w-28">
                             <div class="flex flex-col space-y-1">
                                 <span>{{ number_format($totales[$col]['saldo']) }}</span>
-                                <span>{{ $totales[$col]['clientes'] }}</span>
+                                @if($col !== 'cv_total')
+                                    <button type="button" wire:click="openClientesBucketModal('{{ $col }}')" class="text-left underline decoration-white/70 hover:decoration-white">
+                                        {{ $totales[$col]['clientes'] }}
+                                    </button>
+                                @else
+                                    <span>{{ $totales[$col]['clientes'] }}</span>
+                                @endif
                                 <span>{{ $totales[$col]['porcentaje'] }}%</span>
                             </div>
                         </td>
@@ -209,6 +221,54 @@
                             </thead>
                             <tbody>
                                 @foreach($clientesModalRows as $row)
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="px-3 py-2">{{ $row['cliente_id'] }}</td>
+                                        <td class="px-3 py-2">{{ $row['nombre'] }}</td>
+                                        <td class="px-3 py-2">{{ $row['curp'] ?: 'N/A' }}</td>
+                                        <td class="px-3 py-2">#{{ $row['prestamo_id'] }}</td>
+                                        <td class="px-3 py-2">{{ $row['fecha_entrega'] ?: 'N/A' }}</td>
+                                        <td class="px-3 py-2">{{ $row['asesor'] ?: 'N/A' }}</td>
+                                        <td class="px-3 py-2">
+                                            <a href="{{ route('prestamos.print', ['prestamo' => $row['prestamo_id'], 'type' => 'estado_cuenta']) }}" target="_blank" class="inline-flex items-center px-2 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
+                                                Estado de cuenta
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if($showClientesBucketModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/50" wire:click="closeClientesBucketModal"></div>
+            <div class="relative bg-white rounded-lg shadow-lg w-full max-w-5xl max-h-[85vh] overflow-hidden z-10">
+                <div class="flex items-center justify-between px-4 py-3 border-b">
+                    <h3 class="text-lg font-semibold">{{ $clientesBucketTitulo }}</h3>
+                    <button type="button" wire:click="closeClientesBucketModal" class="text-gray-500 hover:text-gray-700">Cerrar</button>
+                </div>
+                <div class="p-4 overflow-auto max-h-[70vh]">
+                    @if(empty($clientesBucketRows))
+                        <p class="text-sm text-gray-600">No hay clientes para este bucket.</p>
+                    @else
+                        <table class="min-w-full border border-gray-200 text-sm">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="text-left px-3 py-2 border-b">ID Cliente</th>
+                                    <th class="text-left px-3 py-2 border-b">Nombre</th>
+                                    <th class="text-left px-3 py-2 border-b">CURP</th>
+                                    <th class="text-left px-3 py-2 border-b">Préstamo</th>
+                                    <th class="text-left px-3 py-2 border-b">Fecha entrega</th>
+                                    <th class="text-left px-3 py-2 border-b">Asesor</th>
+                                    <th class="text-left px-3 py-2 border-b">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($clientesBucketRows as $row)
                                     <tr class="border-b hover:bg-gray-50">
                                         <td class="px-3 py-2">{{ $row['cliente_id'] }}</td>
                                         <td class="px-3 py-2">{{ $row['nombre'] }}</td>

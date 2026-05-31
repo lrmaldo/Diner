@@ -26,6 +26,15 @@ class ReportesControlService
 
         $resultados = [];
         $clientesDetalle = [];
+        $clientesPorBucket = [
+            'c_vigente' => [],
+            'cv_1_7' => [],
+            'cv_8_30' => [],
+            'cv_31_90' => [],
+            'cv_91_180' => [],
+            'cv_181_365' => [],
+            'cv_mas_365' => [],
+        ];
         $totalesGlobales = [
             'c_vigente' => ['saldo' => 0, 'clientes' => 0, 'creditos' => 0, 'porcentaje' => 0],
             'cv_1_7' => ['saldo' => 0, 'clientes' => 0, 'creditos' => 0,  'porcentaje' => 0],
@@ -159,6 +168,24 @@ class ReportesControlService
                     $clientesAsesor[$prestamo->cliente_id] = true;
                     $dataAsesor['clientes'] += 1;
                     $dataAsesor[$bucket]['clientes'] += 1; // Simplificacion, asignamos el cliente al su primer prestamo evaluado
+
+                    if ($prestamo->cliente_id && ! isset($clientesPorBucket[$bucket][$prestamo->cliente_id])) {
+                        $clienteNombreBucket = trim(implode(' ', array_filter([
+                            $prestamo->cliente->nombres ?? null,
+                            $prestamo->cliente->apellido_paterno ?? null,
+                            $prestamo->cliente->apellido_materno ?? null,
+                        ])));
+
+                        $clientesPorBucket[$bucket][$prestamo->cliente_id] = [
+                            'cliente_id' => $prestamo->cliente_id,
+                            'nombre' => $clienteNombreBucket !== '' ? $clienteNombreBucket : 'Cliente #'.$prestamo->cliente_id,
+                            'curp' => $prestamo->cliente->curp ?? null,
+                            'prestamo_id' => $prestamo->id,
+                            'fecha_entrega' => $prestamo->fecha_entrega ? Carbon::parse($prestamo->fecha_entrega)->toDateString() : null,
+                            'asesor' => $asesor->name,
+                            'bucket' => $bucket,
+                        ];
+                    }
                 }
 
                 if ($prestamo->cliente_id) {
@@ -227,6 +254,7 @@ class ReportesControlService
             'asesores' => $resultados,
             'totales' => $totalesGlobales,
             'clientes_detalle' => array_values($clientesDetalle),
+            'clientes_por_bucket' => array_map(static fn ($items) => array_values($items), $clientesPorBucket),
         ];
     }
 
