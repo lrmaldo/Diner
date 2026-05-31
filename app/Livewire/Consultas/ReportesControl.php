@@ -247,6 +247,18 @@ class ReportesControl extends Component
     #[Computed]
     public function datosFidelizacion()
     {
+        $detalle = $this->datosFidelizacionDetalle;
+
+        return [
+            'al_dia' => $detalle['al_dia']['porcentaje'] ?? 0,
+            'mes1' => $detalle['mes1']['porcentaje'] ?? 0,
+            'mes2' => $detalle['mes2']['porcentaje'] ?? 0,
+        ];
+    }
+
+    #[Computed]
+    public function datosFidelizacionDetalle()
+    {
         $fechaBase = $this->getBaseDate();
         $servicio = new \App\Services\ReportesControlService;
 
@@ -265,9 +277,9 @@ class ReportesControl extends Component
         $finMes2 = $fechaBase->copy()->subMonthsNoOverflow(2)->endOfMonth()->endOfDay();
 
         return [
-            'al_dia' => $servicio->calcularFidelizacion($inicioActual, $finActual),
-            'mes1' => $servicio->calcularFidelizacion($inicioMes1, $finMes1),
-            'mes2' => $servicio->calcularFidelizacion($inicioMes2, $finMes2),
+            'al_dia' => $servicio->calcularFidelizacionDetalle($inicioActual, $finActual),
+            'mes1' => $servicio->calcularFidelizacionDetalle($inicioMes1, $finMes1),
+            'mes2' => $servicio->calcularFidelizacionDetalle($inicioMes2, $finMes2),
         ];
     }
 

@@ -407,6 +407,13 @@ class ReportesControlService
 
     public function calcularFidelizacion(Carbon $inicio, Carbon $fin)
     {
+        $detalle = $this->calcularFidelizacionDetalle($inicio, $fin);
+
+        return $detalle['porcentaje'];
+    }
+
+    public function calcularFidelizacionDetalle(Carbon $inicio, Carbon $fin): array
+    {
         $inicioDate = $inicio->copy()->startOfDay()->toDateString();
         $finDate = $fin->copy()->endOfDay()->toDateString();
 
@@ -424,7 +431,11 @@ class ReportesControlService
             ->count('l.cliente_id');
 
         if ($totalLiquidados === 0) {
-            return 0;
+            return [
+                'porcentaje' => 0.0,
+                'liquidados' => 0,
+                'renovados' => 0,
+            ];
         }
 
         // Un cliente cuenta como renovado si tiene al menos un préstamo nuevo
@@ -441,6 +452,10 @@ class ReportesControlService
             ->distinct('l.cliente_id')
             ->count('l.cliente_id');
 
-        return min(100, round(($clientesRenovados / $totalLiquidados) * 100, 2));
+        return [
+            'porcentaje' => min(100, round(($clientesRenovados / $totalLiquidados) * 100, 2)),
+            'liquidados' => $totalLiquidados,
+            'renovados' => $clientesRenovados,
+        ];
     }
 }

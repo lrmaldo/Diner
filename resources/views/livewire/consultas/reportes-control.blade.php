@@ -77,15 +77,33 @@
             <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['actual'] }}:</span>
-                    <span class="font-bold">{{ number_format($this->datosFidelizacion['al_dia'] ?? 0, 2) }}%</span>
+                    <div class="relative group">
+                        <button type="button" class="font-bold underline decoration-white/50 cursor-default">{{ number_format($this->datosFidelizacion['al_dia'] ?? 0, 2) }}%</button>
+                        <div class="hidden group-hover:block absolute right-0 mt-1 w-56 rounded-md bg-white text-gray-800 p-2 text-xs shadow-lg z-20">
+                            <p class="font-semibold">Detalle {{ $this->mesesNombres['actual'] }}</p>
+                            <p>{{ $this->datosFidelizacionDetalle['al_dia']['renovados'] ?? 0 }} de {{ $this->datosFidelizacionDetalle['al_dia']['liquidados'] ?? 0 }} clientes renovaron.</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['mes1'] }}:</span>
-                    <span class="font-bold">{{ number_format($this->datosFidelizacion['mes1'] ?? 0, 2) }}%</span>
+                    <div class="relative group">
+                        <button type="button" class="font-bold underline decoration-white/50 cursor-default">{{ number_format($this->datosFidelizacion['mes1'] ?? 0, 2) }}%</button>
+                        <div class="hidden group-hover:block absolute right-0 mt-1 w-56 rounded-md bg-white text-gray-800 p-2 text-xs shadow-lg z-20">
+                            <p class="font-semibold">Detalle {{ $this->mesesNombres['mes1'] }}</p>
+                            <p>{{ $this->datosFidelizacionDetalle['mes1']['renovados'] ?? 0 }} de {{ $this->datosFidelizacionDetalle['mes1']['liquidados'] ?? 0 }} clientes renovaron.</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex justify-between">
                     <span>{{ $this->mesesNombres['mes2'] }}:</span>
-                    <span class="font-bold">{{ number_format($this->datosFidelizacion['mes2'] ?? 0, 2) }}%</span>
+                    <div class="relative group">
+                        <button type="button" class="font-bold underline decoration-white/50 cursor-default">{{ number_format($this->datosFidelizacion['mes2'] ?? 0, 2) }}%</button>
+                        <div class="hidden group-hover:block absolute right-0 mt-1 w-56 rounded-md bg-white text-gray-800 p-2 text-xs shadow-lg z-20">
+                            <p class="font-semibold">Detalle {{ $this->mesesNombres['mes2'] }}</p>
+                            <p>{{ $this->datosFidelizacionDetalle['mes2']['renovados'] ?? 0 }} de {{ $this->datosFidelizacionDetalle['mes2']['liquidados'] ?? 0 }} clientes renovaron.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
