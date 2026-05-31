@@ -6,6 +6,7 @@ use App\Models\Cliente;
 use App\Models\Prestamo;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ReportesControlService
 {
@@ -341,72 +342,40 @@ class ReportesControlService
 
     public function calcularFidelizacion(Carbon $inicio, Carbon $fin)
     {
-        // 1. Obtener prestamos liquidados en el periodo. Se asume que el "ultimo pago" dictamina cuÃ¡ndo se liquidÃ³.
-        $prestamosLiquidados = Prestamo::whereIn('estado', ['Pagado', 'Liquidado'])
-            ->with(['pagos' => function ($q) {
-                $q->orderBy('fecha_pago', 'desc');
-            }])
-            ->get()
-            ->filter(function ($prestamo) use ($inicio, $fin) {
-                $ultimoPago = $prestamo->pagos->first();
-                if ($ultimoPago) {
-                    $fechaPago = Carbon::parse($ultimoPago->fecha_pago)->startOfDay();
+        $inicioDate = $inicio->copy()->startOfDay()->toDateString();
+        $finDate = $fin->copy()->endOfDay()->toDateString();
 
-                    return $fechaPago->between($inicio->copy()->startOfDay(), $fin->copy()->endOfDay());
-                }
+        // Subconsulta: préstamos liquidados por fecha de último pago en el rango.
+        $liquidados = DB::table('prestamos as p')
+            ->join('pagos as pa', 'pa.prestamo_id', '=', 'p.id')
+            ->whereIn('p.estado', ['Pagado', 'Liquidado'])
+            ->groupBy('p.id', 'p.cliente_id')
+            ->havingRaw('MAX(pa.fecha_pago) BETWEEN ? AND ?', [$inicioDate, $finDate])
+            ->selectRaw('p.id as prestamo_liquidado_id, p.cliente_id, MAX(pa.fecha_pago) as fecha_liquidacion');
 
-                return false;
-            });
+        $totalLiquidados = DB::query()
+            ->fromSub($liquidados, 'l')
+            ->distinct('l.cliente_id')
+            ->count('l.cliente_id');
 
-        if ($prestamosLiquidados->isEmpty()) {
+        if ($totalLiquidados === 0) {
             return 0;
         }
 
-        $clientesLiquidadosId = $prestamosLiquidados->pluck('cliente_id')->unique();
-        $totalLiquidados = $clientesLiquidadosId->count();
-        $clientesRenovados = 0;
+        // Un cliente cuenta como renovado si tiene al menos un préstamo nuevo
+        // desde la liquidación y hasta el fin de ese mismo mes (acotado por $fin).
+        $clientesRenovados = DB::query()
+            ->fromSub($liquidados, 'l')
+            ->join('prestamos as r', function ($join) {
+                $join->on('r.cliente_id', '=', 'l.cliente_id')
+                    ->on('r.id', '<>', 'l.prestamo_liquidado_id');
+            })
+            ->whereIn('r.estado', ['Entregado', 'Atrasado', 'Pagado', 'Liquidado'])
+            ->whereRaw('DATE(r.fecha_entrega) >= DATE(l.fecha_liquidacion)')
+            ->whereRaw('DATE(r.fecha_entrega) <= LEAST(LAST_DAY(DATE(l.fecha_liquidacion)), ?)', [$finDate])
+            ->distinct('l.cliente_id')
+            ->count('l.cliente_id');
 
-        foreach ($clientesLiquidadosId as $clienteId) {
-            $prestamosDelCliente = $prestamosLiquidados->where('cliente_id', $clienteId);
-            $tieneRenovacionCliente = false;
-
-            foreach ($prestamosDelCliente as $prestamoLiquidado) {
-                $ultimoPago = $prestamoLiquidado->pagos->first();
-                if (! $ultimoPago) {
-                    continue;
-                }
-
-                // La renovación debe ocurrir en el mismo mes de esta liquidación
-                // y acotada al periodo consultado.
-                $fechaLiquidacion = Carbon::parse($ultimoPago->fecha_pago)->startOfDay();
-                $fechaInicioRenovacion = $fechaLiquidacion->copy()->startOfDay();
-                $fechaFinRenovacion = $fechaLiquidacion->copy()->endOfMonth()->endOfDay();
-
-                if ($fechaFinRenovacion->gt($fin->copy()->endOfDay())) {
-                    $fechaFinRenovacion = $fin->copy()->endOfDay();
-                }
-
-                $tieneRenovacionDesdeLiquidacion = Prestamo::where('cliente_id', $clienteId)
-                    ->whereIn('estado', ['Entregado', 'Atrasado', 'Pagado', 'Liquidado'])
-                    ->where('id', '<>', $prestamoLiquidado->id)
-                    ->whereBetween('fecha_entrega', [$fechaInicioRenovacion->toDateString(), $fechaFinRenovacion->toDateString()])
-                    ->exists();
-
-                if ($tieneRenovacionDesdeLiquidacion) {
-                    $tieneRenovacionCliente = true;
-                    break;
-                }
-            }
-
-            if ($tieneRenovacionCliente) {
-                $clientesRenovados++;
-            }
-        }
-
-        if ($totalLiquidados > 0) {
-            return min(100, round(($clientesRenovados / $totalLiquidados) * 100, 2));
-        }
-
-        return 0;
+        return min(100, round(($clientesRenovados / $totalLiquidados) * 100, 2));
     }
 }
