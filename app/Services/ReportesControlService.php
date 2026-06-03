@@ -70,9 +70,27 @@ class ReportesControlService
             foreach ($asesor->prestamosComoAsesor as $prestamo) {
                 // Filtrar pagos hasta la fecha de corte
                 $pagosHastaFecha = $prestamo->pagos->where('fecha_pago', '<=', $fechaCorte);
-                // Usar Capital Pagado que ya tiene Diner en tabla Pagos
-                $capitalPagado = $pagosHastaFecha->sum('capital_pagado');
                 $capitalAEntregar = $prestamo->monto_autorizado ?? $prestamo->monto_total;
+
+                // Calcular el calendario anticipadamente para derivar el ratio capital/total
+                // Cada cuota incluye capital + interés + IVA; el saldo de cartera solo refleja capital
+                $calendario = CalculadoraPrestamos::calcularCalendarioPagos(
+                    $capitalAEntregar,
+                    $prestamo->tasa_interes,
+                    $prestamo->plazo,
+                    $prestamo->periodicidad,
+                    $prestamo->fecha_primer_pago ?? $prestamo->fecha_entrega,
+                    $prestamo->ultimo_pago ?? null
+                );
+
+                $totalARepagar = collect($calendario)->sum('monto');
+                // capital_pagado en BD guarda el pago completo (capital+interés+IVA) menos moratoria
+                // Multiplicar por el ratio para obtener solo la parte de capital
+                $totalPagadoSinMoratorio = $pagosHastaFecha->sum('capital_pagado');
+                $ratioCapital = ($totalARepagar > $capitalAEntregar + 0.01)
+                    ? $capitalAEntregar / $totalARepagar
+                    : 1.0;
+                $capitalPagado = $totalPagadoSinMoratorio * $ratioCapital;
 
                 $saldoRestante = max(0, $capitalAEntregar - $capitalPagado);
 
@@ -108,15 +126,6 @@ class ReportesControlService
                         $pagosSinNumeroTotal += $p->monto;
                     }
                 }
-
-                $calendario = CalculadoraPrestamos::calcularCalendarioPagos(
-                    $capitalAEntregar,
-                    $prestamo->tasa_interes,
-                    $prestamo->plazo,
-                    $prestamo->periodicidad,
-                    $prestamo->fecha_primer_pago ?? $prestamo->fecha_entrega,
-                    $prestamo->ultimo_pago ?? null
-                );
 
                 $diasAtraso = 0;
                 // Una forma conservadora de sacar dias de atraso es ver cual es la cuota mas antigua vencida y no pagada
