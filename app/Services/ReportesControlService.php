@@ -84,9 +84,9 @@ class ReportesControlService
                 );
 
                 $totalARepagar = collect($calendario)->sum('monto');
-                // capital_pagado en BD guarda el pago completo (capital+interés+IVA) menos moratoria
-                // Multiplicar por el ratio para obtener solo la parte de capital
-                $totalPagadoSinMoratorio = $pagosHastaFecha->sum('capital_pagado');
+                // Usar monto - moratorio_pagado: más fiable que capital_pagado porque
+                // cubre pagos registrados por AclaracionPagos (que no setean capital_pagado).
+                $totalPagadoSinMoratorio = $pagosHastaFecha->sum('monto') - $pagosHastaFecha->sum('moratorio_pagado');
                 $ratioCapital = ($totalARepagar > $capitalAEntregar + 0.01)
                     ? $capitalAEntregar / $totalARepagar
                     : 1.0;
@@ -166,12 +166,14 @@ class ReportesControlService
                 }
 
                 // Para buckets vencidos: mostrar solo las cuotas vencidas en capital (cartera vencida).
-                // Para c_vigente: mostrar el capital total pendiente (cartera vigente).
+                // Usamos "total exigible hasta hoy - total pagado" para evitar el FIFO y ser
+                // consistentes con el estado de cuenta.
                 $montoVencidoCapital = 0;
                 if ($bucket !== 'c_vigente') {
-                    $montoVencidoBruto = Prestamo::calcularMontoVencidoDesdeCalendario(
-                        $calendario, $fechaCorte, $pagadoPorNumero, $pagosSinNumeroTotal
-                    );
+                    $totalExigibleHasta = collect($calendario)
+                        ->filter(fn ($c) => Carbon::parse($c['fecha'])->startOfDay()->lt($fechaCorte->copy()->startOfDay()))
+                        ->sum('monto');
+                    $montoVencidoBruto = max(0, $totalExigibleHasta - $totalPagadoSinMoratorio);
                     $montoVencidoCapital = $montoVencidoBruto * $ratioCapital;
                 }
 
