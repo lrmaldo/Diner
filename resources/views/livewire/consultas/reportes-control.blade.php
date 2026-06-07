@@ -279,6 +279,8 @@
                                     <th class="text-left px-3 py-2 border-b">Producto</th>
                                     <th class="text-left px-3 py-2 border-b">Fecha entrega</th>
                                     <th class="text-left px-3 py-2 border-b">Asesor</th>
+                                    <th class="text-right px-3 py-2 border-b">Cartera vencida</th>
+                                    <th class="text-right px-3 py-2 border-b">Saldo capital</th>
                                     <th class="text-left px-3 py-2 border-b">Acción</th>
                                 </tr>
                             </thead>
@@ -290,6 +292,8 @@
                                         <td class="px-3 py-2">{{ ucfirst($row['producto'] ?? 'N/A') }}</td>
                                         <td class="px-3 py-2">{{ $row['fecha_entrega'] ?: 'N/A' }}</td>
                                         <td class="px-3 py-2">{{ $row['asesor'] ?: 'N/A' }}</td>
+                                        <td class="px-3 py-2 text-right font-medium text-red-700">${{ number_format($row['monto_vencido'] ?? 0, 2) }}</td>
+                                        <td class="px-3 py-2 text-right">${{ number_format($row['saldo_capital'] ?? 0, 2) }}</td>
                                         <td class="px-3 py-2">
                                             <a href="{{ route('prestamos.print', ['prestamo' => $row['prestamo_id'], 'type' => 'estado_cuenta']) }}" target="_blank" class="inline-flex items-center px-2 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
                                                 Estado de cuenta

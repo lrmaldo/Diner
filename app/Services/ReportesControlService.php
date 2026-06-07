@@ -165,12 +165,21 @@ class ReportesControlService
                     $bucket = 'cv_mas_365';
                 }
 
-                $dataAsesor[$bucket]['saldo'] += $saldoRestante;
+                // Para buckets vencidos: mostrar solo las cuotas vencidas en capital (cartera vencida).
+                // Para c_vigente: mostrar el capital total pendiente (cartera vigente).
+                $montoVencidoCapital = 0;
+                if ($bucket !== 'c_vigente') {
+                    $montoVencidoBruto = Prestamo::calcularMontoVencidoDesdeCalendario(
+                        $calendario, $fechaCorte, $pagadoPorNumero, $pagosSinNumeroTotal
+                    );
+                    $montoVencidoCapital = $montoVencidoBruto * $ratioCapital;
+                }
+
+                $saldoBucket = ($bucket === 'c_vigente') ? $saldoRestante : $montoVencidoCapital;
+
+                $dataAsesor[$bucket]['saldo'] += $saldoBucket;
                 $dataAsesor[$bucket]['creditos'] += 1;
                 $dataAsesor['creditos'] += 1;
-
-                // Todos los préstamos que llegaron aquí son clientes activos
-                // (ya se filtró por saldo > 0 y último pago dentro de 365 días)
                 $dataAsesor['saldo_total'] += $saldoRestante;
 
                 if ($prestamo->cliente_id) {
@@ -211,6 +220,8 @@ class ReportesControlService
                             'producto' => $prestamo->producto,
                             'fecha_entrega' => $fechaEntregaNueva,
                             'asesor' => $asesor->name,
+                            'monto_vencido' => $montoVencidoCapital,
+                            'saldo_capital' => $saldoRestante,
                         ];
                     }
                 }
