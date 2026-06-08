@@ -692,7 +692,17 @@ class Edit extends Component
             return;
         }
 
-if ($this->producto === 'grupal') {
+        if ($this->producto === 'individual') {
+            if (! $this->cliente_id) {
+                $this->addError('cliente', 'Debe seleccionar un cliente.');
+                return;
+            }
+            $prestamo->cliente_id = $this->cliente_id;
+            $prestamo->representante_id = $this->cliente_id;
+            if (is_numeric($this->monto) && (float) $this->monto > 0) {
+                $prestamo->monto_total = (float) $this->monto;
+            }
+        } elseif ($this->producto === 'grupal') {
             // Asegurarse de tener la lista limpia
             $this->normalizeClientesAgregados();
 
@@ -733,12 +743,13 @@ if ($this->producto === 'grupal') {
             // Actualizar monto total
             $prestamo->monto_total = $totalMonto;
             
-            // Validar representante
-            if (! $this->representante_id || ! isset($syncData[$this->representante_id])) {
-                // Si el representante actual no está en la lista final, asignar el primero
-                $this->representante_id = array_key_first($syncData);
+            // Validar representante — cast explícito para evitar desajuste int/string de Livewire
+            $repId = (int) $this->representante_id;
+            if (! $repId || ! array_key_exists($repId, $syncData)) {
+                $repId = (int) array_key_first($syncData);
             }
-            $prestamo->representante_id = $this->representante_id;
+            $this->representante_id = $repId;
+            $prestamo->representante_id = $repId;
         }
 
         // Guardar comentarios del comité (usar trim para limpiar espacios, y null si está vacío)
