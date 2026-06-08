@@ -508,6 +508,15 @@ class Edit extends Component
         if ($cliente) {
             $this->openEditCliente($cliente->id);
         }
+        // Para préstamos individuales, persistir cliente_id en BD de inmediato
+        if (! $this->grupo_id && $this->prestamo_id) {
+            $prestamo = Prestamo::find($this->prestamo_id);
+            if ($prestamo) {
+                $prestamo->cliente_id = $id;
+                $prestamo->save();
+            }
+        }
+
         if ($this->grupo_id) {
             $this->normalizeClientesAgregados();
             $exists = collect($this->clientesAgregados)->first(fn ($r) => is_array($r) && isset($r['cliente_id']) && $r['cliente_id'] == $cliente->id);

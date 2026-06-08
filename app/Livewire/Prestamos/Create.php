@@ -203,6 +203,24 @@ class Create extends Component
                 }
             }
 
+            // Restaurar cliente/representante/miembros al retomar un préstamo en proceso
+            if ($prestamo->producto === 'individual') {
+                $this->cliente_id = $prestamo->cliente_id;
+                if ($this->cliente_id) {
+                    $c = Cliente::find($this->cliente_id);
+                    $this->cliente_nombre_selected = $c
+                        ? trim("{$c->nombres} {$c->apellido_paterno} {$c->apellido_materno}")
+                        : null;
+                }
+            } else {
+                $this->representante_id = $prestamo->representante_id;
+                $this->clientesAgregados = $prestamo->clientes->map(fn ($c) => [
+                    'cliente_id' => $c->id,
+                    'monto_solicitado' => $c->pivot->monto_solicitado,
+                    'nombre' => trim("{$c->nombres} {$c->apellido_paterno}"),
+                ])->values()->toArray();
+            }
+
             // If prestamo exists but clients not linked (or missing), go to step 2 to continue
             $this->step = 2;
         }
@@ -635,6 +653,15 @@ class Create extends Component
         // abrir modal de edición para corroborar datos y capturar monto
         if ($cliente) {
             $this->openEditCliente($cliente->id);
+        }
+
+        // Para préstamos individuales, persistir cliente_id en BD de inmediato
+        if (! $this->grupo_id && $this->prestamo_id) {
+            $prestamo = Prestamo::find($this->prestamo_id);
+            if ($prestamo) {
+                $prestamo->cliente_id = $id;
+                $prestamo->save();
+            }
         }
 
         // if a group is selected, add the client to the clientesAgregados list (avoid duplicates)
