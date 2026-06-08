@@ -171,6 +171,44 @@
 
         {{-- Paso 2: resumen + agregar clientes (después de crear préstamo) --}}
         @if($step == 2)
+            @if($prestamo_id)
+            <script>
+            (function () {
+                var _safeExit = false;
+
+                function beforeUnloadGuard(e) {
+                    if (!_safeExit) {
+                        e.preventDefault();
+                        e.returnValue = '';
+                    }
+                }
+
+                function linkClickGuard(e) {
+                    if (_safeExit) return;
+                    var link = e.target.closest('a[href]');
+                    if (!link) return;
+                    var href = link.getAttribute('href');
+                    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (confirm('¿Seguro que deseas salir?\n\nTu trabajo está guardado en "Préstamos En Proceso". Puedes retomarlo desde ahí en cualquier momento.\n\nSi quieres salir de forma ordenada usa el botón "Continuar más tarde".')) {
+                        _safeExit = true;
+                        window.location.href = link.href;
+                    }
+                }
+
+                window.addEventListener('beforeunload', beforeUnloadGuard);
+                document.addEventListener('click', linkClickGuard, true);
+
+                window.marcarSalidaSegura = function () { _safeExit = true; };
+
+                document.addEventListener('livewire:navigating', function () {
+                    window.removeEventListener('beforeunload', beforeUnloadGuard);
+                    document.removeEventListener('click', linkClickGuard, true);
+                });
+            })();
+            </script>
+            @endif
             <div>
                 @if($errors->any())
                     <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 shadow-sm rounded-r-lg">
@@ -801,8 +839,22 @@
                         @endif
                     </div>
 
-                    <div class="mt-4 flex justify-end">
-                        <button type="button" wire:click.prevent="enviarAComite" class="btn-primary">Enviar a comité</button>
+                    <div class="mt-4 flex justify-between items-center">
+                        <button type="button"
+                                onclick="window.marcarSalidaSegura && window.marcarSalidaSegura()"
+                                wire:click.prevent="continuarMasTarde"
+                                class="btn-outline text-gray-700 border-gray-400 hover:bg-gray-50">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Continuar más tarde
+                        </button>
+                        <button type="button"
+                                onclick="window.marcarSalidaSegura && window.marcarSalidaSegura()"
+                                wire:click.prevent="enviarAComite"
+                                class="btn-primary">
+                            Enviar a comité
+                        </button>
                     </div>
                 </div>
             </div>

@@ -761,6 +761,11 @@ if ($this->producto === 'grupal') {
         redirect()->route('prestamos.index');
     }
 
+    public function continuarMasTarde(): void
+    {
+        redirect()->route('prestamos.en-proceso');
+    }
+
     /**
      * Seleccionar representante del grupo y persistirlo en el préstamo si existe (edición).
      */
