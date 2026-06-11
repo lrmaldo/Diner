@@ -68,8 +68,16 @@ class ReportesControlService
             $clasificacionClientesAsesor = [];
 
             foreach ($asesor->prestamosComoAsesor as $prestamo) {
-                // Filtrar pagos hasta la fecha de corte
-                $pagosHastaFecha = $prestamo->pagos->where('fecha_pago', '<=', $fechaCorte);
+                // Filtrar pagos hasta la fecha de corte, excluyendo garantías/seguros y
+                // devoluciones de garantía (estas últimas se guardan con monto negativo y
+                // restarían lo pagado, haciendo aparecer como vencido un crédito liquidado).
+                $pagosHastaFecha = $prestamo->pagos
+                    ->where('fecha_pago', '<=', $fechaCorte)
+                    ->filter(function ($p) {
+                        $tipo = strtolower($p->tipo_pago ?? '');
+
+                        return ! in_array($tipo, ['garantia', 'garantía', 'seguro', 'cargo']) && ! str_contains($tipo, 'devolucion');
+                    });
                 $capitalAEntregar = $prestamo->monto_autorizado ?? $prestamo->monto_total;
 
                 // Calcular el calendario anticipadamente para derivar el ratio capital/total
@@ -94,7 +102,11 @@ class ReportesControlService
 
                 $saldoRestante = max(0, $capitalAEntregar - $capitalPagado);
 
-                if ($saldoRestante <= 0.01) {
+                // El calendario carga los decimales a la última cuota pero caja cobra la
+                // cuota base redondeada; ese residuo no debe contar como saldo pendiente.
+                $toleranciaRedondeo = Prestamo::toleranciaRedondeoCalendario($calendario);
+
+                if ($saldoRestante <= 0.01 || ($totalARepagar - $totalPagadoSinMoratorio) <= $toleranciaRedondeo) {
                     continue;
                 } // Préstamo Liquidado a esa fecha
 
@@ -131,7 +143,7 @@ class ReportesControlService
                 // Una forma conservadora de sacar dias de atraso es ver cual es la cuota mas antigua vencida y no pagada
                 $pagadoAcum = 0;
                 // Simplificando simulacion usando logica del prestamo de la APP
-                $atrasosCuotas = Prestamo::calcularAtrasosDesdeCalendario($calendario, $fechaCorte, $pagadoPorNumero, $pagosSinNumeroTotal);
+                $atrasosCuotas = Prestamo::calcularAtrasosDesdeCalendario($calendario, $fechaCorte, $pagadoPorNumero, $pagosSinNumeroTotal, max(1, $toleranciaRedondeo));
 
                 if ($atrasosCuotas > 0) {
                     // Hay atraso. Convertir cuotas a dias

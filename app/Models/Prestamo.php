@@ -279,12 +279,36 @@ class Prestamo extends Model
     }
 
     /**
+     * Tolerancia por redondeo entre el calendario y lo que cobra caja.
+     *
+     * El calendario carga los decimales del monto total a la última cuota
+     * (base + decimales * n), pero las pantallas de cobro sugieren
+     * floor(total / n) en todos los pagos. Un cliente que paga exactamente lo
+     * que el sistema le pide queda "corto" por esos decimales acumulados
+     * (última cuota - cuota base) sin deber realmente nada.
+     *
+     * @param  array<int, array{numero: mixed, fecha: string, monto: mixed}>  $calendarioPagos
+     */
+    public static function toleranciaRedondeoCalendario(array $calendarioPagos): float
+    {
+        $total = count($calendarioPagos);
+        if ($total === 0) {
+            return 0.5;
+        }
+
+        $base = (float) ($calendarioPagos[0]['monto'] ?? 0);
+        $ultima = (float) ($calendarioPagos[$total - 1]['monto'] ?? 0);
+
+        return max(0.5, round($ultima - $base, 2) + 0.5);
+    }
+
+    /**
      * Calcula el monto vencido por cuota: usa pagos por `numero_pago` y reparte pagos sin número en FIFO.
      *
      * @param  array<int, array{numero: mixed, fecha: string, monto: mixed}>  $calendarioPagos
      * @param  array<int|string, float|int|string>  $pagadoPorNumero
      */
-    public static function calcularMontoVencidoDesdeCalendario(array $calendarioPagos, Carbon $fechaHoy, array $pagadoPorNumero, float $pagosSinNumeroTotal = 0): float
+    public static function calcularMontoVencidoDesdeCalendario(array $calendarioPagos, Carbon $fechaHoy, array $pagadoPorNumero, float $pagosSinNumeroTotal = 0, float $tolerancia = 0): float
     {
         $fechaHoy = $fechaHoy->copy()->startOfDay();
 
@@ -306,7 +330,7 @@ class Prestamo extends Model
 
             if ($fechaVenc->lt($fechaHoy)) {
                 $pagadoCuota = (float) ($pagado[$numero] ?? 0);
-                if ($pagadoCuota < $monto) {
+                if ($pagadoCuota < $monto - $tolerancia) {
                     $montoVencido += ($monto - $pagadoCuota);
                 }
             }
@@ -497,6 +521,7 @@ class Prestamo extends Model
     public function calcularMoratorioVigente($clienteId, $montoAutorizado)
     {
         $calendario = $this->simularCalendarioPago($montoAutorizado);
+        $toleranciaRedondeo = self::toleranciaRedondeoCalendario($calendario);
         $fechaHoy = now()->startOfDay();
 
         // Obtener pagos del cliente (solo capital, sin moratorios)
@@ -546,7 +571,7 @@ class Prestamo extends Model
             $montoCuota = (float) $cuota['monto'];
             $numero = (int) $cuota['numero'];
 
-            if ($capitalRestante >= ($montoCuota - 0.01)) { // Tolerancia de 1 centavo
+            if ($capitalRestante >= ($montoCuota - $toleranciaRedondeo)) {
                 $cuotasCubiertas[$numero] = true;
                 $capitalRestante -= $montoCuota;
             } else {
@@ -591,7 +616,7 @@ class Prestamo extends Model
                 // Buscar la fecha en que se alcanzó ese capital
                 $fechaCompletada = null;
                 foreach ($acumuladoPorFecha as $fecha => $acum) {
-                    if ($acum >= ($capitalNecesarioHasta - 0.01)) {
+                    if ($acum >= ($capitalNecesarioHasta - $toleranciaRedondeo)) {
                         $fechaCompletada = Carbon::parse($fecha)->startOfDay();
                         break;
                     }
@@ -621,6 +646,7 @@ class Prestamo extends Model
     public function calcularDetalleMoratorio($clienteId, $montoAutorizado)
     {
         $calendario = $this->simularCalendarioPago($montoAutorizado);
+        $toleranciaRedondeo = self::toleranciaRedondeoCalendario($calendario);
         $fechaHoy = now()->startOfDay();
 
         $pagosCliente = $this->pagos->where('cliente_id', $clienteId);
@@ -664,7 +690,7 @@ class Prestamo extends Model
             $montoCuota = (float) $cuota['monto'];
             $numero = (int) $cuota['numero'];
 
-            if ($capitalRestante >= ($montoCuota - 0.01)) {
+            if ($capitalRestante >= ($montoCuota - $toleranciaRedondeo)) {
                 $cuotasCubiertas[$numero] = true;
                 $capitalRestante -= $montoCuota;
             } else {
@@ -703,7 +729,7 @@ class Prestamo extends Model
 
                 $fechaCompletada = null;
                 foreach ($acumuladoPorFecha as $fecha => $acum) {
-                    if ($acum >= ($capitalNecesarioHasta - 0.01)) {
+                    if ($acum >= ($capitalNecesarioHasta - $toleranciaRedondeo)) {
                         $fechaCompletada = Carbon::parse($fecha)->startOfDay();
                         break;
                     }

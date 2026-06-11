@@ -962,6 +962,7 @@
 
                             $totalMultasGeneradasMontoClienteGrp = 0;
                             $acumuladoCuotasClienteGrp = 0;
+                            $toleranciaRedondeoGrpCalc = \App\Models\Prestamo::toleranciaRedondeoCalendario($clientScheduleGrp);
                             foreach ($clientScheduleGrp as $cuotaGrp) {
                                 $fechaVencC = \Carbon\Carbon::createFromFormat('d-m-y', $cuotaGrp['fecha'])->endOfDay();
                                 if ($fechaVencC->isFuture()) continue;
@@ -969,10 +970,10 @@
                                 $montoCuotaC = $cuotaGrp['monto'];
                                 $targetAcumuladoC = $acumuladoCuotasClienteGrp + $montoCuotaC;
                                 $acumuladoCuotasClienteGrp += $montoCuotaC;
-                                
+
                                 $fechaCoberturaC = null;
                                 foreach ($timelinePagosClienteGrp as $tpC) {
-                                    if ($tpC['monto_Acumulado'] >= $targetAcumuladoC - 0.1) {
+                                    if ($tpC['monto_Acumulado'] >= $targetAcumuladoC - $toleranciaRedondeoGrpCalc) {
                                         $fechaCoberturaC = $tpC['fecha'];
                                         break;
                                     }
@@ -996,18 +997,19 @@
                             'martes'
                         );
 
+                        $toleranciaRedondeoCalc = \App\Models\Prestamo::toleranciaRedondeoCalendario($calendarioCalc);
                         foreach ($calendarioCalc as $pagoProg) {
                             $fechaVenc = \Carbon\Carbon::createFromFormat('d-m-y', $pagoProg['fecha'])->endOfDay();
-                            
+
                             if ($fechaVenc->isFuture()) continue;
 
                             $montoCuota = $pagoProg['monto'];
-                            $targetAcumulado = $acumuladoCuotasTemp + $montoCuota; 
+                            $targetAcumulado = $acumuladoCuotasTemp + $montoCuota;
                             $acumuladoCuotasTemp += $montoCuota;
-                            
+
                             $fechaCobertura = null;
                             foreach ($timelinePagosCalc as $tp) {
-                                if ($tp['monto_acumulado'] >= $targetAcumulado - 0.1) { 
+                                if ($tp['monto_acumulado'] >= $targetAcumulado - $toleranciaRedondeoCalc) {
                                     $fechaCobertura = $tp['fecha'];
                                     break;
                                 }
@@ -1702,11 +1704,15 @@
                     }
                     $pagosSinNumeroTotal = 0.0; // Ya distribuido completamente por FIFO en $pagosRegistrados
 
+                    // Tolerancia por el residuo de redondeo entre calendario y lo cobrado en caja
+                    $toleranciaRedondeoSaldos = \App\Models\Prestamo::toleranciaRedondeoCalendario($calendarioPagos);
+
                     $montoVencido = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
                         $calendarioPagos,
                         $fechaHoy,
                         $pagadoPorNumero,
-                        $pagosSinNumeroTotal
+                        $pagosSinNumeroTotal,
+                        $toleranciaRedondeoSaldos
                     );
                     
                     // Calcular pagos futuros (Vigentes)
@@ -1747,7 +1753,7 @@
                         $fechaHoy,
                         $pagadoPorNumero,
                         $pagosSinNumeroTotal,
-                        1
+                        max(1, $toleranciaRedondeoSaldos)
                     );
 
                     // Calcular saldo moratorio acumulativo (Histórico de multas - Pagos a moratorio)
@@ -1787,7 +1793,7 @@
                         // Buscar cuándo se cubrió este monto
                         $fechaCobertura = null;
                         foreach ($timelinePagos as $tp) {
-                            if ($tp['monto_acumulado'] >= $targetAcumulado - 0.1) { 
+                            if ($tp['monto_acumulado'] >= $targetAcumulado - $toleranciaRedondeoSaldos) {
                                 $fechaCobertura = $tp['fecha'];
                                 break;
                             }
@@ -1847,20 +1853,21 @@
                             $multasGeneradasCountClienteGrp = 0;
                             $totalMultasGeneradasMontoClienteGrp = 0;
                             $acumuladoCuotasClienteGrp = 0;
-                            
+                            $toleranciaRedondeoGrpSaldos = \App\Models\Prestamo::toleranciaRedondeoCalendario($clientScheduleGrp);
+
                             foreach ($clientScheduleGrp as $cuotaGrp) {
                                 $fechaVencC = \Carbon\Carbon::createFromFormat('d-m-y', $cuotaGrp['fecha'])->endOfDay();
-                                
+
                                 if ($fechaVencC->isFuture()) continue;
 
                                 $montoCuotaC = $cuotaGrp['monto'];
                                 $targetAcumuladoC = $acumuladoCuotasClienteGrp + $montoCuotaC;
                                 $acumuladoCuotasClienteGrp += $montoCuotaC;
-                                
+
                                 // Buscar cuándo se cubrió esta cuota
                                 $fechaCoberturaC = null;
                                 foreach ($timelinePagosClienteGrp as $tpC) {
-                                    if ($tpC['monto_acumulado'] >= $targetAcumuladoC - 0.1) {
+                                    if ($tpC['monto_acumulado'] >= $targetAcumuladoC - $toleranciaRedondeoGrpSaldos) {
                                         $fechaCoberturaC = $tpC['fecha'];
                                         break;
                                     }
@@ -1969,13 +1976,17 @@
                             $pagadoPorNumeroCliente = [];
                             $pagosSinNumeroClienteTotal = (float) ($pagosHastaHoyCliente->sum('monto') - $pagosHastaHoyCliente->sum('moratorio_pagado'));
 
+                            // Tolerancia por el residuo de redondeo entre calendario y lo cobrado en caja
+                            $toleranciaRedondeoCliente = \App\Models\Prestamo::toleranciaRedondeoCalendario($clientSchedule);
+
                             $montoVencidoCliente = \App\Models\Prestamo::calcularMontoVencidoDesdeCalendario(
                                 $clientSchedule,
                                 $fechaHoy,
                                 $pagadoPorNumeroCliente,
-                                $pagosSinNumeroClienteTotal
+                                $pagosSinNumeroClienteTotal,
+                                $toleranciaRedondeoCliente
                             );
-                            
+
                             // Calcular pagos futuros (Vigentes)
                             // $pagosFuturosCliente = count($clientSchedule) - $pagosTranscurridosCliente;
                             
@@ -1996,7 +2007,8 @@
                                 $clientSchedule,
                                 $fechaHoy,
                                 $pagadoPorNumeroCliente,
-                                $pagosSinNumeroClienteTotal
+                                $pagosSinNumeroClienteTotal,
+                                $toleranciaRedondeoCliente
                             );
 
                             // Capital, Interés e IVA vencidos
@@ -2020,7 +2032,7 @@
                                 $fechaHoy,
                                 $pagadoPorNumeroCliente,
                                 $pagosSinNumeroClienteTotal,
-                                1
+                                max(1, $toleranciaRedondeoCliente)
                             );
                             
                             // NUEVA LÓGICA ACUMULATIVA PARA CLIENTES GRUPALES
@@ -2067,7 +2079,7 @@
                                 
                                 $fechaCobertura = null;
                                 foreach ($timelinePagosCliente as $tp) {
-                                    if ($tp['monto_acumulado'] >= $targetAcumulado - 0.1) {
+                                    if ($tp['monto_acumulado'] >= $targetAcumulado - $toleranciaRedondeoCliente) {
                                         $fechaCobertura = $tp['fecha'];
                                         break;
                                     }
