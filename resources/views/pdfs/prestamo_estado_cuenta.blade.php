@@ -2172,7 +2172,17 @@
                             $capitalVigenteCliente = $montoCliente - $capitalPagadoCliente - $capitalVencidoCliente;
                             $interesVigenteCliente = $interesBaseCliente - $interesPagadoCliente - $interesVencidoCliente;
                             $ivaVigenteCliente = $ivaBaseCliente - $ivaPagadoCliente - $ivaVencidoCliente;
-                            
+
+                            // Limpiar residuo de redondeo si ya cubrió su total (mismo criterio que la tabla de totales)
+                            if ($sumatoriaPagosCliente >= ($totalDelPrestamoCliente - $toleranciaRedondeoSaldos)) {
+                                $capitalVigenteCliente = 0;
+                                $interesVigenteCliente = 0;
+                                $ivaVigenteCliente = 0;
+                                $capitalVencidoCliente = 0;
+                                $interesVencidoCliente = 0;
+                                $ivaVencidoCliente = 0;
+                            }
+
                             // Calcular atrasos del cliente (individual)
                             $atrasosCliente = $atrasos; // Usamos el cálculo global ya que es individual
                             
