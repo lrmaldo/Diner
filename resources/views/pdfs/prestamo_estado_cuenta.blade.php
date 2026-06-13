@@ -1746,7 +1746,19 @@
                     $capitalVigente = $montoCredito - $capitalPagado - $capitalVencido;
                     $interesVigente = $interesBase - $interesPagado - $interesVencido;
                     $ivaVigente = $ivaBase - $ivaPagado - $ivaVencido;
-                    
+
+                    // Si lo pagado cubre el total dentro del residuo de redondeo (caja cobra la
+                    // cuota base con floor pero el calendario carga los decimales a la última),
+                    // el crédito está liquidado: limpiar los centavos que dejan vivo un "$1" vigente.
+                    if ($sumatoriaPagos >= ($totalDelPrestamo - $toleranciaRedondeoSaldos)) {
+                        $capitalVigente = 0;
+                        $interesVigente = 0;
+                        $ivaVigente = 0;
+                        $capitalVencido = 0;
+                        $interesVencido = 0;
+                        $ivaVencido = 0;
+                    }
+
                     // Calcular número de pagos atrasados (aplicando pagos acumulados a lo más antiguo)
                     $atrasos = \App\Models\Prestamo::calcularAtrasosDesdeCalendario(
                         $calendarioPagos,
@@ -2025,7 +2037,17 @@
                             $capitalVigenteCliente = $montoCliente - $capitalPagadoCliente - $capitalVencidoCliente;
                             $interesVigenteCliente = $interesBaseCliente - $interesPagadoCliente - $interesVencidoCliente;
                             $ivaVigenteCliente = $ivaBaseCliente - $ivaPagadoCliente - $ivaVencidoCliente;
-                            
+
+                            // Limpiar residuo de redondeo si el cliente ya cubrió su total
+                            if ($sumatoriaPagosCliente >= ($totalDelPrestamoCliente - $toleranciaRedondeoCliente)) {
+                                $capitalVigenteCliente = 0;
+                                $interesVigenteCliente = 0;
+                                $ivaVigenteCliente = 0;
+                                $capitalVencidoCliente = 0;
+                                $interesVencidoCliente = 0;
+                                $ivaVencidoCliente = 0;
+                            }
+
                             // Calcular atrasos del cliente (aplicando pagos acumulados a lo más antiguo)
                             $atrasosCliente = \App\Models\Prestamo::calcularAtrasosDesdeCalendario(
                                 $clientSchedule,
