@@ -199,7 +199,37 @@ class Prestamo extends Model
      */
     public function calcularTotalPagado(): float
     {
-        return $this->pagos()->sum('monto');
+        // Solo capital/interés/IVA: excluir garantías, seguros y devoluciones de
+        // garantía (estas se guardan con monto negativo y restarían lo pagado),
+        // y descontar el moratorio para no contar multas como abono a la deuda.
+        return (float) $this->pagos
+            ->reject(function ($p) {
+                $t = strtolower($p->tipo_pago ?? '');
+
+                return in_array($t, ['garantia', 'garantía', 'seguro', 'cargo'], true) || str_contains($t, 'devolucion');
+            })
+            ->sum(fn ($p) => (float) $p->monto - (float) $p->moratorio_pagado);
+    }
+
+    /**
+     * ¿El crédito está pagado en su totalidad?
+     *
+     * Compara lo pagado (neto) contra el total a repagar del calendario, tolerando
+     * el residuo de redondeo entre el calendario (decimales en la última cuota) y la
+     * caja (cobra la cuota base con floor). Más fiable que el campo `estado`.
+     */
+    public function estaLiquidado(): bool
+    {
+        $calendario = $this->simularCalendarioPago((float) ($this->monto_autorizado ?? $this->monto_total));
+
+        if (empty($calendario)) {
+            return $this->calcularSaldoPendiente() <= 0.5;
+        }
+
+        $totalARepagar = array_sum(array_column($calendario, 'monto'));
+        $tolerancia = self::toleranciaRedondeoCalendario($calendario);
+
+        return ($totalARepagar - $this->calcularTotalPagado()) <= $tolerancia;
     }
 
     /**

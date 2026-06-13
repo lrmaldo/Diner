@@ -468,8 +468,8 @@ class DesgloseEfectivo extends Component
                 "{$tipoPrestamo} registrado: {$detalleClientes}, total: $".number_format($this->totalSeleccionado, 2)
             );
 
-            // Verificar si el préstamo ha sido liquidado
-            if ($this->mode !== 'devolucion' && $this->prestamo->calcularSaldoPendiente() <= 0.01) {
+            // Verificar si el préstamo ha sido liquidado (tolerando el residuo de redondeo)
+            if ($this->mode !== 'devolucion' && $this->prestamo->fresh()->load('pagos')->estaLiquidado()) {
                 $this->prestamo->estado = 'liquidado';
                 $this->prestamo->save();
 
