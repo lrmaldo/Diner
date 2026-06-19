@@ -56,11 +56,6 @@ class RoleAndPermissionSeeder extends Seeder
             'editar capital',
         ];
 
-        // Permisos para caja
-        $cajaPermissions = [
-            'ver caja',
-        ];
-
         // Crear permisos para informes
         $reportPermissions = [
             'ver informes',
@@ -79,7 +74,6 @@ class RoleAndPermissionSeeder extends Seeder
             $loanPermissions,
             $paymentPermissions,
             $capitalPermissions,
-            $cajaPermissions,
             $reportPermissions,
             $systemPermissions
         );
@@ -101,7 +95,6 @@ class RoleAndPermissionSeeder extends Seeder
             ['ver prestamos', 'crear prestamos'],
             $paymentPermissions,
             ['ver capital'],
-            ['ver caja'],
             ['ver informes']
         );
         $cashierRole->syncPermissions($cashierPerms);
