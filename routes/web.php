@@ -36,6 +36,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users/{user}/edit', Edit::class)->middleware('permission:editar usuarios')->name('users.edit');
     });
 
+    // Rutas para gestión de roles y permisos
+    Route::middleware(['permission:administrar roles'])->group(function () {
+        Route::get('/roles', \App\Livewire\Roles\Index::class)->name('roles.index');
+        Route::get('/roles/create', \App\Livewire\Roles\Create::class)->name('roles.create');
+        Route::get('/roles/{role}/edit', \App\Livewire\Roles\Edit::class)->name('roles.edit');
+    });
+
     // Rutas para gestión de clientes
     Route::middleware(['permission:ver clientes'])->group(function () {
         Route::get('/clients', \App\Livewire\Clients\Index::class)->name('clients.index');

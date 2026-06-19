@@ -65,6 +65,7 @@ class RoleAndPermissionSeeder extends Seeder
         // Crear permisos para administración del sistema
         $systemPermissions = [
             'administrar sistema',
+            'administrar roles',
         ];
 
         // Combinar todos los permisos
