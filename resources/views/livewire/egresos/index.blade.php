@@ -2,78 +2,111 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="mb-8 flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Egresos</h1>
-                <p class="mt-1 text-sm text-gray-500">Registro de egresos de caja o banco (sueldos, compra de insumos, etc.).</p>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center h-12 w-12 rounded-xl bg-red-100 text-2xl">
+                    💸
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Egresos</h1>
+                    <p class="mt-1 text-sm text-gray-500">Registro de egresos de caja o banco (sueldos, compra de insumos, etc.).</p>
+                </div>
             </div>
             @if(!$showModal)
                 <button wire:click="abrirModal"
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Nuevo Egreso
+                        class="inline-flex items-center gap-2 px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <span class="text-base">➕</span> Nuevo Egreso
                 </button>
             @endif
         </div>
 
+        @if(!$showModal)
+            {{-- Estado vacío --}}
+            <div class="flex justify-center">
+                <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center">
+                    <div class="mx-auto mb-4 flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-br from-red-100 to-orange-100 text-3xl">
+                        🧾
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800">Sin egresos en proceso</h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Registra sueldos, compra de insumos u otros gastos que salgan de Caja o Banco.
+                    </p>
+                    <button wire:click="abrirModal"
+                            class="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm">
+                        <span class="text-base">➕</span> Registrar un Egreso
+                    </button>
+                </div>
+            </div>
+        @endif
+
         @if($showModal && $step === 'form')
             {{-- Formulario de registro de Egreso --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 max-w-lg overflow-hidden">
-                <div class="bg-red-600 px-6 py-3">
-                    <h2 class="text-white text-lg font-bold">Egresos</h2>
-                </div>
-
-                <div class="p-6 space-y-6">
-                    <div>
-                        <label class="block font-semibold text-sm text-gray-800 mb-2">Origen del egreso</label>
-                        <div class="flex items-center space-x-6">
-                            <label class="inline-flex items-center">
-                                <input type="radio" wire:model.live="origen" value="caja" class="form-radio text-red-600">
-                                <span class="ml-2">Caja</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" wire:model.live="origen" value="banco" class="form-radio text-red-600">
-                                <span class="ml-2">Banco</span>
-                            </label>
-                        </div>
-                        @error('origen') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            <div class="flex justify-center">
+                <div class="bg-white rounded-2xl shadow-lg border border-gray-200 w-full max-w-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-red-600 to-red-500 px-6 py-4">
+                        <h2 class="text-white text-lg font-bold flex items-center gap-2">
+                            <span class="text-xl">💸</span> Nuevo Egreso
+                        </h2>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-6 space-y-6">
                         <div>
-                            <label for="monto" class="block font-semibold text-sm text-gray-800 mb-1">Monto</label>
-                            <input id="monto" type="number" step="0.01" min="0.01" wire:model.live="monto"
-                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                                   placeholder="0.00">
-                            @error('monto') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            <label class="block font-semibold text-sm text-gray-800 mb-2">Origen del egreso</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="flex items-center justify-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-colors {{ $origen === 'caja' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300' }}">
+                                    <input type="radio" wire:model.live="origen" value="caja" class="form-radio text-red-600">
+                                    <span class="text-lg">🗄️</span>
+                                    <span class="font-medium">Caja</span>
+                                </label>
+                                <label class="flex items-center justify-center gap-2 rounded-lg border-2 p-3 cursor-pointer transition-colors {{ $origen === 'banco' ? 'border-red-500 bg-red-50' : 'border-gray-200 hover:border-gray-300' }}">
+                                    <input type="radio" wire:model.live="origen" value="banco" class="form-radio text-red-600">
+                                    <span class="text-lg">🏦</span>
+                                    <span class="font-medium">Banco</span>
+                                </label>
+                            </div>
+                            @error('origen') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
-                        <div>
-                            <label for="descripcion" class="block font-semibold text-sm text-gray-800 mb-1">Descripción</label>
-                            <input id="descripcion" type="text" wire:model.live="descripcion"
-                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                                   placeholder="Descripción del egreso">
-                            @error('descripcion') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="monto" class="block font-semibold text-sm text-gray-800 mb-1">Monto</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">$</span>
+                                    <input id="monto" type="number" step="0.01" min="0.01" wire:model.live="monto"
+                                           class="block w-full pl-7 rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                                           placeholder="0.00">
+                                </div>
+                                @error('monto') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label for="descripcion" class="block font-semibold text-sm text-gray-800 mb-1">Descripción</label>
+                                <input id="descripcion" type="text" wire:model.live="descripcion"
+                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                                       placeholder="Descripción del egreso">
+                                @error('descripcion') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="flex items-center justify-end gap-3 pt-2">
-                        <button wire:click="cancelar" type="button"
-                                class="px-5 py-2 rounded-md font-semibold text-white bg-red-600 hover:bg-red-700">
-                            Cancelar
-                        </button>
+                        <div class="flex items-center justify-end gap-3 pt-2">
+                            <button wire:click="cancelar" type="button"
+                                    class="px-5 py-2 rounded-md font-semibold text-white bg-red-600 hover:bg-red-700">
+                                Cancelar
+                            </button>
 
-                        @if($origen === 'banco')
-                            <button wire:click="confirmar"
-                                    wire:confirm="¿Confirmar retiro de ${{ number_format((float)($monto ?? 0), 2) }} de la cuenta bancaria?"
-                                    @disabled(!$this->isFormValid())
-                                    class="px-5 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
-                                Confirmar
-                            </button>
-                        @else
-                            <button wire:click="confirmar"
-                                    @disabled(!$this->isFormValid())
-                                    class="px-5 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
-                                Confirmar
-                            </button>
-                        @endif
+                            @if($origen === 'banco')
+                                <button wire:click="confirmar"
+                                        wire:confirm="¿Confirmar retiro de ${{ number_format((float)($monto ?? 0), 2) }} de la cuenta bancaria?"
+                                        @disabled(!$this->isFormValid())
+                                        class="px-5 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                                    Confirmar
+                                </button>
+                            @else
+                                <button wire:click="confirmar"
+                                        @disabled(!$this->isFormValid())
+                                        class="px-5 py-2 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed">
+                                    Confirmar
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
