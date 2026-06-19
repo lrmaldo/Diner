@@ -3,6 +3,7 @@
 namespace App\Livewire\Caja;
 
 use App\Models\Capitalizacion;
+use App\Models\Egreso;
 use App\Models\Pago;
 use App\Models\Prestamo;
 use Illuminate\Support\Facades\DB;
@@ -199,6 +200,12 @@ class ArqueoCaja extends Component
              $sumarAlArqueo($p->desglose_entrega, -1); // Restar salida
         }
 
+        // 4. Restar Egresos de Caja (Salidas)
+        $egresosCaja = Egreso::where('origen', 'caja')->whereNotNull('denominaciones')->get();
+        foreach ($egresosCaja as $egreso) {
+            $sumarAlArqueo($egreso->denominaciones, -1);
+        }
+
         return $caja;
     }
     
@@ -223,8 +230,9 @@ class ArqueoCaja extends Component
         $ingresosBanco = Pago::whereIn('metodo_pago', $metodosBanco)->sum('monto');
         $ingresosBancoMoratorio = Pago::whereIn('metodo_pago', $metodosBanco)->sum('moratorio_pagado');
         $egresosBanco = Capitalizacion::whereIn('origen_fondos', ['banco', 'Banco'])->sum('monto');
-        
-        return ($ingresosBanco + $ingresosBancoMoratorio) - $egresosBanco;
+        $egresosBancoModulo = Egreso::where('origen', 'banco')->sum('monto');
+
+        return ($ingresosBanco + $ingresosBancoMoratorio) - $egresosBanco - $egresosBancoModulo;
     }
 
     public function render()

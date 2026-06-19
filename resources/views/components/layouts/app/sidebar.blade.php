@@ -196,6 +196,16 @@
                             Devolución de Garantía
                         </a>
 
+                        <!-- Egresos -->
+                        <a href="{{ route('caja.egresos') }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('caja.egresos') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           wire:navigate>
+                            <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4m16 0a8 8 0 11-16 0 8 8 0 0116 0z" />
+                            </svg>
+                            Egresos
+                        </a>
+
                         @role('Administrador')
                         <!-- Arqueo de Caja -->
                         <a href="{{ route('caja.arqueo') }}"
@@ -211,6 +221,31 @@
                     </div>
                 </div>
                 @endif
+
+                @role('Administrador')
+                <!-- Administración -->
+                <div x-data="{ open: {{ request()->routeIs('administracion.*') ? 'true' : 'false' }} }">
+                    <button @click="open = !open" class="w-full group flex items-center justify-between px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white">
+                        <div class="flex items-center">
+                            <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            Administración
+                        </div>
+                        <svg :class="{'rotate-90': open}" class="h-4 w-4 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+
+                    <div x-show="open" class="space-y-1 pl-10" x-cloak>
+                        <a href="{{ route('administracion.egresos') }}"
+                           class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('administracion.egresos') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
+                           wire:navigate>
+                            Egresos
+                        </a>
+                    </div>
+                </div>
+                @endrole
 
                 @can('ver usuarios')
                 <!-- Usuarios - Solo Administradores -->

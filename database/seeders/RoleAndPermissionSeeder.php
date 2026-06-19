@@ -56,6 +56,11 @@ class RoleAndPermissionSeeder extends Seeder
             'editar capital',
         ];
 
+        // Permisos para caja
+        $cajaPermissions = [
+            'ver caja',
+        ];
+
         // Crear permisos para informes
         $reportPermissions = [
             'ver informes',
@@ -74,30 +79,32 @@ class RoleAndPermissionSeeder extends Seeder
             $loanPermissions,
             $paymentPermissions,
             $capitalPermissions,
+            $cajaPermissions,
             $reportPermissions,
             $systemPermissions
         );
 
         // Crear todos los permisos en la base de datos
         foreach ($allPermissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Crear rol de Administrador con todos los permisos
-        $adminRole = Role::create(['name' => 'Administrador']);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole = Role::firstOrCreate(['name' => 'Administrador']);
+        $adminRole->syncPermissions(Permission::all());
 
         // Crear rol de Cajero con permisos limitados
-        $cashierRole = Role::create(['name' => 'Cajero']);
+        $cashierRole = Role::firstOrCreate(['name' => 'Cajero']);
         $cashierPerms = array_merge(
             ['ver usuarios'],
             $clientPermissions,
             ['ver prestamos', 'crear prestamos'],
             $paymentPermissions,
             ['ver capital'],
+            ['ver caja'],
             ['ver informes']
         );
-        $cashierRole->givePermissionTo($cashierPerms);
+        $cashierRole->syncPermissions($cashierPerms);
 
         // Crear rol de Asesor (rol para gestión comercial / préstamos)
         // Se crea solo si no existe, y se le asignan permisos básicos relacionados con clientes y préstamos.

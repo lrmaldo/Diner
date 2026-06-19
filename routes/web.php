@@ -53,6 +53,16 @@ Route::middleware(['auth'])->group(function () {
     // Rutas para operaciones
     Route::get('/operaciones/aclaracion-pagos', \App\Livewire\Operaciones\AclaracionPagos::class)->name('operaciones.aclaracion-pagos');
 
+    // Rutas para caja
+    Route::middleware(['permission:ver caja'])->group(function () {
+        Route::get('/caja/egresos', \App\Livewire\Egresos\Index::class)->name('caja.egresos');
+    });
+
+    // Rutas para administración
+    Route::middleware(['role:Administrador'])->group(function () {
+        Route::get('/administracion/egresos', \App\Livewire\Egresos\Consulta::class)->name('administracion.egresos');
+    });
+
     // Rutas para préstamos
     Route::middleware(['permission:ver prestamos'])->group(function () {
         Route::get('/prestamos/nuevo', \App\Livewire\Prestamos\Create::class)->name('prestamos.create');
