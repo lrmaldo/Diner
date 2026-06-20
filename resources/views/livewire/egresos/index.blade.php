@@ -78,12 +78,19 @@
                                 @error('monto') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
                             <div>
-                                <label for="descripcion" class="block font-semibold text-sm text-gray-800 mb-1">Descripción</label>
-                                <input id="descripcion" type="text" wire:model.live="descripcion"
-                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                                       placeholder="Descripción del egreso">
-                                @error('descripcion') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                <label for="fecha" class="block font-semibold text-sm text-gray-800 mb-1">Fecha</label>
+                                <input id="fecha" type="date" max="{{ now()->format('Y-m-d') }}" wire:model.live="fecha"
+                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500">
+                                @error('fecha') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
+                        </div>
+
+                        <div>
+                            <label for="descripcion" class="block font-semibold text-sm text-gray-800 mb-1">Descripción</label>
+                            <input id="descripcion" type="text" wire:model.live="descripcion"
+                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
+                                   placeholder="Descripción del egreso">
+                            @error('descripcion') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="flex items-center justify-end gap-3 pt-2">

@@ -3,6 +3,7 @@
 namespace App\Livewire\Egresos;
 
 use App\Models\Egreso;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -15,6 +16,7 @@ class Index extends Component
     public $origen;
     public $monto;
     public $descripcion;
+    public $fecha;
 
     public $desgloseBilletes = [
         '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
@@ -31,6 +33,7 @@ class Index extends Component
         'origen' => 'required|in:caja,banco',
         'monto' => 'required|numeric|min:0.01',
         'descripcion' => 'required|string|max:255',
+        'fecha' => 'required|date|before_or_equal:today',
     ];
 
     #[Layout('components.layouts.app')]
@@ -41,7 +44,7 @@ class Index extends Component
 
     public function isFormValid()
     {
-        return $this->origen && is_numeric($this->monto) && $this->monto > 0 && !empty($this->descripcion);
+        return $this->origen && is_numeric($this->monto) && $this->monto > 0 && !empty($this->descripcion) && !empty($this->fecha);
     }
 
     public function abrirModal()
@@ -62,6 +65,7 @@ class Index extends Component
         $this->origen = null;
         $this->monto = null;
         $this->descripcion = null;
+        $this->fecha = Carbon::now()->format('Y-m-d');
         foreach ($this->desgloseBilletes as $k => $v) {
             $this->desgloseBilletes[$k] = 0;
         }
@@ -134,6 +138,7 @@ class Index extends Component
                 'origen' => $this->origen,
                 'monto' => $this->monto,
                 'descripcion' => $this->descripcion,
+                'fecha' => $this->fecha,
                 'denominaciones' => $denominaciones,
                 'user_id' => auth()->id(),
             ]);

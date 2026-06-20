@@ -13,12 +13,14 @@ class Egreso extends Model
         'origen',
         'monto',
         'descripcion',
+        'fecha',
         'denominaciones',
         'user_id',
     ];
 
     protected $casts = [
         'denominaciones' => 'array',
+        'fecha' => 'date',
     ];
 
     public function user()

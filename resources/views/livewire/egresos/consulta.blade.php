@@ -44,6 +44,7 @@
                                 <thead class="bg-gray-50">
                                     <tr>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Origen</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
                                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
                                         <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
@@ -52,7 +53,12 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($datosMes['egresos'] as $egreso)
                                         <tr>
-                                            <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{{ $egreso->created_at->format('d-m-y') }}</td>
+                                            <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{{ $egreso->fecha->format('d-m-y') }}</td>
+                                            <td class="px-6 py-3 whitespace-nowrap text-sm">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $egreso->origen === 'caja' ? 'bg-green-100 text-green-800' : 'bg-indigo-100 text-indigo-800' }}">
+                                                    {{ $egreso->origen === 'caja' ? '🗄️ Caja' : '🏦 Banco' }}
+                                                </span>
+                                            </td>
                                             <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">{{ $egreso->descripcion }}</td>
                                             <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">{{ $egreso->user->name }}</td>
                                             <td class="px-6 py-3 whitespace-nowrap text-right text-sm text-gray-900">${{ number_format($egreso->monto, 2) }}</td>
@@ -61,7 +67,11 @@
                                 </tbody>
                                 <tfoot class="bg-blue-50">
                                     <tr>
-                                        <td colspan="3" class="px-6 py-3 text-right text-sm font-bold text-blue-800 uppercase">Total</td>
+                                        <td colspan="2" class="px-6 py-2 text-sm text-green-700">🗄️ Caja: ${{ number_format($datosMes['totalCaja'], 2) }}</td>
+                                        <td colspan="2" class="px-6 py-2 text-sm text-indigo-700">🏦 Banco: ${{ number_format($datosMes['totalBanco'], 2) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-3 text-right text-sm font-bold text-blue-800 uppercase">Total</td>
                                         <td class="px-6 py-3 text-right text-sm font-bold text-blue-900">${{ number_format($datosMes['total'], 2) }}</td>
                                     </tr>
                                 </tfoot>
@@ -70,14 +80,14 @@
                     </div>
                 @endforeach
 
-                @if(count($egresosPorMes) > 1)
-                    <div class="mt-2 bg-blue-700 rounded-lg shadow-sm">
-                        <div class="px-6 py-3 flex justify-end items-center gap-4">
-                            <span class="text-white font-bold uppercase">Total</span>
-                            <span class="text-white text-xl font-bold">${{ number_format($totalGeneral, 2) }}</span>
-                        </div>
+                <div class="mt-2 bg-blue-700 rounded-lg shadow-sm">
+                    <div class="px-6 py-4 flex flex-wrap justify-end items-center gap-6">
+                        <span class="text-blue-100 text-sm">🗄️ Caja: <span class="font-bold text-white">${{ number_format($totalCaja, 2) }}</span></span>
+                        <span class="text-blue-100 text-sm">🏦 Banco: <span class="font-bold text-white">${{ number_format($totalBanco, 2) }}</span></span>
+                        <span class="text-white font-bold uppercase">Total</span>
+                        <span class="text-white text-xl font-bold">${{ number_format($totalGeneral, 2) }}</span>
                     </div>
-                @endif
+                </div>
             @else
                 <div class="bg-white rounded-lg shadow-sm p-8 text-center text-gray-500">
                     No hay egresos para el período seleccionado.
