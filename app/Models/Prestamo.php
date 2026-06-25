@@ -816,6 +816,15 @@ class Prestamo extends Model
 
         $saldoLiquidar = $totalDeudaOriginal - ($totalPagadoReal - $moratoriosPagados);
 
+        // Tolerar el residuo de redondeo entre el calendario (decimales en la última
+        // cuota) y la caja (cobra floor en todas), igual que estaLiquidado().
+        $calendario = $this->simularCalendarioPago($montoAutorizado);
+        $tolerancia = empty($calendario) ? 0.5 : self::toleranciaRedondeoCalendario($calendario);
+
+        if ($saldoLiquidar <= $tolerancia) {
+            return 0;
+        }
+
         return floor(max(0, $saldoLiquidar));
     }
 }
