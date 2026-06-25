@@ -260,10 +260,19 @@ class Prestamo extends Model
 
     /**
      * Calcular el saldo pendiente real considerando intereses e IVA
+     *
+     * Tolera el residuo de redondeo entre el calendario (decimales en la última
+     * cuota) y la caja (cobra floor en todas), igual que estaLiquidado(), para
+     * que un crédito ya pagado no siga mostrando $1-2 pendientes.
      */
     public function calcularSaldoPendiente(): float
     {
-        return $this->calcularMontoTotalDeuda() - $this->calcularTotalPagado();
+        $saldo = $this->calcularMontoTotalDeuda() - $this->calcularTotalPagado();
+
+        $calendario = $this->simularCalendarioPago((float) ($this->monto_autorizado ?? $this->monto_total));
+        $tolerancia = empty($calendario) ? 0.5 : self::toleranciaRedondeoCalendario($calendario);
+
+        return $saldo <= $tolerancia ? 0.0 : $saldo;
     }
 
     /**
