@@ -149,8 +149,14 @@
             <div class="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-4">
                 <flux:label class="mb-2 block font-medium">Origen de los fondos:</flux:label>
                 <div class="flex flex-col sm:flex-row gap-4 sm:gap-8">
-                    <flux:radio wire:model.live="origenFondos" value="banco" label="Cuenta Diner (Banco)" />
-                    <flux:radio wire:model.live="origenFondos" value="externo" label="Cuenta Externa / Aportación" />
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <input type="radio" wire:model.live="origenFondos" value="banco" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <span>Cuenta Diner (Banco)</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <input type="radio" wire:model.live="origenFondos" value="externo" class="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500">
+                        <span>Cuenta Externa / Aportacion</span>
+                    </label>
                 </div>
             </div>
 
