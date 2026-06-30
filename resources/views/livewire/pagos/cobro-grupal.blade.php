@@ -209,8 +209,10 @@
                 <div class="space-y-2">
                     @foreach(['1000', '500', '200', '100', '50', '20'] as $billete)
                         <div class="flex items-center gap-3">
-                            <div class="w-16 h-10 bg-gradient-to-r from-green-100 to-green-200 rounded flex items-center justify-center border border-green-300">
-                                <span class="text-xs font-bold text-green-800">${{ $billete }}</span>
+                            <div class="w-16 h-10 flex items-center justify-center">
+                                <img src="{{ asset('img/billetes-monedas/billetes/' . $billete . 'pesos.png') }}"
+                                     alt="Billete ${{ $billete }}"
+                                     class="h-8 w-auto object-contain rounded-sm shadow-sm">
                             </div>
                             <input type="number" 
                                    min="0"
@@ -232,10 +234,17 @@
                     @foreach(['20', '10', '5', '2', '1', '0_5'] as $monedaKey)
                         @php
                             $valor = $monedaKey === '0_5' ? 0.5 : (float)$monedaKey;
+                            $imagen = match($monedaKey) {
+                                '1' => '1peso.png',
+                                '0_5' => '50centavos.png',
+                                default => $monedaKey . 'pesos.png'
+                            };
                         @endphp
                         <div class="flex items-center gap-3">
-                            <div class="w-16 h-10 bg-gradient-to-r from-yellow-100 to-yellow-200 rounded-full flex items-center justify-center border border-yellow-300">
-                                <span class="text-xs font-bold text-yellow-800">${{ $valor }}</span>
+                            <div class="w-16 h-10 flex items-center justify-center">
+                                <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}"
+                                     alt="Moneda ${{ $valor }}"
+                                     class="h-8 w-8 object-contain rounded-full">
                             </div>
                             <input type="number" 
                                    min="0"
