@@ -232,101 +232,106 @@
     </flux:modal>
 
     <!-- Modal Cambios -->
-    <flux:modal name="cambios-modal" class="min-w-[56rem]" wire:model="showCambiosModal">
-        <div class="space-y-5">
-            <div class="rounded-md px-4 py-3 text-white font-bold uppercase tracking-wide"
-                 :class="$wire.pasoCambio === 'ingresa' ? 'bg-red-600' : 'bg-red-700'">
-                {{ $pasoCambio === 'ingresa' ? 'Ingresa' : 'Sale' }}
-            </div>
+    @if($showCambiosModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-black/50" wire:click="$set('showCambiosModal', false)"></div>
 
-            @if($pasoCambio === 'sale')
-                <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-100">
-                    Ingreso confirmado: <strong>${{ number_format($this->totalCambioEntrada, 2) }}</strong>. Ahora captura como saldra el efectivo del arqueo.
+            <div class="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl bg-white dark:bg-zinc-800 shadow-xl border border-gray-200 dark:border-gray-700 p-5 space-y-5">
+                <div class="rounded-md px-4 py-3 text-white font-bold uppercase tracking-wide {{ $pasoCambio === 'ingresa' ? 'bg-red-600' : 'bg-red-700' }}">
+                    {{ $pasoCambio === 'ingresa' ? 'Ingresa' : 'Sale' }}
                 </div>
-            @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[52vh] overflow-y-auto pr-2">
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-gray-700 dark:text-gray-300">Billetes</h3>
-                        <span class="text-sm font-semibold text-green-700 dark:text-green-400">
-                            ${{ number_format($pasoCambio === 'ingresa' ? $this->totalBilletesCambioEntrada : $this->totalBilletesCambioSalida, 2) }}
-                        </span>
+                @if($pasoCambio === 'sale')
+                    <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-100">
+                        Ingreso confirmado: <strong>${{ number_format($this->totalCambioEntrada, 2) }}</strong>. Ahora captura como saldra el efectivo del arqueo.
                     </div>
-
-                    @foreach(($pasoCambio === 'ingresa' ? $billetesCambioEntrada : $billetesCambioSalida) as $denom => $cantidad)
-                        <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
-                            <div class="w-16 font-bold text-green-700 dark:text-green-400 text-sm">${{ $denom }}</div>
-                            <div class="flex-1 px-4">
-                                <input type="number"
-                                       min="0"
-                                       wire:model.live="{{ $pasoCambio === 'ingresa' ? 'billetesCambioEntrada' : 'billetesCambioSalida' }}.{{ $denom }}"
-                                       class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-green-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100"
-                                       placeholder="0">
-                            </div>
-                            <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
-                                ${{ number_format((float) $denom * (int) $cantidad, 0) }}
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="font-bold text-gray-700 dark:text-gray-300">Monedas</h3>
-                        <span class="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
-                            ${{ number_format($pasoCambio === 'ingresa' ? $this->totalMonedasCambioEntrada : $this->totalMonedasCambioSalida, 2) }}
-                        </span>
-                    </div>
-
-                    @foreach(($pasoCambio === 'ingresa' ? $monedasCambioEntrada : $monedasCambioSalida) as $denomKey => $cantidad)
-                        @php
-                            $valor = $denomKey === '0_5' ? 0.5 : (float) $denomKey;
-                        @endphp
-                        <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
-                            <div class="w-16 font-bold text-yellow-700 dark:text-yellow-400 text-sm">${{ $valor }}</div>
-                            <div class="flex-1 px-4">
-                                <input type="number"
-                                       min="0"
-                                       wire:model.live="{{ $pasoCambio === 'ingresa' ? 'monedasCambioEntrada' : 'monedasCambioSalida' }}.{{ $denomKey }}"
-                                       class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-yellow-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100"
-                                       placeholder="0">
-                            </div>
-                            <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
-                                ${{ number_format($valor * (int) $cantidad, 2) }}
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div>
-                <flux:label>Referencia (opcional)</flux:label>
-                <flux:textarea wire:model="comentariosCambio" rows="2" placeholder="Ej. Cambio de billetes para caja chica" />
-            </div>
-
-            <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Total {{ $pasoCambio === 'ingresa' ? 'Ingresa' : 'Sale' }}</span>
-                <span class="text-xl font-bold {{ $pasoCambio === 'ingresa' ? 'text-green-700 dark:text-green-400' : 'text-blue-700 dark:text-blue-400' }}">
-                    ${{ number_format($pasoCambio === 'ingresa' ? $this->totalCambioEntrada : $this->totalCambioSalida, 2) }}
-                </span>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-2 border-t">
-                <flux:button wire:click="$set('showCambiosModal', false)">Cancelar</flux:button>
-
-                @if($pasoCambio === 'ingresa')
-                    <flux:button variant="primary" wire:click="aceptarIngresoCambio">
-                        Aceptar
-                    </flux:button>
-                @else
-                    <flux:button variant="primary" wire:click="guardarCambios" wire:confirm="Se aplicara el cambio al arqueo. Desea continuar?">
-                        Cambiar
-                    </flux:button>
                 @endif
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[52vh] overflow-y-auto pr-2">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-gray-700 dark:text-gray-300">Billetes</h3>
+                            <span class="text-sm font-semibold text-green-700 dark:text-green-400">
+                                ${{ number_format($pasoCambio === 'ingresa' ? $this->totalBilletesCambioEntrada : $this->totalBilletesCambioSalida, 2) }}
+                            </span>
+                        </div>
+
+                        @foreach(($pasoCambio === 'ingresa' ? $billetesCambioEntrada : $billetesCambioSalida) as $denom => $cantidad)
+                            <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                <div class="w-16 font-bold text-green-700 dark:text-green-400 text-sm">${{ $denom }}</div>
+                                <div class="flex-1 px-4">
+                                    <input type="number"
+                                           min="0"
+                                           wire:model.live="{{ $pasoCambio === 'ingresa' ? 'billetesCambioEntrada' : 'billetesCambioSalida' }}.{{ $denom }}"
+                                           class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-green-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100"
+                                           placeholder="0">
+                                </div>
+                                <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    ${{ number_format((float) $denom * (int) $cantidad, 0) }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-gray-700 dark:text-gray-300">Monedas</h3>
+                            <span class="text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+                                ${{ number_format($pasoCambio === 'ingresa' ? $this->totalMonedasCambioEntrada : $this->totalMonedasCambioSalida, 2) }}
+                            </span>
+                        </div>
+
+                        @foreach(($pasoCambio === 'ingresa' ? $monedasCambioEntrada : $monedasCambioSalida) as $denomKey => $cantidad)
+                            @php
+                                $valor = $denomKey === '0_5' ? 0.5 : (float) $denomKey;
+                            @endphp
+                            <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                <div class="w-16 font-bold text-yellow-700 dark:text-yellow-400 text-sm">${{ $valor }}</div>
+                                <div class="flex-1 px-4">
+                                    <input type="number"
+                                           min="0"
+                                           wire:model.live="{{ $pasoCambio === 'ingresa' ? 'monedasCambioEntrada' : 'monedasCambioSalida' }}.{{ $denomKey }}"
+                                           class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-yellow-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100"
+                                           placeholder="0">
+                                </div>
+                                <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    ${{ number_format($valor * (int) $cantidad, 2) }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Referencia (opcional)</label>
+                    <textarea wire:model="comentariosCambio" rows="2" placeholder="Ej. Cambio de billetes para caja chica" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-zinc-700 dark:text-gray-100"></textarea>
+                </div>
+
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-600 dark:text-gray-300">Total {{ $pasoCambio === 'ingresa' ? 'Ingresa' : 'Sale' }}</span>
+                    <span class="text-xl font-bold {{ $pasoCambio === 'ingresa' ? 'text-green-700 dark:text-green-400' : 'text-blue-700 dark:text-blue-400' }}">
+                        ${{ number_format($pasoCambio === 'ingresa' ? $this->totalCambioEntrada : $this->totalCambioSalida, 2) }}
+                    </span>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                    <button type="button" wire:click="$set('showCambiosModal', false)" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-zinc-700">
+                        Cancelar
+                    </button>
+
+                    @if($pasoCambio === 'ingresa')
+                        <button type="button" wire:click="aceptarIngresoCambio" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+                            Aceptar
+                        </button>
+                    @else
+                        <button type="button" wire:click="guardarCambios" wire:confirm="Se aplicara el cambio al arqueo. Desea continuar?" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+                            Cambiar
+                        </button>
+                    @endif
+                </div>
             </div>
         </div>
-    </flux:modal>
+    @endif
 
     <!-- Modal Éxito -->
     <flux:modal name="success-modal" class="min-w-[22rem]" wire:model="showSuccessModal">
