@@ -256,21 +256,37 @@
                             </span>
                         </div>
 
-                        @foreach(($pasoCambio === 'ingresa' ? $billetesCambioEntrada : $billetesCambioSalida) as $denom => $cantidad)
-                            <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
-                                <div class="w-16 font-bold text-green-700 dark:text-green-400 text-sm">${{ $denom }}</div>
-                                <div class="flex-1 px-4">
-                                    <input type="number"
-                                           min="0"
-                                           wire:model.live="{{ $pasoCambio === 'ingresa' ? 'billetesCambioEntrada' : 'billetesCambioSalida' }}.{{ $denom }}"
-                                           class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-green-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100"
-                                           placeholder="0">
+                        @if($pasoCambio === 'ingresa')
+                            @foreach($billetesCambioEntrada as $denom => $cantidad)
+                                <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                    <div class="w-20 flex items-center gap-2">
+                                        <img src="{{ asset('img/billetes-monedas/billetes/' . $denom . 'pesos.png') }}" alt="Billete ${{ $denom }}" class="h-7 w-auto object-contain rounded-sm shadow-sm">
+                                        <span class="text-xs font-bold text-green-700 dark:text-green-400">${{ $denom }}</span>
+                                    </div>
+                                    <div class="flex-1 px-4">
+                                        <input type="number" min="0" wire:model.live.debounce.250ms="billetesCambioEntrada.{{ $denom }}" class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-green-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100" placeholder="0">
+                                    </div>
+                                    <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        ${{ number_format((float) $denom * (int) ($billetesCambioEntrada[$denom] ?? 0), 0) }}
+                                    </div>
                                 </div>
-                                <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    ${{ number_format((float) $denom * (int) $cantidad, 0) }}
+                            @endforeach
+                        @else
+                            @foreach($billetesCambioSalida as $denom => $cantidad)
+                                <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                    <div class="w-20 flex items-center gap-2">
+                                        <img src="{{ asset('img/billetes-monedas/billetes/' . $denom . 'pesos.png') }}" alt="Billete ${{ $denom }}" class="h-7 w-auto object-contain rounded-sm shadow-sm">
+                                        <span class="text-xs font-bold text-green-700 dark:text-green-400">${{ $denom }}</span>
+                                    </div>
+                                    <div class="flex-1 px-4">
+                                        <input type="number" min="0" wire:model.live.debounce.250ms="billetesCambioSalida.{{ $denom }}" class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-green-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100" placeholder="0">
+                                    </div>
+                                    <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        ${{ number_format((float) $denom * (int) ($billetesCambioSalida[$denom] ?? 0), 0) }}
+                                    </div>
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        @endif
                     </div>
 
                     <div class="space-y-3">
@@ -281,24 +297,53 @@
                             </span>
                         </div>
 
-                        @foreach(($pasoCambio === 'ingresa' ? $monedasCambioEntrada : $monedasCambioSalida) as $denomKey => $cantidad)
-                            @php
-                                $valor = $denomKey === '0_5' ? 0.5 : (float) $denomKey;
-                            @endphp
-                            <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
-                                <div class="w-16 font-bold text-yellow-700 dark:text-yellow-400 text-sm">${{ $valor }}</div>
-                                <div class="flex-1 px-4">
-                                    <input type="number"
-                                           min="0"
-                                           wire:model.live="{{ $pasoCambio === 'ingresa' ? 'monedasCambioEntrada' : 'monedasCambioSalida' }}.{{ $denomKey }}"
-                                           class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-yellow-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100"
-                                           placeholder="0">
+                        @if($pasoCambio === 'ingresa')
+                            @foreach($monedasCambioEntrada as $denomKey => $cantidad)
+                                @php
+                                    $valor = $denomKey === '0_5' ? 0.5 : (float) $denomKey;
+                                    $imagen = match($denomKey) {
+                                        '1' => '1peso.png',
+                                        '0_5' => '50centavos.png',
+                                        default => $denomKey . 'pesos.png'
+                                    };
+                                @endphp
+                                <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                    <div class="w-20 flex items-center gap-2">
+                                        <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" alt="Moneda ${{ $valor }}" class="h-7 w-7 object-contain rounded-full">
+                                        <span class="text-xs font-bold text-yellow-700 dark:text-yellow-400">${{ $valor }}</span>
+                                    </div>
+                                    <div class="flex-1 px-4">
+                                        <input type="number" min="0" wire:model.live.debounce.250ms="monedasCambioEntrada.{{ $denomKey }}" class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-yellow-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100" placeholder="0">
+                                    </div>
+                                    <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        ${{ number_format($valor * (int) ($monedasCambioEntrada[$denomKey] ?? 0), 2) }}
+                                    </div>
                                 </div>
-                                <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    ${{ number_format($valor * (int) $cantidad, 2) }}
+                            @endforeach
+                        @else
+                            @foreach($monedasCambioSalida as $denomKey => $cantidad)
+                                @php
+                                    $valor = $denomKey === '0_5' ? 0.5 : (float) $denomKey;
+                                    $imagen = match($denomKey) {
+                                        '1' => '1peso.png',
+                                        '0_5' => '50centavos.png',
+                                        default => $denomKey . 'pesos.png'
+                                    };
+                                @endphp
+                                <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                    <div class="w-20 flex items-center gap-2">
+                                        <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" alt="Moneda ${{ $valor }}" class="h-7 w-7 object-contain rounded-full">
+                                        <span class="text-xs font-bold text-yellow-700 dark:text-yellow-400">${{ $valor }}</span>
+                                    </div>
+                                    <div class="flex-1 px-4">
+                                        <input type="number" min="0" wire:model.live.debounce.250ms="monedasCambioSalida.{{ $denomKey }}" class="w-full text-center text-sm border-gray-300 rounded-md py-1 focus:ring-yellow-500 shadow-sm dark:bg-zinc-700 dark:text-gray-100" placeholder="0">
+                                    </div>
+                                    <div class="w-20 text-right text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        ${{ number_format($valor * (int) ($monedasCambioSalida[$denomKey] ?? 0), 2) }}
+                                    </div>
                                 </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        @endif
                     </div>
                 </div>
 
