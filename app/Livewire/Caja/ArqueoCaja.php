@@ -13,10 +13,20 @@ class ArqueoCaja extends Component
 {
     // Propiedades para Capitalizar (Modal)
     public $showCapitalizarModal = false;
+
+    public $showCambiosModal = false;
+
     public $showSuccessModal = false;
+
     public $comentariosCapital = '';
+
+    public $comentariosCambio = '';
+
     public $origenFondos = null; // externo, banco
+
     public $montoGuardado = 0;
+
+    public $pasoCambio = 'ingresa';
 
     public $billetesCapital = [
         '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
@@ -26,9 +36,25 @@ class ArqueoCaja extends Component
         '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
     ];
 
+    public $billetesCambioEntrada = [
+        '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
+    ];
+
+    public $monedasCambioEntrada = [
+        '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
+    ];
+
+    public $billetesCambioSalida = [
+        '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
+    ];
+
+    public $monedasCambioSalida = [
+        '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
+    ];
+
     public function mount()
     {
-        if (!auth()->user()->hasRole('Administrador')) {
+        if (! auth()->user()->hasRole('Administrador')) {
             abort(403, 'No tiene permisos para ver esta sección.');
         }
     }
@@ -38,8 +64,9 @@ class ArqueoCaja extends Component
     {
         $total = 0;
         foreach ($this->billetesCapital as $denom => $qty) {
-            $total += (float)$denom * (int)$qty;
+            $total += (float) $denom * (int) $qty;
         }
+
         return $total;
     }
 
@@ -47,9 +74,10 @@ class ArqueoCaja extends Component
     {
         $total = 0;
         foreach ($this->monedasCapital as $denom => $qty) {
-            $val = $denom === '0_5' ? 0.5 : (float)$denom;
-            $total += $val * (int)$qty;
+            $val = $denom === '0_5' ? 0.5 : (float) $denom;
+            $total += $val * (int) $qty;
         }
+
         return $total;
     }
 
@@ -58,10 +86,141 @@ class ArqueoCaja extends Component
         return $this->totalBilletesCapital + $this->totalMonedasCapital;
     }
 
+    public function getTotalBilletesCambioEntradaProperty(): float
+    {
+        $total = 0;
+        foreach ($this->billetesCambioEntrada as $denom => $qty) {
+            $total += (float) $denom * (int) $qty;
+        }
+
+        return $total;
+    }
+
+    public function getTotalMonedasCambioEntradaProperty(): float
+    {
+        $total = 0;
+        foreach ($this->monedasCambioEntrada as $denom => $qty) {
+            $valor = $denom === '0_5' ? 0.5 : (float) $denom;
+            $total += $valor * (int) $qty;
+        }
+
+        return $total;
+    }
+
+    public function getTotalCambioEntradaProperty(): float
+    {
+        return $this->totalBilletesCambioEntrada + $this->totalMonedasCambioEntrada;
+    }
+
+    public function getTotalBilletesCambioSalidaProperty(): float
+    {
+        $total = 0;
+        foreach ($this->billetesCambioSalida as $denom => $qty) {
+            $total += (float) $denom * (int) $qty;
+        }
+
+        return $total;
+    }
+
+    public function getTotalMonedasCambioSalidaProperty(): float
+    {
+        $total = 0;
+        foreach ($this->monedasCambioSalida as $denom => $qty) {
+            $valor = $denom === '0_5' ? 0.5 : (float) $denom;
+            $total += $valor * (int) $qty;
+        }
+
+        return $total;
+    }
+
+    public function getTotalCambioSalidaProperty(): float
+    {
+        return $this->totalBilletesCambioSalida + $this->totalMonedasCambioSalida;
+    }
+
     public function abrirCapitalizar()
     {
         $this->reset(['billetesCapital', 'monedasCapital', 'comentariosCapital', 'origenFondos']);
         $this->showCapitalizarModal = true;
+    }
+
+    public function abrirCambios(): void
+    {
+        $this->resetCambioForm();
+        $this->showCambiosModal = true;
+    }
+
+    public function aceptarIngresoCambio(): void
+    {
+        if ($this->totalCambioEntrada <= 0) {
+            $this->dispatch('toast', message: 'Debe ingresar al menos una denominacion en INGRESA.', type: 'error');
+
+            return;
+        }
+
+        $this->pasoCambio = 'sale';
+    }
+
+    public function guardarCambios(): void
+    {
+        if ($this->totalCambioEntrada <= 0) {
+            $this->dispatch('toast', message: 'El total de INGRESA debe ser mayor a 0.', type: 'error');
+
+            return;
+        }
+
+        if ($this->totalCambioSalida <= 0) {
+            $this->dispatch('toast', message: 'El total de SALE debe ser mayor a 0.', type: 'error');
+
+            return;
+        }
+
+        DB::transaction(function () {
+            Capitalizacion::create([
+                'monto' => $this->totalCambioEntrada,
+                'origen_fondos' => 'externo',
+                'desglose_billetes' => [
+                    'billetes' => $this->billetesCambioEntrada,
+                    'monedas' => $this->monedasCambioEntrada,
+                ],
+                'user_id' => auth()->id(),
+                'comentarios' => $this->comentariosCambio !== '' ? $this->comentariosCambio : 'Ingreso por cambio de denominaciones (Arqueo de Caja)',
+            ]);
+
+            Egreso::create([
+                'origen' => 'caja',
+                'monto' => $this->totalCambioSalida,
+                'descripcion' => $this->comentariosCambio !== '' ? $this->comentariosCambio : 'Salida por cambio de denominaciones (Arqueo de Caja)',
+                'denominaciones' => [
+                    'billetes' => $this->billetesCambioSalida,
+                    'monedas' => $this->monedasCambioSalida,
+                ],
+                'user_id' => auth()->id(),
+            ]);
+        });
+
+        $this->showCambiosModal = false;
+        $this->resetCambioForm();
+        $this->dispatch('toast', message: 'Cambio aplicado correctamente en arqueo.', type: 'success');
+    }
+
+    private function resetCambioForm(): void
+    {
+        $this->pasoCambio = 'ingresa';
+        $this->comentariosCambio = '';
+
+        $this->billetesCambioEntrada = [
+            '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
+        ];
+        $this->monedasCambioEntrada = [
+            '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
+        ];
+        $this->billetesCambioSalida = [
+            '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
+        ];
+        $this->monedasCambioSalida = [
+            '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
+        ];
     }
 
     public function guardarCapital()
@@ -72,6 +231,7 @@ class ArqueoCaja extends Component
 
         if ($this->totalGeneralCapital <= 0) {
             $this->dispatch('toast', message: 'El monto total debe ser mayor a 0.', type: 'error');
+
             return;
         }
 
@@ -90,51 +250,52 @@ class ArqueoCaja extends Component
 
         $this->showCapitalizarModal = false;
         $this->showSuccessModal = true;
-        
-        // No es necesario emitir evento para recargar, Livewire refrescará el componente automáticamente 
+
+        // No es necesario emitir evento para recargar, Livewire refrescará el componente automáticamente
         // y recalculará el Arqueo porque getDenominacionesProperty es una computed property que se evalúa al renderizar.
     }
-
 
     public function getDenominacionesProperty()
     {
         // Inicializar contadores en 0
         $caja = [
             '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
-            '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0
+            '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
         ];
 
         // Helper para sumar al arqueo
         $sumarAlArqueo = function ($desglose, $factor = 1) use (&$caja) {
-            if (!$desglose) return;
-            
+            if (! $desglose) {
+                return;
+            }
+
             // Si el desglose viene como string JSON (algunos casos en BD antigua), decodificar
             if (is_string($desglose)) {
                 $desglose = json_decode($desglose, true);
             }
-            
+
             // Normalizar estructura: a veces viene directo ['1000' => 5], a veces ['billetes' => [...]]
             $billetes = $desglose['billetes'] ?? $desglose ?? [];
             $monedas = $desglose['monedas'] ?? [];
-            
+
             // Sumar billetes
             foreach ($billetes as $denom => $cant) {
                 // Filtrar claves no numéricas o anidadas incorrectas si la estructura varía
-                if (isset($caja[(string)$denom]) && is_numeric($cant)) {
-                    $caja[(string)$denom] += ((int)$cant * $factor);
+                if (isset($caja[(string) $denom]) && is_numeric($cant)) {
+                    $caja[(string) $denom] += ((int) $cant * $factor);
                 }
             }
-            
+
             // Sumar monedas
             foreach ($monedas as $denom => $cant) {
-                $denomStr = (string)$denom;
+                $denomStr = (string) $denom;
                 // Normalizar clave antigua 0.5 a nueva 0_5
                 if ($denomStr === '0.5') {
                     $denomStr = '0_5';
                 }
 
                 if (isset($caja[$denomStr]) && is_numeric($cant)) {
-                    $caja[$denomStr] += ((int)$cant * $factor);
+                    $caja[$denomStr] += ((int) $cant * $factor);
                 }
             }
         };
@@ -148,43 +309,43 @@ class ArqueoCaja extends Component
         // 2. Sumar Pagos Recibidos (Entradas)
         // Solo pagos con desglose_efectivo guardado
         $pagos = Pago::whereNotNull('desglose_efectivo')->get();
-        
+
         // Mantener registro de transacciones procesadas para evitar duplicados en pagos grupales
         $processedUuids = [];
         $processedLegacyHashes = [];
 
         foreach ($pagos as $pago) {
             // Lógica para nuevas transacciones con UUID (Sistema robusto)
-            if (!empty($pago->pago_uuid)) {
+            if (! empty($pago->pago_uuid)) {
                 if (in_array($pago->pago_uuid, $processedUuids)) {
                     continue; // Ya procesamos esta transacción física
                 }
                 $processedUuids[] = $pago->pago_uuid;
-                
+
                 // Determinar si es entrada o salida
                 // Si es devolución de garantía, es una salida de dinero
                 $factor = ($pago->tipo_pago === 'devolucion_garantia') ? -1 : 1;
-                
+
                 // Sumar (o restar) lo procesado
                 $sumarAlArqueo($pago->desglose_efectivo, $factor);
-                
+
                 // Procesar cambio entregado (solo en cobros, son salidas de dinero)
-                if ($factor === 1 && !empty($pago->desglose_cambio)) {
+                if ($factor === 1 && ! empty($pago->desglose_cambio)) {
                     $sumarAlArqueo($pago->desglose_cambio, -1);
                 }
-                
+
                 continue;
             }
 
             // Lógica para pagos antiguos (Heurística: agrupar por préstamo, fecha exacta y desglose idéntico)
             // Esto corrige el problema de duplicidad en pagos grupales anteriores
-            $hash = $pago->prestamo_id . '_' . ($pago->created_at ? $pago->created_at->format('Y-m-d H:i:s') : '') . '_' . json_encode($pago->desglose_efectivo);
-            
+            $hash = $pago->prestamo_id.'_'.($pago->created_at ? $pago->created_at->format('Y-m-d H:i:s') : '').'_'.json_encode($pago->desglose_efectivo);
+
             if (in_array($hash, $processedLegacyHashes)) {
-                 continue; // Posible duplicado de registro por pago grupal
+                continue; // Posible duplicado de registro por pago grupal
             }
             $processedLegacyHashes[] = $hash;
-            
+
             $sumarAlArqueo($pago->desglose_efectivo, 1);
             // Pagos antiguos no guardaban desglose_cambio, así que no se resta nada
         }
@@ -193,11 +354,11 @@ class ArqueoCaja extends Component
         // Ya contamos con la columna desglose_entrega en la tabla prestamos.
         // Usamos whereNotNull('desglose_entrega') para incluir todos los préstamos que han salido,
         // independientemente de si su estado actual ha cambiado a 'activo', 'vencido' o 'pagado'.
-        
+
         $prestamosEntregados = Prestamo::whereNotNull('desglose_entrega')->get();
-            
+
         foreach ($prestamosEntregados as $p) {
-             $sumarAlArqueo($p->desglose_entrega, -1); // Restar salida
+            $sumarAlArqueo($p->desglose_entrega, -1); // Restar salida
         }
 
         // 4. Restar Egresos de Caja (Salidas)
@@ -208,17 +369,17 @@ class ArqueoCaja extends Component
 
         return $caja;
     }
-    
+
     public function getTotalSistemaProperty()
     {
         $total = 0;
         $denominaciones = $this->getDenominacionesProperty();
-        
+
         foreach ($denominaciones as $denom => $cantidad) {
-            $val = $denom === '0_5' ? 0.5 : (float)$denom;
-            $total += $val * (int)$cantidad;
+            $val = $denom === '0_5' ? 0.5 : (float) $denom;
+            $total += $val * (int) $cantidad;
         }
-        
+
         return $total;
     }
 
@@ -239,7 +400,7 @@ class ArqueoCaja extends Component
     {
         return view('livewire.caja.arqueo-caja', [
             'denominaciones' => $this->getDenominacionesProperty(),
-            'saldoBanco' => $this->getSaldoBancoProperty()
+            'saldoBanco' => $this->getSaldoBancoProperty(),
         ]);
     }
 }
