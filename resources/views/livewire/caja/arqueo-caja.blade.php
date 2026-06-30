@@ -236,7 +236,7 @@
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div class="fixed inset-0 bg-black/50" wire:click="$set('showCambiosModal', false)"></div>
 
-            <div class="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl bg-white dark:bg-zinc-800 shadow-xl border border-gray-200 dark:border-gray-700 p-5 space-y-5">
+            <div wire:key="modal-cambios-{{ $pasoCambio }}" class="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl bg-white dark:bg-zinc-800 shadow-xl border border-gray-200 dark:border-gray-700 p-5 space-y-5">
                 <div class="rounded-md px-4 py-3 text-white font-bold uppercase tracking-wide {{ $pasoCambio === 'ingresa' ? 'bg-red-600' : 'bg-red-700' }}">
                     {{ $pasoCambio === 'ingresa' ? 'Ingresa' : 'Sale' }}
                 </div>
@@ -258,7 +258,7 @@
 
                         @if($pasoCambio === 'ingresa')
                             @foreach($billetesCambioEntrada as $denom => $cantidad)
-                                <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                <div wire:key="cambio-ingresa-billete-{{ $denom }}" class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
                                     <div class="w-20 flex items-center gap-2">
                                         <img src="{{ asset('img/billetes-monedas/billetes/' . $denom . 'pesos.png') }}" alt="Billete ${{ $denom }}" class="h-7 w-auto object-contain rounded-sm shadow-sm">
                                         <span class="text-xs font-bold text-green-700 dark:text-green-400">${{ $denom }}</span>
@@ -273,7 +273,7 @@
                             @endforeach
                         @else
                             @foreach($billetesCambioSalida as $denom => $cantidad)
-                                <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                <div wire:key="cambio-sale-billete-{{ $denom }}" class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
                                     <div class="w-20 flex items-center gap-2">
                                         <img src="{{ asset('img/billetes-monedas/billetes/' . $denom . 'pesos.png') }}" alt="Billete ${{ $denom }}" class="h-7 w-auto object-contain rounded-sm shadow-sm">
                                         <span class="text-xs font-bold text-green-700 dark:text-green-400">${{ $denom }}</span>
@@ -307,7 +307,7 @@
                                         default => $denomKey . 'pesos.png'
                                     };
                                 @endphp
-                                <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                <div wire:key="cambio-ingresa-moneda-{{ $denomKey }}" class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
                                     <div class="w-20 flex items-center gap-2">
                                         <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" alt="Moneda ${{ $valor }}" class="h-7 w-7 object-contain rounded-full">
                                         <span class="text-xs font-bold text-yellow-700 dark:text-yellow-400">${{ $valor }}</span>
@@ -330,7 +330,7 @@
                                         default => $denomKey . 'pesos.png'
                                     };
                                 @endphp
-                                <div class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
+                                <div wire:key="cambio-sale-moneda-{{ $denomKey }}" class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
                                     <div class="w-20 flex items-center gap-2">
                                         <img src="{{ asset('img/billetes-monedas/monedas/' . $imagen) }}" alt="Moneda ${{ $valor }}" class="h-7 w-7 object-contain rounded-full">
                                         <span class="text-xs font-bold text-yellow-700 dark:text-yellow-400">${{ $valor }}</span>
