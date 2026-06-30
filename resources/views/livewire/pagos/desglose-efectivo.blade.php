@@ -76,11 +76,12 @@
                         <div class="p-2 space-y-1">
                             @foreach(['20', '10', '5', '2', '1', '0_5'] as $monedaKey)
                                 @php
-                                    $valor = $monedaKey === '0_5' ? 0.5 : (float)$monedaKey;
-                                    $imagen = match($monedaKey) {
+                                    $monedaKeyStr = (string) $monedaKey;
+                                    $valor = $monedaKeyStr === '0_5' ? 0.5 : (float) $monedaKeyStr;
+                                    $imagen = match($monedaKeyStr) {
                                         '1' => '1peso.png',
                                         '0_5' => '50centavos.png',
-                                        default => $monedaKey . 'pesos.png'
+                                        default => $monedaKeyStr . 'pesos.png'
                                     };
                                 @endphp
                                 <div class="flex items-center justify-between p-1 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100 transition-colors">
@@ -299,11 +300,12 @@
                                     <div class="space-y-1">
                                         @foreach(['20', '10', '5', '2', '1', '0_5'] as $monedaKey)
                                              @php
-                                                $valor = $monedaKey === '0_5' ? 0.5 : (float)$monedaKey;
-                                                $imagen = match($monedaKey) {
+                                                $monedaKeyStr = (string) $monedaKey;
+                                                $valor = $monedaKeyStr === '0_5' ? 0.5 : (float) $monedaKeyStr;
+                                                $imagen = match($monedaKeyStr) {
                                                     '1' => '1peso.png',
                                                     '0_5' => '50centavos.png',
-                                                    default => $monedaKey . 'pesos.png'
+                                                    default => $monedaKeyStr . 'pesos.png'
                                                 };
                                             @endphp
                                             <div class="flex items-center justify-between p-1 hover:bg-gray-50 rounded border border-transparent hover:border-gray-100">

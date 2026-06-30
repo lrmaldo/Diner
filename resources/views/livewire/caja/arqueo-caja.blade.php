@@ -306,11 +306,12 @@
                         @if($pasoCambio === 'ingresa')
                             @foreach($monedasCambioEntrada as $denomKey => $cantidad)
                                 @php
-                                    $valor = $denomKey === '0_5' ? 0.5 : (float) $denomKey;
-                                    $imagen = match($denomKey) {
+                                    $denomKeyStr = (string) $denomKey;
+                                    $valor = $denomKeyStr === '0_5' ? 0.5 : (float) $denomKeyStr;
+                                    $imagen = match($denomKeyStr) {
                                         '1' => '1peso.png',
                                         '0_5' => '50centavos.png',
-                                        default => $denomKey . 'pesos.png'
+                                        default => $denomKeyStr . 'pesos.png'
                                     };
                                 @endphp
                                 <div wire:key="cambio-ingresa-moneda-{{ $denomKey }}" class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
@@ -329,11 +330,12 @@
                         @else
                             @foreach($monedasCambioSalida as $denomKey => $cantidad)
                                 @php
-                                    $valor = $denomKey === '0_5' ? 0.5 : (float) $denomKey;
-                                    $imagen = match($denomKey) {
+                                    $denomKeyStr = (string) $denomKey;
+                                    $valor = $denomKeyStr === '0_5' ? 0.5 : (float) $denomKeyStr;
+                                    $imagen = match($denomKeyStr) {
                                         '1' => '1peso.png',
                                         '0_5' => '50centavos.png',
-                                        default => $denomKey . 'pesos.png'
+                                        default => $denomKeyStr . 'pesos.png'
                                     };
                                 @endphp
                                 <div wire:key="cambio-sale-moneda-{{ $denomKey }}" class="flex items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-zinc-700/40">
