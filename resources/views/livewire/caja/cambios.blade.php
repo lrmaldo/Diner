@@ -1,4 +1,4 @@
-<div class="p-4 sm:p-6 max-w-4xl mx-auto">
+<div class="p-4 sm:p-6 max-w-7xl mx-auto">
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Cambio de denominaciones</h1>
         <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -153,7 +153,7 @@
         <div class="flex justify-end gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
             @if($pasoCambio === 'ingresa')
                 <button type="button" wire:click="resetCambioForm" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-zinc-700">
-                    Limpiar
+                    Cancelar
                 </button>
                 <button type="button" wire:click="aceptarIngresoCambio" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
                     Aceptar
