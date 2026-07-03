@@ -103,11 +103,6 @@ class Cambios extends Component
         $this->pasoCambio = 'sale';
     }
 
-    public function volverAIngresa(): void
-    {
-        $this->pasoCambio = 'ingresa';
-    }
-
     public function guardarCambios(): void
     {
         if ($this->totalCambioEntrada <= 0) {

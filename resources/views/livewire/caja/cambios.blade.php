@@ -159,8 +159,8 @@
                     Aceptar
                 </button>
             @else
-                <button type="button" wire:click="volverAIngresa" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-zinc-700">
-                    Regresar
+                <button type="button" wire:click="resetCambioForm" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-zinc-700">
+                    Cancelar
                 </button>
                 <button type="button" wire:click="guardarCambios" wire:confirm="Se aplicara el cambio al arqueo. Desea continuar?"
                         @disabled(! $this->montosCuadran)
