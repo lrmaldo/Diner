@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\Caja\ArqueoCaja;
+use App\Livewire\Caja\Cambios;
 use App\Models\Capitalizacion;
 use App\Models\Egreso;
 use App\Models\Role;
@@ -27,12 +27,12 @@ class ArqueoCajaCambiosTest extends TestCase
         $user->assignRole('Administrador');
 
         Livewire::actingAs($user)
-            ->test(ArqueoCaja::class)
-            ->call('abrirCambios')
+            ->test(Cambios::class)
             ->set('billetesCambioEntrada.500', 2)
+            ->call('aceptarIngresoCambio')
+            ->assertSet('pasoCambio', 'sale')
             ->set('billetesCambioSalida.200', 5)
             ->call('guardarCambios')
-            ->assertSet('showCambiosModal', false)
             ->assertSet('pasoCambio', 'ingresa');
 
         $this->assertDatabaseCount('capitalizaciones', 1);

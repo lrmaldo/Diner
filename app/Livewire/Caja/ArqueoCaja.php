@@ -6,7 +6,6 @@ use App\Models\Capitalizacion;
 use App\Models\Egreso;
 use App\Models\Pago;
 use App\Models\Prestamo;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class ArqueoCaja extends Component
@@ -14,41 +13,19 @@ class ArqueoCaja extends Component
     // Propiedades para Capitalizar (Modal)
     public $showCapitalizarModal = false;
 
-    public $showCambiosModal = false;
-
     public $showSuccessModal = false;
 
     public $comentariosCapital = '';
 
-    public $comentariosCambio = '';
-
     public $origenFondos = null; // externo, banco
 
     public $montoGuardado = 0;
-
-    public $pasoCambio = 'ingresa';
 
     public $billetesCapital = [
         '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
     ];
 
     public $monedasCapital = [
-        '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
-    ];
-
-    public $billetesCambioEntrada = [
-        '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
-    ];
-
-    public $monedasCambioEntrada = [
-        '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
-    ];
-
-    public $billetesCambioSalida = [
-        '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
-    ];
-
-    public $monedasCambioSalida = [
         '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
     ];
 
@@ -86,141 +63,10 @@ class ArqueoCaja extends Component
         return $this->totalBilletesCapital + $this->totalMonedasCapital;
     }
 
-    public function getTotalBilletesCambioEntradaProperty(): float
-    {
-        $total = 0;
-        foreach ($this->billetesCambioEntrada as $denom => $qty) {
-            $total += (float) $denom * (int) $qty;
-        }
-
-        return $total;
-    }
-
-    public function getTotalMonedasCambioEntradaProperty(): float
-    {
-        $total = 0;
-        foreach ($this->monedasCambioEntrada as $denom => $qty) {
-            $valor = $denom === '0_5' ? 0.5 : (float) $denom;
-            $total += $valor * (int) $qty;
-        }
-
-        return $total;
-    }
-
-    public function getTotalCambioEntradaProperty(): float
-    {
-        return $this->totalBilletesCambioEntrada + $this->totalMonedasCambioEntrada;
-    }
-
-    public function getTotalBilletesCambioSalidaProperty(): float
-    {
-        $total = 0;
-        foreach ($this->billetesCambioSalida as $denom => $qty) {
-            $total += (float) $denom * (int) $qty;
-        }
-
-        return $total;
-    }
-
-    public function getTotalMonedasCambioSalidaProperty(): float
-    {
-        $total = 0;
-        foreach ($this->monedasCambioSalida as $denom => $qty) {
-            $valor = $denom === '0_5' ? 0.5 : (float) $denom;
-            $total += $valor * (int) $qty;
-        }
-
-        return $total;
-    }
-
-    public function getTotalCambioSalidaProperty(): float
-    {
-        return $this->totalBilletesCambioSalida + $this->totalMonedasCambioSalida;
-    }
-
     public function abrirCapitalizar()
     {
         $this->reset(['billetesCapital', 'monedasCapital', 'comentariosCapital', 'origenFondos']);
         $this->showCapitalizarModal = true;
-    }
-
-    public function abrirCambios(): void
-    {
-        $this->resetCambioForm();
-        $this->showCambiosModal = true;
-    }
-
-    public function aceptarIngresoCambio(): void
-    {
-        if ($this->totalCambioEntrada <= 0) {
-            $this->dispatch('toast', message: 'Debe ingresar al menos una denominacion en INGRESA.', type: 'error');
-
-            return;
-        }
-
-        $this->pasoCambio = 'sale';
-    }
-
-    public function guardarCambios(): void
-    {
-        if ($this->totalCambioEntrada <= 0) {
-            $this->dispatch('toast', message: 'El total de INGRESA debe ser mayor a 0.', type: 'error');
-
-            return;
-        }
-
-        if ($this->totalCambioSalida <= 0) {
-            $this->dispatch('toast', message: 'El total de SALE debe ser mayor a 0.', type: 'error');
-
-            return;
-        }
-
-        DB::transaction(function () {
-            Capitalizacion::create([
-                'monto' => $this->totalCambioEntrada,
-                'origen_fondos' => 'externo',
-                'desglose_billetes' => [
-                    'billetes' => $this->billetesCambioEntrada,
-                    'monedas' => $this->monedasCambioEntrada,
-                ],
-                'user_id' => auth()->id(),
-                'comentarios' => $this->comentariosCambio !== '' ? $this->comentariosCambio : 'Ingreso por cambio de denominaciones (Arqueo de Caja)',
-            ]);
-
-            Egreso::create([
-                'origen' => 'caja',
-                'monto' => $this->totalCambioSalida,
-                'descripcion' => $this->comentariosCambio !== '' ? $this->comentariosCambio : 'Salida por cambio de denominaciones (Arqueo de Caja)',
-                'denominaciones' => [
-                    'billetes' => $this->billetesCambioSalida,
-                    'monedas' => $this->monedasCambioSalida,
-                ],
-                'user_id' => auth()->id(),
-            ]);
-        });
-
-        $this->showCambiosModal = false;
-        $this->resetCambioForm();
-        $this->dispatch('toast', message: 'Cambio aplicado correctamente en arqueo.', type: 'success');
-    }
-
-    private function resetCambioForm(): void
-    {
-        $this->pasoCambio = 'ingresa';
-        $this->comentariosCambio = '';
-
-        $this->billetesCambioEntrada = [
-            '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
-        ];
-        $this->monedasCambioEntrada = [
-            '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
-        ];
-        $this->billetesCambioSalida = [
-            '1000' => 0, '500' => 0, '200' => 0, '100' => 0, '50' => 0, '20' => 0,
-        ];
-        $this->monedasCambioSalida = [
-            '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
-        ];
     }
 
     public function guardarCapital()
