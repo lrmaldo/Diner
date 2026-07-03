@@ -13,7 +13,26 @@
 
         @if($pasoCambio === 'sale')
             <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:bg-blue-900/20 dark:border-blue-700 dark:text-blue-100">
-                Ingreso confirmado: <strong>${{ number_format($this->totalCambioEntrada, 2) }}</strong>. Ahora captura como saldra el efectivo del arqueo.
+                Ingreso confirmado: <strong>${{ number_format($this->totalCambioEntrada, 2) }}</strong>. Ahora captura como saldra el efectivo del arqueo. El monto que sale debe ser <strong>exactamente igual</strong> al que ingresó.
+            </div>
+
+            {{-- Comparativa en vivo: no se permite dar de menos ni de más --}}
+            <div class="rounded-lg border p-3 flex flex-wrap items-center justify-between gap-2
+                {{ $this->montosCuadran ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700' : 'border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700' }}">
+                <div class="text-sm">
+                    <span class="text-gray-600 dark:text-gray-300">Ingresó:</span>
+                    <strong class="text-gray-900 dark:text-gray-100">${{ number_format($this->totalCambioEntrada, 2) }}</strong>
+                    <span class="mx-2 text-gray-400">|</span>
+                    <span class="text-gray-600 dark:text-gray-300">Sale:</span>
+                    <strong class="text-gray-900 dark:text-gray-100">${{ number_format($this->totalCambioSalida, 2) }}</strong>
+                </div>
+                @if($this->montosCuadran)
+                    <span class="text-sm font-bold text-green-700 dark:text-green-400">✓ Los montos coinciden</span>
+                @elseif($this->diferenciaCambio < 0)
+                    <span class="text-sm font-bold text-amber-700 dark:text-amber-400">Faltan ${{ number_format(abs($this->diferenciaCambio), 2) }}</span>
+                @else
+                    <span class="text-sm font-bold text-red-700 dark:text-red-400">Sobran ${{ number_format($this->diferenciaCambio, 2) }}</span>
+                @endif
             </div>
         @endif
 
@@ -143,7 +162,9 @@
                 <button type="button" wire:click="volverAIngresa" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-zinc-700">
                     Regresar
                 </button>
-                <button type="button" wire:click="guardarCambios" wire:confirm="Se aplicara el cambio al arqueo. Desea continuar?" class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+                <button type="button" wire:click="guardarCambios" wire:confirm="Se aplicara el cambio al arqueo. Desea continuar?"
+                        @disabled(! $this->montosCuadran)
+                        class="px-4 py-2 rounded-md text-white {{ $this->montosCuadran ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed' }}">
                     Cambiar
                 </button>
             @endif

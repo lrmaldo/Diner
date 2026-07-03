@@ -46,4 +46,42 @@ class ArqueoCajaCambiosTest extends TestCase
         $this->assertSame(5, data_get($egreso->denominaciones, 'billetes.200'));
         $this->assertSame(2, data_get($capitalizacion->desglose_billetes, 'billetes.500'));
     }
+
+    public function test_no_permite_cambio_si_el_monto_que_sale_no_es_exacto(): void
+    {
+        Role::create([
+            'name' => 'Administrador',
+            'guard_name' => 'web',
+            'slug' => 'administrador',
+        ]);
+
+        $user = User::factory()->create();
+        $user->assignRole('Administrador');
+
+        // Ingresa 1000, intenta sacar 900 (de menos): no debe aplicar.
+        Livewire::actingAs($user)
+            ->test(Cambios::class)
+            ->set('billetesCambioEntrada.1000', 1)
+            ->call('aceptarIngresoCambio')
+            ->set('billetesCambioSalida.500', 1)
+            ->set('billetesCambioSalida.200', 2)
+            ->call('guardarCambios')
+            ->assertSet('pasoCambio', 'sale'); // sigue en 'sale', no se completó
+
+        $this->assertDatabaseCount('capitalizaciones', 0);
+        $this->assertDatabaseCount('egresos', 0);
+
+        // Ahora intenta sacar 1100 (de más): tampoco debe aplicar.
+        Livewire::actingAs($user)
+            ->test(Cambios::class)
+            ->set('billetesCambioEntrada.1000', 1)
+            ->call('aceptarIngresoCambio')
+            ->set('billetesCambioSalida.500', 2)
+            ->set('billetesCambioSalida.100', 1)
+            ->call('guardarCambios')
+            ->assertSet('pasoCambio', 'sale');
+
+        $this->assertDatabaseCount('capitalizaciones', 0);
+        $this->assertDatabaseCount('egresos', 0);
+    }
 }

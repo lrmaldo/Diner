@@ -30,13 +30,6 @@ class Cambios extends Component
         '20' => 0, '10' => 0, '5' => 0, '2' => 0, '1' => 0, '0_5' => 0,
     ];
 
-    public function mount(): void
-    {
-        if (! auth()->user()->hasRole('Administrador')) {
-            abort(403, 'No tiene permisos para ver esta sección.');
-        }
-    }
-
     public function getTotalBilletesCambioEntradaProperty(): float
     {
         $total = 0;
@@ -89,6 +82,16 @@ class Cambios extends Component
         return $this->totalBilletesCambioSalida + $this->totalMonedasCambioSalida;
     }
 
+    public function getDiferenciaCambioProperty(): float
+    {
+        return round($this->totalCambioSalida - $this->totalCambioEntrada, 2);
+    }
+
+    public function getMontosCuadranProperty(): bool
+    {
+        return $this->totalCambioEntrada > 0 && abs($this->diferenciaCambio) < 0.005;
+    }
+
     public function aceptarIngresoCambio(): void
     {
         if ($this->totalCambioEntrada <= 0) {
@@ -115,6 +118,18 @@ class Cambios extends Component
 
         if ($this->totalCambioSalida <= 0) {
             $this->dispatch('toast', message: 'El total de SALE debe ser mayor a 0.', type: 'error');
+
+            return;
+        }
+
+        // Medida de seguridad: lo que sale debe ser exactamente igual a lo que ingresó.
+        // No se permite dar de menos ni de más para no afectar el arqueo de caja.
+        if (! $this->montosCuadran) {
+            $diff = $this->diferenciaCambio;
+            $mensaje = $diff < 0
+                ? 'Monto incompleto: falta dar $'.number_format(abs($diff), 2).' para igualar lo que ingresó ($'.number_format($this->totalCambioEntrada, 2).').'
+                : 'El monto que sale excede por $'.number_format($diff, 2).' lo que ingresó ($'.number_format($this->totalCambioEntrada, 2).').';
+            $this->dispatch('toast', message: $mensaje, type: 'error');
 
             return;
         }

@@ -196,7 +196,6 @@
                             Devolución de Garantía
                         </a>
 
-                        @role('Administrador')
                         <!-- Cambios (cambio de denominaciones) -->
                         <a href="{{ route('caja.cambios') }}"
                            class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('caja.cambios') ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white' }}"
@@ -206,7 +205,6 @@
                             </svg>
                             Cambios
                         </a>
-                        @endrole
 
                         <!-- Egresos -->
                         <a href="{{ route('caja.egresos') }}"
