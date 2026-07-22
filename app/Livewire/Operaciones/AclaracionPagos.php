@@ -36,8 +36,8 @@ class AclaracionPagos extends Component
             }
         } else {
             foreach ($this->clientData as $clientId => $data) {
-                $this->inputs[$clientId]['efectivo'] = 0;
-                $this->inputs[$clientId]['moratorio'] = 0;
+                $this->inputs[$clientId]['efectivo'] = '';
+                $this->inputs[$clientId]['moratorio'] = '';
             }
         }
     }
@@ -118,8 +118,8 @@ class AclaracionPagos extends Component
             $stats = $this->calculateClientStats($cliente);
             $this->clientData[$cliente->id] = $stats;
             $this->inputs[$cliente->id] = [
-                'efectivo' => 0,
-                'moratorio' => 0
+                'efectivo' => '',
+                'moratorio' => ''
             ];
         }
     }

@@ -85,14 +85,16 @@
                             {{ number_format($data['moratorio'], 0) }}
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap text-right font-bold text-blue-600">
-                            <input type="number" 
-                                wire:model="inputs.{{ $clientId }}.efectivo" 
+                            <input type="number" min="0" step="any"
+                                wire:model="inputs.{{ $clientId }}.efectivo"
+                                onfocus="this.select()"
                                 class="w-24 text-right border-0 border-b border-blue-300 focus:ring-0 focus:border-blue-600 bg-transparent py-1 px-0 font-bold text-blue-600"
                                 placeholder="0">
                         </td>
                         <td class="px-3 py-2 whitespace-nowrap text-right font-bold text-blue-600">
-                            <input type="number" 
-                                wire:model="inputs.{{ $clientId }}.moratorio" 
+                            <input type="number" min="0" step="any"
+                                wire:model="inputs.{{ $clientId }}.moratorio"
+                                onfocus="this.select()"
                                 class="w-24 text-right border-0 border-b border-blue-300 focus:ring-0 focus:border-blue-600 bg-transparent py-1 px-0 font-bold text-blue-600"
                                 placeholder="0">
                         </td>
