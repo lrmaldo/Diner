@@ -874,7 +874,15 @@
                     
                     // Calcular recuperado: suma de todos los pagos realizados (excluyendo devoluciones que son negativas)
                     $recuperadoTotal = $prestamo->pagos()->where('tipo_pago', '!=', 'devolucion_garantia')->sum('monto') - $prestamo->pagos()->sum('moratorio_pagado');
-                    
+
+                    // Si el crédito ya está liquidado (pagado dentro de la tolerancia de redondeo),
+                    // el residuo de centavos que caja no cobra en la última cuota no debe quedar
+                    // como exigible pendiente. Se reconcilia el recuperado con el exigible para que
+                    // no aparezca "$1 pendiente" aquí cuando abajo (saldos) ya está en ceros.
+                    if ($prestamo->estaLiquidado()) {
+                        $recuperadoTotal = $exigibleTotal;
+                    }
+
                     // Calcular el total de moratorios/multas pagadas
                     $totalMultasPagadas = $prestamo->pagos()->sum('moratorio_pagado');
                     
