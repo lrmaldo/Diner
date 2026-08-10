@@ -113,6 +113,16 @@ class RecuperacionAsesor extends Component
                         $recuperado = $recuperadoPorCuota[$cuota['numero']] ?? 0;
 
                         $pendiente = max(0, $exigible - $recuperado);
+
+                        // Absorber el residuo de redondeo sub-peso: caja cobra en pesos enteros,
+                        // así que un faltante real es de $1 o más. Un pendiente menor a $1 es el
+                        // centavaje de la última cuota (decimales del IVA) que caja no cobra: se
+                        // considera recuperado para no mostrar una "Diferencia 1" fantasma.
+                        if ($pendiente > 0 && $pendiente < 1) {
+                            $recuperado = $exigible;
+                            $pendiente = 0;
+                        }
+
                         $eficiencia = $exigible > 0 ? ($recuperado / $exigible) * 100 : 100;
 
                         // Determinar datos de presentación

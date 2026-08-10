@@ -117,10 +117,17 @@ class RecuperacionExigible extends Component
                     // Sumar el exigible que cae en las fechas indicadas
                     foreach ($calendario as $cuota) {
                         if ($cuota['fecha'] >= $this->fechaDesde && $cuota['fecha'] <= $this->fechaHasta) {
-                            $exigibleTotal += $cuota['monto'];
-
+                            $exigibleCuota = (float) $cuota['monto'];
                             $recuperadoCuota = $recuperadoPorCuota[$cuota['numero']] ?? 0;
 
+                            // Absorber el residuo de redondeo sub-peso por cuota (caja cobra en
+                            // pesos enteros; un faltante real es de $1 o más). Así el residuo de la
+                            // última cuota no se acumula en el total del asesor.
+                            if (($exigibleCuota - $recuperadoCuota) > 0 && ($exigibleCuota - $recuperadoCuota) < 1) {
+                                $recuperadoCuota = $exigibleCuota;
+                            }
+
+                            $exigibleTotal += $exigibleCuota;
                             $recuperadoTotal += $recuperadoCuota;
                         }
                     }

@@ -367,8 +367,18 @@ class ReportesControlService
                 foreach ($calendario as $cuota) {
                     $cFecha = Carbon::parse($cuota['fecha'])->startOfDay();
                     if ($cFecha->between($inicio->copy()->startOfDay(), $fin->copy()->endOfDay())) {
-                        $exigibleTotal += $cuota['monto'];
-                        $recuperadoTotal += ($recuperadoPorCuota[$cuota['numero']] ?? 0);
+                        $exigibleCuota = (float) $cuota['monto'];
+                        $recuperadoCuota = $recuperadoPorCuota[$cuota['numero']] ?? 0;
+
+                        // Absorber el residuo de redondeo sub-peso por cuota (caja cobra en pesos
+                        // enteros): un faltante real es de $1 o más; el centavaje de la última cuota
+                        // no debe bajar la eficiencia de un periodo totalmente recuperado.
+                        if (($exigibleCuota - $recuperadoCuota) > 0 && ($exigibleCuota - $recuperadoCuota) < 1) {
+                            $recuperadoCuota = $exigibleCuota;
+                        }
+
+                        $exigibleTotal += $exigibleCuota;
+                        $recuperadoTotal += $recuperadoCuota;
                     }
                 }
             } catch (\Exception $e) {
