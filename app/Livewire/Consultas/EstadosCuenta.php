@@ -5,6 +5,7 @@ namespace App\Livewire\Consultas;
 use App\Models\Cliente;
 use App\Models\Grupo;
 use App\Models\Prestamo;
+use App\Services\CalculadoraPrestamos;
 use Livewire\Component;
 
 class EstadosCuenta extends Component
@@ -88,10 +89,52 @@ class EstadosCuenta extends Component
                 ->orWhereHas('clientes', function ($query) use ($clientId) {
                     $query->where('clientes.id', $clientId);
                 })
-                ->with(['grupo'])
+                ->with(['grupo', 'pagos', 'clientes'])
                 ->orderBy('id', 'desc')
                 ->get();
         }
+    }
+
+    /**
+     * Clasificación de color de un crédito por su número de atrasos, para colorear la fila.
+     * Sólo aplica a créditos ya entregados/finalizados; los demás quedan sin color.
+     *
+     * @return array{nivel: string, hex: string, row: string}
+     */
+    public function clasificacionAtrasos($loan): array
+    {
+        if (! in_array(strtolower($loan->estado ?? ''), ['entregado', 'atrasado', 'liquidado', 'pagado', 'castigado'], true)) {
+            return ['nivel' => 'na', 'hex' => '#9ca3af', 'row' => ''];
+        }
+
+        $clienteId = $this->selectedClient?->id;
+
+        // Monto de este cliente en el crédito (para grupales usa su porción del pivot)
+        $monto = $loan->monto_total;
+        if ($clienteId) {
+            $enPivot = $loan->clientes->firstWhere('id', $clienteId);
+            if ($enPivot && $enPivot->pivot) {
+                $monto = $enPivot->pivot->monto_autorizado ?? $enPivot->pivot->monto_solicitado ?? $loan->monto_total;
+            }
+        }
+
+        try {
+            $calendario = CalculadoraPrestamos::calcularCalendarioPagos(
+                $monto,
+                $loan->tasa_interes,
+                $loan->plazo,
+                $loan->periodicidad,
+                $loan->fecha_primer_pago ?? $loan->fecha_entrega,
+                $loan->ultimo_pago ?? null
+            );
+        } catch (\Throwable $e) {
+            return ['nivel' => 'na', 'hex' => '#9ca3af', 'row' => ''];
+        }
+
+        $pagos = $clienteId ? $loan->pagos->where('cliente_id', $clienteId) : $loan->pagos;
+        $stats = Prestamo::calcularAtrasosHistoricos($calendario, $pagos);
+
+        return Prestamo::clasificacionPorAtrasos($stats['total']);
     }
 
     public function selectLoan($loanId)

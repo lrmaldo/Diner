@@ -416,6 +416,25 @@ class Prestamo extends Model
     }
 
     /**
+     * Clasificación de color por NÚMERO DE ATRASOS (regla única para barras y reportes):
+     * verde = 0 (puntual) · naranja = 1 a 4 · rojo = 5 o más.
+     *
+     * @return array{nivel: string, hex: string, row: string}
+     */
+    public static function clasificacionPorAtrasos(int $atrasos): array
+    {
+        if ($atrasos <= 0) {
+            return ['nivel' => 'verde', 'hex' => '#10b981', 'row' => 'bg-green-100 dark:bg-green-900/30'];
+        }
+
+        if ($atrasos <= 4) {
+            return ['nivel' => 'naranja', 'hex' => '#eab308', 'row' => 'bg-yellow-100 dark:bg-yellow-900/30'];
+        }
+
+        return ['nivel' => 'rojo', 'hex' => '#ef4444', 'row' => 'bg-red-100 dark:bg-red-900/30'];
+    }
+
+    /**
      * Historial de atrasos de un crédito para el gráfico de comité.
      *
      * Recorre el calendario y, cuota por cuota, determina la fecha en que se cubrió

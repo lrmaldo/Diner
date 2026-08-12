@@ -71,11 +71,10 @@ class Show extends Component
             return [];
         }
 
-        // Sólo créditos que realmente se entregaron (excluye pendientes/en comité/rechazados),
-        // y sin incluir el crédito que se está revisando: el historial son los OTROS créditos.
+        // Sólo créditos que realmente se entregaron (excluye pendientes/en comité/rechazados).
+        // Se incluye el propio crédito para que un cliente con un único crédito no quede sin gráfico.
         $creditos = $cliente->prestamosAsignados()
             ->whereIn('estado', ['entregado', 'atrasado', 'liquidado', 'pagado', 'castigado'])
-            ->when($this->prestamo?->id, fn ($q, $id) => $q->where('prestamos.id', '!=', $id))
             ->with('pagos')
             ->orderBy('fecha_entrega')
             ->get();
@@ -108,9 +107,8 @@ class Show extends Component
 
             $activo = in_array(strtolower($c->estado), ['entregado', 'atrasado'], true);
 
-            // Color por atrasos graves: verde 0 | naranja 1-3 | rojo 4+
-            $graves = $stats['graves'];
-            $color = $graves === 0 ? '#10b981' : ($graves <= 3 ? '#eab308' : '#ef4444');
+            // Color por número total de atrasos (regla única): verde 0 | naranja 1-4 | rojo 5+
+            $color = Prestamo::clasificacionPorAtrasos($stats['total'])['hex'];
 
             $barras[] = [
                 'grupo' => $c->id,
@@ -119,7 +117,7 @@ class Show extends Component
                 'pago_actual' => min($stats['cubiertas'], $stats['total_cuotas']),
                 'total_pagos' => $stats['total_cuotas'],
                 'atrasos' => $stats['total'],
-                'graves' => $graves,
+                'graves' => $stats['graves'],
                 'activo' => $activo,
                 'color' => $color,
                 'altura_px' => $maxMonto > 0 ? max(16, (int) round(($monto / $maxMonto) * 56)) : 40,
