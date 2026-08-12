@@ -156,21 +156,7 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3">
-                                <div class="flex items-center justify-center gap-2">
-                                    {{-- Gráfica de barras mini --}}
-                                    <div class="flex gap-1 items-end h-12">
-                                        @for($i = 1; $i <= 4; $i++)
-                                            <div
-                                                class="w-4 rounded-t"
-                                                style="height: {{ [40, 70, 25, 85][$i-1] }}%; background-color: {{ ['#10b981', '#ef4444', '#eab308', '#10b981'][$i-1] }};"
-                                                title="Préstamo {{ $i }}">
-                                            </div>
-                                        @endfor
-                                    </div>
-                                    <div class="text-sm font-bold text-gray-700">
-                                        4
-                                    </div>
-                                </div>
+                                @include('livewire.prestamos.partials.historial-barras', ['barras' => $this->barrasHistorial($prestamo->cliente)])
                             </td>
                             <td class="px-4 py-3 text-right">
                                 <span class="font-medium text-green-600">
@@ -269,21 +255,7 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <div class="flex items-center justify-center gap-2">
-                                        {{-- Gráfica de barras mini en la tabla según bosquejo --}}
-                                        <div class="flex gap-1 items-end h-12">
-                                            @for($i = 1; $i <= 4; $i++)
-                                                <div
-                                                    class="w-4 rounded-t"
-                                                    style="height: {{ [40, 70, 25, 85][$i-1] }}%; background-color: {{ ['#10b981', '#ef4444', '#eab308', '#10b981'][$i-1] }};"
-                                                    title="Préstamo {{ $i }}">
-                                                </div>
-                                            @endfor
-                                        </div>
-                                        <div class="text-sm font-bold text-gray-700">
-                                            4
-                                        </div>
-                                    </div>
+                                    @include('livewire.prestamos.partials.historial-barras', ['barras' => $this->barrasHistorial($cliente)])
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <span class="font-medium text-blue-600">

@@ -415,6 +415,90 @@ class Prestamo extends Model
         return $atrasos;
     }
 
+    /**
+     * Historial de atrasos de un crédito para el gráfico de comité.
+     *
+     * Recorre el calendario y, cuota por cuota, determina la fecha en que se cubrió
+     * (FIFO sobre los pagos del cliente). Cuenta como "atraso" toda cuota cubierta
+     * después de su vencimiento o vencida y aún no cubierta; "grave" si el retraso
+     * supera `$diasGrave` días. Devuelve total, graves, cuotas cubiertas y totales.
+     *
+     * @param  array<int, array{numero: mixed, fecha: string, monto: mixed}>  $calendario
+     * @param  iterable  $pagosCliente  Pagos del cliente en ese crédito
+     * @return array{total: int, graves: int, cubiertas: int, total_cuotas: int}
+     */
+    public static function calcularAtrasosHistoricos(array $calendario, $pagosCliente, ?Carbon $hoy = null, int $diasGrave = 3): array
+    {
+        $hoy = ($hoy ?? now())->copy()->startOfDay();
+        $tolerancia = self::toleranciaRedondeoCalendario($calendario);
+
+        // Timeline de pagos: sólo capital/interés (excluye garantía/seguro/devolución y resta moratorio)
+        $timeline = [];
+        $acumPagos = 0.0;
+        $pagosOrdenados = collect($pagosCliente)
+            ->filter(function ($p) {
+                $t = strtolower($p->tipo_pago ?? '');
+
+                return ! in_array($t, ['garantia', 'garantía', 'seguro', 'cargo'], true) && ! str_contains($t, 'devolucion');
+            })
+            ->sortBy('fecha_pago')
+            ->values();
+
+        foreach ($pagosOrdenados as $p) {
+            $acumPagos += (float) $p->monto - (float) $p->moratorio_pagado;
+            $timeline[] = [
+                'acum' => $acumPagos,
+                'fecha' => Carbon::parse($p->fecha_pago)->startOfDay(),
+            ];
+        }
+
+        $total = 0;
+        $graves = 0;
+        $cubiertas = 0;
+        $acumCuotas = 0.0;
+
+        foreach ($calendario as $cuota) {
+            $acumCuotas += (float) ($cuota['monto'] ?? 0);
+
+            try {
+                $venc = Carbon::createFromFormat('d-m-y', (string) ($cuota['fecha'] ?? ''))->startOfDay();
+            } catch (\Throwable $e) {
+                $venc = Carbon::parse((string) ($cuota['fecha'] ?? ''))->startOfDay();
+            }
+
+            $cobertura = null;
+            foreach ($timeline as $t) {
+                if ($t['acum'] >= $acumCuotas - $tolerancia) {
+                    $cobertura = $t['fecha'];
+                    break;
+                }
+            }
+
+            if ($cobertura !== null) {
+                $cubiertas++;
+                if ($cobertura->gt($venc)) {
+                    $total++;
+                    if ($venc->diffInDays($cobertura) > $diasGrave) {
+                        $graves++;
+                    }
+                }
+            } elseif ($venc->lt($hoy)) {
+                // Cuota vencida y aún sin cubrir
+                $total++;
+                if ($venc->diffInDays($hoy) > $diasGrave) {
+                    $graves++;
+                }
+            }
+        }
+
+        return [
+            'total' => $total,
+            'graves' => $graves,
+            'cubiertas' => $cubiertas,
+            'total_cuotas' => count($calendario),
+        ];
+    }
+
     public function extraerPlazoNumerico($plazo)
     {
         if (is_numeric($plazo)) {

@@ -4,6 +4,8 @@ namespace App\Livewire\Prestamos;
 
 use App\Models\Cliente;
 use App\Models\Prestamo;
+use App\Services\CalculadoraPrestamos;
+use Carbon\Carbon;
 use Livewire\Component;
 
 class Show extends Component
@@ -56,6 +58,74 @@ class Show extends Component
     // public function loadHistorial()
     // {
     // }
+
+    /**
+     * Arma las barras del historial crediticio de un cliente para el gráfico de comité.
+     * Una barra por cada crédito entregado/finalizado del cliente.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function barrasHistorial($cliente): array
+    {
+        if (! $cliente) {
+            return [];
+        }
+
+        // Sólo créditos que realmente se entregaron (excluye pendientes/en comité/rechazados)
+        $creditos = $cliente->prestamosAsignados()
+            ->whereIn('estado', ['entregado', 'atrasado', 'liquidado', 'pagado', 'castigado'])
+            ->with('pagos')
+            ->orderBy('fecha_entrega')
+            ->get();
+
+        // Altura relativa al crédito más grande del historial
+        $maxMonto = 0.0;
+        foreach ($creditos as $c) {
+            $maxMonto = max($maxMonto, (float) ($c->pivot->monto_autorizado ?? $c->monto_total ?? 0));
+        }
+
+        $barras = [];
+        foreach ($creditos as $c) {
+            $monto = (float) ($c->pivot->monto_autorizado ?? $c->monto_total ?? 0);
+
+            try {
+                $calendario = CalculadoraPrestamos::calcularCalendarioPagos(
+                    $monto,
+                    $c->tasa_interes,
+                    $c->plazo,
+                    $c->periodicidad,
+                    $c->fecha_primer_pago ?? $c->fecha_entrega,
+                    $c->ultimo_pago ?? null
+                );
+            } catch (\Throwable $e) {
+                continue;
+            }
+
+            $pagosCliente = $c->pagos->where('cliente_id', $cliente->id);
+            $stats = Prestamo::calcularAtrasosHistoricos($calendario, $pagosCliente);
+
+            $activo = in_array(strtolower($c->estado), ['entregado', 'atrasado'], true);
+
+            // Color por atrasos graves: verde 0 | naranja 1-3 | rojo 4+
+            $graves = $stats['graves'];
+            $color = $graves === 0 ? '#10b981' : ($graves <= 3 ? '#eab308' : '#ef4444');
+
+            $barras[] = [
+                'grupo' => $c->id,
+                'monto' => $monto,
+                'fecha_entrega' => $c->fecha_entrega ? Carbon::parse($c->fecha_entrega)->format('d-m-y') : '—',
+                'pago_actual' => min($stats['cubiertas'], $stats['total_cuotas']),
+                'total_pagos' => $stats['total_cuotas'],
+                'atrasos' => $stats['total'],
+                'graves' => $graves,
+                'activo' => $activo,
+                'color' => $color,
+                'altura_px' => $maxMonto > 0 ? max(16, (int) round(($monto / $maxMonto) * 56)) : 40,
+            ];
+        }
+
+        return $barras;
+    }
 
     public function getComportamientoColor($prestamo)
     {
