@@ -1,6 +1,16 @@
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
     <div class="bg-white dark:bg-zinc-800 overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900 dark:text-gray-100">
+            @if($volverUrl)
+                <a href="{{ $volverUrl }}" wire:navigate
+                   class="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-zinc-700">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Volver al comité
+                </a>
+            @endif
+
             <h2 class="text-lg font-medium mb-6">Estados de cuenta</h2>
 
             {{-- Search Form --}}

@@ -141,9 +141,12 @@
                     <tbody class="divide-y divide-gray-200">
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3">
-                                <p class="font-medium text-gray-900">
+                                <a href="{{ route('consultas.estados-cuenta', ['cliente' => $prestamo->cliente->id, 'volver' => route('prestamos.show', $prestamo->id)]) }}"
+                                   wire:navigate
+                                   class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                   title="Ver estado de cuenta del cliente">
                                     {{ trim(($prestamo->cliente->nombres ?? '') . ' ' . ($prestamo->cliente->apellido_paterno ?? '') . ' ' . ($prestamo->cliente->apellido_materno ?? '')) }}
-                                </p>
+                                </a>
                                 @if($prestamo->cliente->curp)
                                     <p class="text-xs text-gray-500 mt-1">{{ $prestamo->cliente->curp }}</p>
                                 @endif
@@ -234,9 +237,12 @@
                         @foreach($prestamo->clientes as $cliente)
                             <tr class="hover:bg-gray-50">
                                 <td class="px-4 py-3">
-                                    <p class="font-medium text-gray-900">
+                                    <a href="{{ route('consultas.estados-cuenta', ['cliente' => $cliente->id, 'volver' => route('prestamos.show', $prestamo->id)]) }}"
+                                       wire:navigate
+                                       class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                       title="Ver estado de cuenta del cliente">
                                         {{ trim(($cliente->nombres ?? ($cliente->nombre ?? '')) . ' ' . ($cliente->apellido_paterno ?? ($cliente->apellido ?? '')) . ' ' . ($cliente->apellido_materno ?? '')) }}
-                                    </p>
+                                    </a>
                                     @if($prestamo->representante_id == $cliente->id)
                                         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 mt-1">
                                             <i class="fas fa-star mr-1"></i> Representante

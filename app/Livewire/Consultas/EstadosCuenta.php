@@ -17,6 +17,19 @@ class EstadosCuenta extends Component
     public $clientLoans = [];
     public $selectedLoan = null;
     public $noResults = false;
+    public $volverUrl = null;
+
+    public function mount()
+    {
+        // Deep-link desde comité: ?cliente=ID abre directo el estado de cuenta del cliente,
+        // y ?volver=URL permite regresar a la vista anterior (el comité del préstamo).
+        $this->volverUrl = request()->query('volver');
+
+        $clienteId = request()->query('cliente');
+        if ($clienteId) {
+            $this->selectClient((int) $clienteId);
+        }
+    }
 
     public function updatedGrupo()
     {
