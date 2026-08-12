@@ -71,9 +71,11 @@ class Show extends Component
             return [];
         }
 
-        // Sólo créditos que realmente se entregaron (excluye pendientes/en comité/rechazados)
+        // Sólo créditos que realmente se entregaron (excluye pendientes/en comité/rechazados),
+        // y sin incluir el crédito que se está revisando: el historial son los OTROS créditos.
         $creditos = $cliente->prestamosAsignados()
             ->whereIn('estado', ['entregado', 'atrasado', 'liquidado', 'pagado', 'castigado'])
+            ->when($this->prestamo?->id, fn ($q, $id) => $q->where('prestamos.id', '!=', $id))
             ->with('pagos')
             ->orderBy('fecha_entrega')
             ->get();
