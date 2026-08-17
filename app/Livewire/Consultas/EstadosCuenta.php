@@ -117,7 +117,7 @@ class EstadosCuenta extends Component
     public function clasificacionAtrasos($loan): array
     {
         if (! in_array(strtolower($loan->estado ?? ''), ['entregado', 'atrasado', 'liquidado', 'pagado', 'castigado'], true)) {
-            return ['nivel' => 'na', 'hex' => '#9ca3af', 'row' => ''];
+            return ['nivel' => 'na', 'hex' => '#9ca3af', 'row_bg' => ''];
         }
 
         $clienteId = $this->selectedClient?->id;
@@ -141,7 +141,7 @@ class EstadosCuenta extends Component
                 $loan->ultimo_pago ?? null
             );
         } catch (\Throwable $e) {
-            return ['nivel' => 'na', 'hex' => '#9ca3af', 'row' => ''];
+            return ['nivel' => 'na', 'hex' => '#9ca3af', 'row_bg' => ''];
         }
 
         $pagos = $clienteId ? $loan->pagos->where('cliente_id', $clienteId) : $loan->pagos;

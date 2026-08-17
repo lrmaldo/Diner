@@ -172,7 +172,7 @@
                             <tbody class="bg-white dark:bg-zinc-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($clientLoans as $index => $loan)
                                     @php $clasif = $this->clasificacionAtrasos($loan); @endphp
-                                    <tr class="{{ $clasif['row'] }}">
+                                    <tr @if(!empty($clasif['row_bg'])) style="background-color: {{ $clasif['row_bg'] }}" @endif>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600">{{ $index + 1 }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm border-r border-gray-200 dark:border-gray-600 font-bold {{ $loan->estado === 'entregado' ? 'text-blue-600 dark:text-blue-400' : ($loan->estado === 'liquidado' ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-gray-100') }}">
                                             <flux:tooltip content="Estatus: {{ ucfirst($loan->estado) }}">

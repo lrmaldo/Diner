@@ -120,7 +120,7 @@ class Show extends Component
                 'graves' => $stats['graves'],
                 'activo' => $activo,
                 'color' => $color,
-                'altura_px' => $maxMonto > 0 ? max(16, (int) round(($monto / $maxMonto) * 56)) : 40,
+                'altura_px' => $maxMonto > 0 ? max(10, (int) round(($monto / $maxMonto) * 38)) : 28,
             ];
         }
 
