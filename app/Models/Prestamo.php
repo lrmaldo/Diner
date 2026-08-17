@@ -428,14 +428,14 @@ class Prestamo extends Model
     public static function clasificacionPorAtrasos(int $atrasos): array
     {
         if ($atrasos <= 0) {
-            return ['nivel' => 'verde', 'hex' => '#16a34a', 'row_bg' => 'rgba(22,163,74,0.15)'];
+            return ['nivel' => 'verde', 'hex' => '#16a34a', 'row_bg' => 'rgba(22,163,74,0.45)'];
         }
 
         if ($atrasos <= 4) {
-            return ['nivel' => 'naranja', 'hex' => '#f97316', 'row_bg' => 'rgba(249,115,22,0.15)'];
+            return ['nivel' => 'naranja', 'hex' => '#f97316', 'row_bg' => 'rgba(249,115,22,0.45)'];
         }
 
-        return ['nivel' => 'rojo', 'hex' => '#dc2626', 'row_bg' => 'rgba(220,38,38,0.15)'];
+        return ['nivel' => 'rojo', 'hex' => '#dc2626', 'row_bg' => 'rgba(220,38,38,0.45)'];
     }
 
     /**
