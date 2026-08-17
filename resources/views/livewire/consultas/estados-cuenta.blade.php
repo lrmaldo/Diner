@@ -1,4 +1,10 @@
 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    {{-- Filas de color sólido (verde/amarillo/rojo): forzar que todo el texto de la fila
+         herede el color de la fila para que contraste con el fondo. --}}
+    <style>
+        tr[data-fila-color] td,
+        tr[data-fila-color] td * { color: inherit !important; }
+    </style>
     <div class="bg-white dark:bg-zinc-800 overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900 dark:text-gray-100">
             @if($volverUrl)
@@ -172,7 +178,7 @@
                             <tbody class="bg-white dark:bg-zinc-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($clientLoans as $index => $loan)
                                     @php $clasif = $this->clasificacionAtrasos($loan); @endphp
-                                    <tr @if(!empty($clasif['row_bg'])) style="background-color: {{ $clasif['row_bg'] }}" @endif>
+                                    <tr @if(!empty($clasif['row_bg'])) data-fila-color style="background-color: {{ $clasif['row_bg'] }}; color: {{ $clasif['text'] }}" @endif>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100 border-r border-gray-200 dark:border-gray-600">{{ $index + 1 }}</td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm border-r border-gray-200 dark:border-gray-600 font-bold {{ $loan->estado === 'entregado' ? 'text-blue-600 dark:text-blue-400' : ($loan->estado === 'liquidado' ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-gray-100') }}">
                                             <flux:tooltip content="Estatus: {{ ucfirst($loan->estado) }}">

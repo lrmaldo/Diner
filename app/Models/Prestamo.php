@@ -419,23 +419,23 @@ class Prestamo extends Model
      * Clasificación de color por NÚMERO DE ATRASOS (regla única para barras y reportes):
      * verde = 0 (puntual) · naranja = 1 a 4 · rojo = 5 o más.
      *
-     * `hex` es el color sólido de la barra; `row_bg` es un tinte translúcido (rgba) para
-     * pintar filas por estilo inline —así no depende de que Tailwind genere clases y se ve
-     * bien en tema claro y oscuro—. Colores vivos a juego con los botones del sistema.
+     * `hex` es el color sólido (barras y fondo de fila); `text` es el color de letra que
+     * contrasta con ese fondo. Colores vivos a juego con los botones Autorizar/Rechazar
+     * (verde y rojo sólidos con letra blanca) y amarillo fuerte con letra oscura.
      *
-     * @return array{nivel: string, hex: string, row_bg: string}
+     * @return array{nivel: string, hex: string, row_bg: string, text: string}
      */
     public static function clasificacionPorAtrasos(int $atrasos): array
     {
         if ($atrasos <= 0) {
-            return ['nivel' => 'verde', 'hex' => '#16a34a', 'row_bg' => 'rgba(22,163,74,0.45)'];
+            return ['nivel' => 'verde', 'hex' => '#16a34a', 'row_bg' => '#16a34a', 'text' => '#ffffff'];
         }
 
         if ($atrasos <= 4) {
-            return ['nivel' => 'naranja', 'hex' => '#f97316', 'row_bg' => 'rgba(249,115,22,0.45)'];
+            return ['nivel' => 'amarillo', 'hex' => '#f5b301', 'row_bg' => '#f5b301', 'text' => '#1f2937'];
         }
 
-        return ['nivel' => 'rojo', 'hex' => '#dc2626', 'row_bg' => 'rgba(220,38,38,0.45)'];
+        return ['nivel' => 'rojo', 'hex' => '#dc2626', 'row_bg' => '#dc2626', 'text' => '#ffffff'];
     }
 
     /**
